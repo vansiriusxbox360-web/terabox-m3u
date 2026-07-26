@@ -312,7 +312,12 @@ function extractEpisode(name) {
 }
 
 function isSeasonFolder(name) {
-  return /^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|\d+\.\s*\w+|\d{4})$/i.test(name);
+  if (/^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|\d{4})$/i.test(name)) return true;
+  if (/^\d+[\s.-]+\d+/.test(name)) return true;
+  if (/^Saga\s/i.test(name)) return true;
+  if (/Temporada\s+\d+/i.test(name)) return true;
+  if (/^\d+\.\s*\w+/.test(name) && /\(\d+/.test(name)) return true;
+  return false;
 }
 
 function isJokeFolder(name) {
@@ -321,11 +326,18 @@ function isJokeFolder(name) {
     'padawan', 'spin-off', 'pille ya mayor', 'streaming básicamente', 'cositas que se ven',
     'much marcha', 'Tele5 molaba', 'VHS', 'madre te decía', 'Digital+', 'Cartoon Network',
     'FoxKids', 'Disney Channel', 'Nickelodeon', 'sine malo', 'sine güeno',
-    'encontrará de todo', 'aparte de las pelis', 'del cole', 'que no haya'];
+    'encontrará de todo', 'aparte de las pelis', 'del cole', 'que no haya',
+    'Formas alternativas', 'La Casa del Árbol', 'freshquishimosh', 'Castellano'];
   return skipWords.some(w => name.toLowerCase().includes(w.toLowerCase()));
 }
 
-const CONTAINER_FOLDERS = new Set(['dibus', 'videos', 'episodios', 'capítulos', 'capitulos', 'temporada', 'temp']);
+const CONTAINER_FOLDERS = new Set([
+  'dibus', 'videos', 'episodios', 'capítulos', 'capitulos', 'temporada', 'temp',
+  'pelos', 'cortos', 'especiales', 'extras', 'original', 'pelis', 'pilotos',
+  'promociones', 'reportajes', 'revisión 2021', 'adultos', 'chorris', 'chou y ehpesiale',
+  'eplis', 'no adultos', 'no chorris', 'no dibus', 'ªnime', 'en castellano', 'en neutro',
+  'monty\'s movies', 'festivales del tiri', 'festivales por capis'
+]);
 
 function isContainerFolder(name) {
   return CONTAINER_FOLDERS.has(name.toLowerCase());
