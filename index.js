@@ -311,7 +311,11 @@ function getGroupFromPath(filePath, rootFolder) {
 }
 
 function generateM3U(files, rootFolder, posters) {
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
   let m3u = '#EXTM3U\n';
+  m3u += `#PLAYLIST:La colección de VanSirius\n`;
+  m3u += `#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg" group-title="",La colección de VanSirius - Actualizado: ${now}\n`;
+  m3u += `https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg\n`;
   
   for (const file of files) {
     const { group, searchName } = getGroupFromPath(file.path, rootFolder);
