@@ -392,7 +392,7 @@ function generateJSON(files, rootFolder, posters) {
   const year = now.getUTCFullYear();
   const dateStr = `${day}-${month}-${year}`;
 
-  const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg';
+  const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png';
 
   const groupsMap = {};
   for (const file of files) {
