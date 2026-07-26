@@ -385,35 +385,38 @@ function getGroupFromPath(filePath, rootFolder) {
   return { group, searchName };
 }
 
-function generateM3U(files, rootFolder, posters) {
+function generateJSON(files, rootFolder, posters) {
   const now = new Date();
   const day = String(now.getUTCDate()).padStart(2, '0');
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
   const year = now.getUTCFullYear();
   const dateStr = `${day}-${month}-${year}`;
-  const hour = String(now.getUTCHours()).padStart(2, '0');
-  const min = String(now.getUTCMinutes()).padStart(2, '0');
-  
-  let m3u = '#EXTM3U\n';
-  m3u += `#PLAYLIST:La colección de VanSirius\n`;
-  m3u += `#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg" group-title="", VanSirius 🎬 | Última act. ${dateStr} ${hour}:${min} UTC\n`;
-  m3u += `https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg\n`;
-  
+
+  const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg';
+
+  const groupsMap = {};
   for (const file of files) {
     const { group, searchName } = getGroupFromPath(file.path, rootFolder);
-    
-    const displayName = file.cleanName;
-    const poster = posters && posters[searchName];
-
-    if (poster) {
-      m3u += `#EXTINF:-1 tvg-logo="${poster}" group-title="${group}",${displayName}\n`;
-    } else {
-      m3u += `#EXTINF:-1 group-title="${group}",${displayName}\n`;
+    if (!groupsMap[group]) {
+      groupsMap[group] = { name: group, image: posters && posters[searchName] ? posters[searchName] : ICON_URL, info: '', stations: [] };
     }
-    m3u += `${file.dlink}\n`;
+    const poster = posters && posters[searchName] ? posters[searchName] : ICON_URL;
+    groupsMap[group].stations.push({
+      name: file.cleanName,
+      image: poster,
+      url: file.dlink
+    });
   }
 
-  return m3u;
+  const groups = Object.values(groupsMap).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+  return {
+    name: 'La colección de VanSirius',
+    author: `VanSirius (Actualizada al ${dateStr})`,
+    image: ICON_URL,
+    url: 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u',
+    groups: groups
+  };
 }
 
 async function main() {
@@ -524,15 +527,15 @@ async function main() {
     console.log('No hay API key de OMDb. Se genera M3U sin portadas.\n');
   }
 
-  console.log('Generando lista M3U...');
-  const m3uContent = generateM3U(filesWithLinks, rootFolder, posters);
+  console.log('Generando lista JSON...');
+  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters);
   
   const outputPath = process.env.GITHUB_ACTIONS 
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
     : path.join(__dirname, 'lista.m3u');
   
-  fs.writeFileSync(outputPath, m3uContent, 'utf-8');
-  console.log(`Lista M3U guardada en: ${outputPath}`);
+  fs.writeFileSync(outputPath, JSON.stringify(jsonContent, null, 2), 'utf-8');
+  console.log(`Lista guardada en: ${outputPath}`);
   console.log(`Total de entradas: ${filesWithLinks.length}`);
   console.log('\n¡Completado!');
 }
