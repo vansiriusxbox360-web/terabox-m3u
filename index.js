@@ -294,20 +294,26 @@ async function getDownloadLinks(tb, files) {
   return results;
 }
 
+function getGroupFromPath(filePath, rootFolder) {
+  const pathParts = filePath.split('/').filter(p => p);
+  const rootIndex = pathParts.indexOf(rootFolder);
+  if (rootIndex === -1 || rootIndex + 1 >= pathParts.length) {
+    return { group: 'Otros', searchName: 'Otros' };
+  }
+  const subParts = pathParts.slice(rootIndex + 1);
+  const searchName = subParts[subParts.length - 1];
+  const group = subParts.join(' > ');
+  return { group, searchName };
+}
+
 function generateM3U(files, rootFolder, posters) {
   let m3u = '#EXTM3U\n';
   
   for (const file of files) {
-    const pathParts = file.path.split('/').filter(p => p);
-    const rootIndex = pathParts.indexOf(rootFolder);
-    
-    let group = 'Otros';
-    if (rootIndex !== -1 && rootIndex + 1 < pathParts.length) {
-      group = pathParts[rootIndex + 1];
-    }
+    const { group, searchName } = getGroupFromPath(file.path, rootFolder);
     
     const displayName = file.cleanName;
-    const poster = posters && posters[group];
+    const poster = posters && posters[searchName];
 
     if (poster) {
       m3u += `#EXTINF:-1 tvg-logo="${poster}" group-title="${group}",${displayName}\n`;
@@ -415,7 +421,9 @@ async function main() {
     const uniqueGroups = [...new Set(filesWithLinks.map(f => {
       const parts = f.path.split('/').filter(p => p);
       const idx = parts.indexOf(rootFolder);
-      return (idx !== -1 && idx + 1 < parts.length) ? parts[idx + 1] : 'Otros';
+      if (idx === -1 || idx + 1 >= parts.length) return 'Otros';
+      const subParts = parts.slice(idx + 1);
+      return subParts[subParts.length - 1];
     }))];
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
     posters = await fetchPosters(uniqueGroups, omdbKey);
