@@ -350,23 +350,18 @@ function getGroupFromPath(filePath, rootFolder) {
     return { group: 'Otros', searchName: 'Otros' };
   }
   const subParts = pathParts.slice(rootIndex + 1);
-  
   const topGroup = subParts[0];
-  
-  let category = null;
+
+  const folderParts = subParts.slice(0, -1);
+  const group = folderParts.length > 0 ? folderParts.join('/') : topGroup;
+
   let showName = null;
-  
   for (let i = subParts.length - 2; i >= 1; i--) {
     const name = subParts[i];
     if (isSeasonFolder(name) || isJokeFolder(name) || isContainerFolder(name) || name === topGroup) continue;
-    if (!showName) {
-      showName = name;
-    } else if (!category) {
-      category = name;
-      break;
-    }
+    showName = name;
+    break;
   }
-  
   if (!showName) {
     for (let i = 1; i < subParts.length; i++) {
       const name = subParts[i];
@@ -375,14 +370,11 @@ function getGroupFromPath(filePath, rootFolder) {
       break;
     }
   }
-  
   if (!showName) {
-    showName = subParts[subParts.length - 1].replace(/\.[^/.]+$/, '');
+    showName = folderParts.length > 0 ? folderParts[folderParts.length - 1] : topGroup;
   }
-  
-  const searchName = showName;
-  const group = category ? `${topGroup}/${category}/${showName}` : `${topGroup}/${showName}`;
-  return { group, searchName };
+
+  return { group, searchName: showName };
 }
 
 function generateJSON(files, rootFolder, posters) {

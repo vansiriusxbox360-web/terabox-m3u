@@ -45,7 +45,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add lista.m3u
+          git add lista.m3u posters-cache.json
           git diff --cached --quiet || git commit -m "Update lista.m3u - $(date -u '+%Y-%m-%d %H:%M UTC')"
           git pull --rebase
           git push
