@@ -4,7 +4,9 @@ import xbmcaddon
 import xbmc
 import json
 import urllib.request
+import urllib.parse
 import sys
+import traceback
 
 ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1])
@@ -13,80 +15,92 @@ JSON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/m
 ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png'
 
 
+def log(msg, level=xbmc.LOGINFO):
+    xbmc.log(f'[VanSirius] {msg}', level)
+
+
 def get_json():
-    req = urllib.request.Request(JSON_URL)
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read().decode('utf-8'))
+    try:
+        req = urllib.request.Request(JSON_URL, headers={'User-Agent': 'Kodi-Addon'})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        log(f'Error cargando JSON: {e}', xbmc.LOGERROR)
+        xbmcgui.Dialog().ok('Error', f'No se pudo cargar la lista:\n{e}')
+        return None
 
 
-def build_tree_structure(data):
-    tree = {}
-    for group in data.get('groups', []):
-        parts = group['name'].split('/')
-        current = tree
-        for part in parts:
-            if part not in current:
-                current[part] = {'_groups': [], '_icon': group.get('image', ICON)}
-            current = current[part]
-        current['_groups'].append(group)
-    return tree
+def build_url(action, path=''):
+    params = urllib.parse.urlencode({'action': action, 'path': path})
+    return f'{BASE_URL}?{params}'
 
 
-def add_dir(name, url, icon='', is_folder=True, info=None):
+def add_dir(name, url, icon='', is_folder=True):
     li = xbmcgui.ListItem(name)
     if icon:
-        li.setArt({'icon': icon, 'thumb': icon})
-    if info:
-        li.setInfo('video', info)
+        li.setArt({'icon': icon, 'thumb': icon, 'fanart': icon})
     xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=is_folder)
 
 
-def build_url(action, **params):
-    query = '&'.join(f'{k}={v}' for k, v in params.items())
-    return f'{BASE_URL}?action={action}&{query}'
-
-
 def list_root(data):
-    add_dir('📺 La Colección de VanSirius', '', ICON, True)
-    tree = build_tree_structure(data)
-    for name, node in sorted(tree.items()):
-        icon = node.get('_icon', ICON)
-        has_groups = bool(node.get('_groups'))
-        has_children = any(k != '_groups' and k != '_icon' for k in node)
-        is_folder = has_groups or has_children
-        url = build_url('list_node', path=name)
-        add_dir(name, url, icon, is_folder)
+    groups = data.get('groups', [])
+    tree = {}
+    for group in groups:
+        parts = group['name'].split('/')
+        node = tree
+        for part in parts:
+            if part not in node:
+                node[part] = {'__groups': [], '__icon': group.get('image', ICON)}
+            node = node[part]
+        node['__groups'].append(group)
+
+    for name in sorted(tree.keys()):
+        node = tree[name]
+        icon = node.get('__icon', ICON)
+        has_content = bool(node.get('__groups')) or len(node) > 2
+        url = build_url('folder', name)
+        add_dir(name, url, icon, has_content)
 
 
-def list_node(data, path):
-    tree = build_tree_structure(data)
+def list_folder(data, path):
+    groups = data.get('groups', [])
+    tree = {}
+    for group in groups:
+        parts = group['name'].split('/')
+        node = tree
+        for part in parts:
+            if part not in node:
+                node[part] = {'__groups': [], '__icon': group.get('image', ICON)}
+            node = node[part]
+        node['__groups'].append(group)
+
     parts = path.split('/')
-    current = tree
+    node = tree
     for part in parts:
-        current = current.get(part, {})
+        node = node.get(part, {})
 
-    for group in current.get('_groups', []):
+    for group in node.get('__groups', []):
         for station in group.get('stations', []):
             name = station.get('name', 'Sin nombre')
             url = station.get('url', '')
             icon = station.get('image', ICON)
-            if url:
-                li = xbmcgui.ListItem(name)
-                li.setArt({'icon': icon, 'thumb': icon})
-                li.setProperty('IsPlayable', 'true')
-                li.setInfo('video', {'title': name})
-                xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
+            if not url:
+                continue
+            li = xbmcgui.ListItem(name)
+            li.setArt({'icon': icon, 'thumb': icon})
+            li.setProperty('IsPlayable', 'true')
+            li.setInfo('video', {'title': name})
+            ok = xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
 
-    for name, node in sorted(current.items()):
-        if name in ('_groups', '_icon'):
+    for name in sorted(node.keys()):
+        if name.startswith('__'):
             continue
-        icon = node.get('_icon', ICON)
-        has_groups = bool(node.get('_groups'))
-        has_children = any(k != '_groups' and k != '_icon' for k in node)
-        is_folder = has_groups or has_children
+        child = node[name]
+        icon = child.get('__icon', ICON)
+        has_content = bool(child.get('__groups')) or len(child) > 2
         full_path = f'{path}/{name}'
-        url = build_url('list_node', path=full_path)
-        add_dir(name, url, icon, is_folder)
+        url = build_url('folder', full_path)
+        add_dir(name, url, icon, has_content)
 
 
 def play_video(url):
@@ -96,23 +110,27 @@ def play_video(url):
 
 def router(paramstring):
     data = get_json()
-    params = {}
-    if paramstring:
-        for pair in paramstring.split('&'):
-            k, v = pair.split('=')
-            params[k] = v
+    if not data:
+        return
 
+    params = dict(urllib.parse.parse_qsl(paramstring.lstrip('?')))
     action = params.get('action', 'root')
+    path = params.get('path', '')
+
+    log(f'Action: {action}, Path: {path}')
 
     if action == 'root':
         list_root(data)
-    elif action == 'list_node':
-        list_node(data, params.get('path', ''))
+    elif action == 'folder':
+        list_folder(data, path)
     elif action == 'play':
-        play_video(params.get('url', ''))
+        play_video(path)
 
     xbmcplugin.endOfDirectory(HANDLE)
 
 
 if __name__ == '__main__':
-    router(sys.argv[2][1:])
+    try:
+        router(sys.argv[2])
+    except Exception as e:
+        log(f'Error fatal: {e}\n{traceback.format_exc()}', xbmc.LOGERROR)
