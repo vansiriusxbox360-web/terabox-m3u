@@ -31,6 +31,7 @@ jobs:
           TERABOX_NDUS: ${{ secrets.TERABOX_NDUS }}
           TERABOX_EMAIL: ${{ secrets.TERABOX_EMAIL }}
           TERABOX_PASSWORD: ${{ secrets.TERABOX_PASSWORD }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
         run: |
           node index.js
           if [ $? -ne 0 ]; then
@@ -39,21 +40,14 @@ jobs:
             echo "status=success" >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload M3U to Release
+      - name: Commit and push M3U
         if: steps.generate.outputs.status != 'failed'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: 'M3U Actualizado'
-          body: |
-            Lista M3U generada automaticamente.
-            Fecha: ${{ github.event.head_commit.timestamp || github.event.schedule }}
-          files: lista.m3u
-          make_latest: true
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add lista.m3u
+          git diff --cached --quiet || git commit -m "Update lista.m3u - $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
 
       - name: Create issue on failure
         if: failure() || steps.generate.outputs.status == 'failed'
@@ -63,15 +57,13 @@ jobs:
             const fs = require('fs');
             let errorMsg = 'Error desconocido al generar la M3U.';
             
-            // Intentar leer el log para detectar error de token
             try {
               const logs = fs.readFileSync('/tmp/terabox_error.log', 'utf8');
               if (logs.includes('login') || logs.includes('425') || logs.includes('403') || logs.includes('cookie') || logs.includes('ndus')) {
-                errorMsg = '🔴 **Token ndus caducado o invalido.**\n\nEl token de autenticacion de Terabox ha dejado de funcionar. Necesitas actualizarlo siguiendo estos pasos:\n\n1. Abre Firefox y ve a terabox.com (inicia sesion)\n2. Abre DevTools (F12) > pestaña Application > Cookies > terabox.com\n3. Copia el valor de la cookie **ndus**\n4. Ve a GitHub > Settings > Secrets > TERABOX_NDUS > Edit\n5. Pega el nuevo valor y haz clic en Update secret\n\nDespues de actualizar, ve a Actions > Run workflow para reintentar.';
+                errorMsg = '🔴 **Token ndus caducado o invalido.**\n\nActualiza el token:\n\n1. Abre Firefox y ve a terabox.com (inicia sesion)\n2. DevTools (F12) > Application > Cookies > terabox.com\n3. Copia el valor de la cookie **ndus**\n4. Ve a GitHub > Settings > Secrets > TERABOX_NDUS > Edit\n5. Pega el nuevo valor\n\nDespues ve a Actions > Run workflow para reintentar.';
               }
             } catch (e) {
-              // Si no hay log, asumir error de token
-              errorMsg = '🔴 **Posible token ndus caducado.**\n\nRevisa los logs del workflow para mas detalles.\n\nPara actualizar el token:\n1. Ve a terabox.com en Firefox\n2. DevTools (F12) > Application > Cookies > ndus\n3. Actualiza el secret TERABOX_NDUS en GitHub';
+              errorMsg = '🔴 **Posible token ndus caducado.** Actualiza TERABOX_NDUS en GitHub.';
             }
 
             await github.rest.issues.create({
