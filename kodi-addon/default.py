@@ -18,7 +18,7 @@ ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
 
 
-def log(msg, level=xbmc.LOGINFO):
+def log(msg, level=xbmc.LOGDEBUG):
     xbmc.log(f'[VanSirius] {msg}', level)
 
 
@@ -30,15 +30,16 @@ def get_json():
         try:
             with open(CACHE_FILE, 'r', encoding='utf-8') as f:
                 cached = json.load(f)
-        except Exception:
+        except Exception as e:
+            log(f'Error leyendo cache: {e}', xbmc.LOGERROR)
             cached = None
 
     if cached:
-        log('Usando cache local')
+        log(f'Usando cache local ({len(cached.get("groups", []))} grupos)')
         return cached
 
     progress = xbmcgui.DialogProgress()
-    progress.create('VanSirius', 'Descargando colección...')
+    progress.create('VanSirius', 'Descargando coleccion...')
 
     try:
         req = urllib.request.Request(JSON_URL, headers={'User-Agent': 'Kodi-Addon/1.0'})
@@ -82,43 +83,49 @@ def build_url(action, path=''):
     return f'{BASE_URL}?{params}'
 
 
-def add_dir(name, url, icon='', is_folder=True):
-    li = xbmcgui.ListItem(name)
-    if icon:
-        li.setArt({'icon': icon, 'thumb': icon, 'fanart': icon})
-    xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=is_folder)
-
-
 def build_tree(data):
     tree = {}
     for group in data.get('groups', []):
-        parts = group['name'].split('/')
+        name = group.get('name', '')
+        if not name:
+            continue
+        parts = name.split('/')
         node = tree
         for part in parts:
+            part = part.strip()
+            if not part:
+                continue
             if part not in node:
-                node[part] = {'__groups': [], '__icon': group.get('image', ICON)}
+                node[part] = {'_groups': [], '_icon': group.get('image', ICON)}
             node = node[part]
-        node['__groups'].append(group)
+        node['_groups'].append(group)
     return tree
 
 
 def list_root(data):
     tree = build_tree(data)
-    for name in sorted(tree.keys()):
+    top_keys = sorted(tree.keys())
+    log(f'Root: {len(top_keys)} carpetas top-level: {top_keys[:5]}')
+    for name in top_keys:
         node = tree[name]
-        icon = node.get('__icon', ICON)
+        icon = node.get('_icon', ICON)
         url = build_url('folder', name)
-        add_dir(name, url, icon, True)
+        li = xbmcgui.ListItem(name)
+        if icon:
+            li.setArt({'icon': icon, 'thumb': icon, 'fanart': icon})
+        ok = xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
+        log(f'  addDir({name}) -> {ok}')
 
 
 def list_folder(data, path):
     tree = build_tree(data)
-    parts = path.split('/')
+    parts = [p.strip() for p in path.split('/') if p.strip()]
     node = tree
     for part in parts:
         node = node.get(part, {})
 
-    for group in node.get('__groups', []):
+    count = 0
+    for group in node.get('_groups', []):
         for station in group.get('stations', []):
             name = station.get('name', 'Sin nombre')
             url = station.get('url', '')
@@ -126,19 +133,28 @@ def list_folder(data, path):
             if not url:
                 continue
             li = xbmcgui.ListItem(name)
-            li.setArt({'icon': icon, 'thumb': icon})
+            if icon:
+                li.setArt({'icon': icon, 'thumb': icon})
             li.setProperty('IsPlayable', 'true')
             li.setInfo('video', {'title': name})
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
+            count += 1
 
-    for name in sorted(node.keys()):
-        if name.startswith('__'):
+    subfolders = 0
+    for key in sorted(node.keys()):
+        if key.startswith('_'):
             continue
-        child = node[name]
-        icon = child.get('__icon', ICON)
-        full_path = f'{path}/{name}'
+        child = node[key]
+        icon = child.get('_icon', ICON)
+        full_path = f'{path}/{key}'
         url = build_url('folder', full_path)
-        add_dir(name, url, icon, True)
+        li = xbmcgui.ListItem(key)
+        if icon:
+            li.setArt({'icon': icon, 'thumb': icon, 'fanart': icon})
+        xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
+        subfolders += 1
+
+    log(f'Folder({path}): {count} videos, {subfolders} subcarpetas')
 
 
 def play_video(url):
@@ -147,15 +163,21 @@ def play_video(url):
 
 
 def router(paramstring):
+    log(f'sys.argv = {sys.argv}')
+    log(f'HANDLE = {HANDLE}')
+    log(f'BASE_URL = {BASE_URL}')
+
     data = get_json()
     if not data:
+        log('No hay datos, saliendo', xbmc.LOGERROR)
         return
 
     params = dict(urllib.parse.parse_qsl(paramstring.lstrip('?')))
     action = params.get('action', 'root')
     path = params.get('path', '')
 
-    log(f'Action: {action}, Path: {path}')
+    log(f'Action: {action}, Path: "{path}"')
+    xbmcplugin.setContent(HANDLE, 'tvshows')
 
     if action == 'root':
         list_root(data)
