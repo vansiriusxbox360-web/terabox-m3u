@@ -1,0 +1,6 @@
+node_modules/
+config.json
+lista.m3u
+*.log
+.DS_Store
+Thumbs.db

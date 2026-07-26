@@ -1,0 +1,21 @@
+{
+  "name": "terabox-m3u-generator",
+  "version": "1.0.0",
+  "description": "Generador automatico de listas M3U desde Terabox",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "generate": "node index.js"
+  },
+  "keywords": [
+    "terabox",
+    "m3u",
+    "playlist",
+    "iptv"
+  ],
+  "author": "VanSirius",
+  "license": "MIT",
+  "dependencies": {
+    "terabox-api": "^2.9.2"
+  }
+}
