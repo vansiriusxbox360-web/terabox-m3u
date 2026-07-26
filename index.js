@@ -112,9 +112,13 @@ function savePosterCache(cache) {
   fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
 }
 
+function isGenericFolderName(name) {
+  return /^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|Especiales?|Pelis|Extras|Ovas|MP3|Promociones|Reportajes|dibus|no dibus|adultos|no adultos)$/i.test(name);
+}
+
 function omdbSearch(title, apiKey) {
   return new Promise((resolve) => {
-    const url = `http://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${apiKey}`;
+    const url = `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${apiKey}`;
     https.get(url, (res) => {
       let data = '';
       res.on('data', (chunk) => data += chunk);
@@ -421,10 +425,10 @@ async function main() {
     const uniqueGroups = [...new Set(filesWithLinks.map(f => {
       const parts = f.path.split('/').filter(p => p);
       const idx = parts.indexOf(rootFolder);
-      if (idx === -1 || idx + 1 >= parts.length) return 'Otros';
+      if (idx === -1 || idx + 1 >= parts.length) return null;
       const subParts = parts.slice(idx + 1);
       return subParts[subParts.length - 1];
-    }))];
+    }).filter(name => name && !isGenericFolderName(name)))];
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
     posters = await fetchPosters(uniqueGroups, omdbKey);
     console.log('');
