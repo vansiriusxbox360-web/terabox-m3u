@@ -369,18 +369,12 @@ function generateM3U(files, rootFolder, posters) {
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
   const year = now.getUTCFullYear();
   const dateStr = `${day}-${month}-${year}`;
-  
-  const nextUpdate = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  const nextDay = String(nextUpdate.getUTCDate()).padStart(2, '0');
-  const nextMonth = String(nextUpdate.getUTCMonth() + 1).padStart(2, '0');
-  const nextYear = nextUpdate.getUTCFullYear();
-  const nextHour = String(nextUpdate.getUTCHours()).padStart(2, '0');
-  const nextMin = String(nextUpdate.getUTCMinutes()).padStart(2, '0');
-  const nextStr = `${nextDay}-${nextMonth}-${nextYear} ${nextHour}:${nextMin} UTC`;
+  const hour = String(now.getUTCHours()).padStart(2, '0');
+  const min = String(now.getUTCMinutes()).padStart(2, '0');
   
   let m3u = '#EXTM3U\n';
   m3u += `#PLAYLIST:La colección de VanSirius\n`;
-  m3u += `#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg" group-title="", VanSirius 🎬 | Colección personal | Actualizada al ${dateStr} | Próxima actualización: ${nextStr}\n`;
+  m3u += `#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg" group-title="", VanSirius 🎬 | Última act. ${dateStr} ${hour}:${min} UTC\n`;
   m3u += `https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.svg\n`;
   
   for (const file of files) {
