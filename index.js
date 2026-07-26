@@ -298,6 +298,19 @@ async function getDownloadLinks(tb, files) {
   return results;
 }
 
+function extractEpisode(name) {
+  let match;
+  match = name.match(/[Ss](\d+)[Ee](\d+)/);
+  if (match) return { season: parseInt(match[1]), episode: parseInt(match[2]) };
+  match = name.match(/(\d+)[xX×](\d+)/);
+  if (match) return { season: parseInt(match[1]), episode: parseInt(match[2]) };
+  match = name.match(/(\d+)[\s.-]*[Ee]p(?:isodio)?[\s.-]*(\d+)/);
+  if (match) return { season: 1, episode: parseInt(match[2]) };
+  match = name.match(/(?:^|[^\d])(\d{1,2})[xX×](\d{1,3})(?:[^\d]|$)/);
+  if (match) return { season: parseInt(match[1]), episode: parseInt(match[2]) };
+  return { season: 0, episode: 0 };
+}
+
 function isSeasonFolder(name) {
   return /^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|\d+\.\s*\w+|\d{4})$/i.test(name);
 }
@@ -456,7 +469,17 @@ async function main() {
   }
 
   console.log('Ordenando archivos...');
-  allFiles.sort((a, b) => a.cleanName.localeCompare(b.cleanName, 'es', { numeric: true }));
+  allFiles.sort((a, b) => {
+    const groupA = getGroupFromPath(a.path, rootFolder);
+    const groupB = getGroupFromPath(b.path, rootFolder);
+    if (groupA.group !== groupB.group) return groupA.group.localeCompare(groupB.group, 'es');
+
+    const epA = extractEpisode(a.cleanName);
+    const epB = extractEpisode(b.cleanName);
+    if (epA.season !== epB.season) return epA.season - epB.season;
+    if (epA.episode !== epB.episode) return epA.episode - epB.episode;
+    return a.cleanName.localeCompare(b.cleanName, 'es', { numeric: true });
+  });
   console.log(`Archivos ordenados.\n`);
 
   console.log('Obteniendo enlaces de descarga...');
