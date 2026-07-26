@@ -353,12 +353,18 @@ function getGroupFromPath(filePath, rootFolder) {
   
   const topGroup = subParts[0];
   
+  let category = null;
   let showName = null;
+  
   for (let i = subParts.length - 2; i >= 1; i--) {
     const name = subParts[i];
     if (isSeasonFolder(name) || isJokeFolder(name) || isContainerFolder(name) || name === topGroup) continue;
-    showName = name;
-    break;
+    if (!showName) {
+      showName = name;
+    } else if (!category) {
+      category = name;
+      break;
+    }
   }
   
   if (!showName) {
@@ -375,7 +381,7 @@ function getGroupFromPath(filePath, rootFolder) {
   }
   
   const searchName = showName;
-  const group = `${topGroup}/${showName}`;
+  const group = category ? `${topGroup}/${category}/${showName}` : `${topGroup}/${showName}`;
   return { group, searchName };
 }
 
