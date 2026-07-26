@@ -305,8 +305,9 @@ function getGroupFromPath(filePath, rootFolder) {
     return { group: 'Otros', searchName: 'Otros' };
   }
   const subParts = pathParts.slice(rootIndex + 1);
+  const limitedParts = subParts.slice(0, 3);
   const searchName = subParts[subParts.length - 1];
-  const group = subParts.join('/');
+  const group = limitedParts.join('/');
   return { group, searchName };
 }
 
