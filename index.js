@@ -298,6 +298,20 @@ async function getDownloadLinks(tb, files) {
   return results;
 }
 
+function isSeasonFolder(name) {
+  return /^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|\d+\.\s*\w+|\d{4})$/i.test(name);
+}
+
+function isJokeFolder(name) {
+  if (name.length > 40) return true;
+  const skipWords = ['que se divide', 'merendando', 'desayunando', 'dibus puede', 'puedes hallar',
+    'padawan', 'spin-off', 'pille ya mayor', 'streaming básicamente', 'cositas que se ven',
+    'much marcha', 'Tele5 molaba', 'VHS', 'madre te decía', 'Digital+', 'Cartoon Network',
+    'FoxKids', 'Disney Channel', 'Nickelodeon', 'sine malo', 'sine güeno',
+    'encontrará de todo', 'aparte de las pelis', 'del cole', 'que no haya'];
+  return skipWords.some(w => name.toLowerCase().includes(w.toLowerCase()));
+}
+
 function getGroupFromPath(filePath, rootFolder) {
   const pathParts = filePath.split('/').filter(p => p);
   const rootIndex = pathParts.indexOf(rootFolder);
@@ -305,9 +319,34 @@ function getGroupFromPath(filePath, rootFolder) {
     return { group: 'Otros', searchName: 'Otros' };
   }
   const subParts = pathParts.slice(rootIndex + 1);
-  const limitedParts = subParts.slice(0, 3);
-  const searchName = subParts[subParts.length - 1];
-  const group = limitedParts.join('/');
+  
+  const topGroup = subParts[0];
+  
+  let showName = null;
+  for (let i = subParts.length - 2; i >= 1; i--) {
+    const name = subParts[i];
+    if (!isSeasonFolder(name) && !isJokeFolder(name) && name !== topGroup) {
+      showName = name;
+      break;
+    }
+  }
+  
+  if (!showName) {
+    for (let i = 1; i < subParts.length; i++) {
+      const name = subParts[i];
+      if (!isSeasonFolder(name) && !isJokeFolder(name) && name !== topGroup) {
+        showName = name;
+        break;
+      }
+    }
+  }
+  
+  if (!showName) {
+    showName = subParts[subParts.length - 1].replace(/\.[^/.]+$/, '');
+  }
+  
+  const searchName = showName;
+  const group = `${topGroup}/${showName}`;
   return { group, searchName };
 }
 
@@ -428,12 +467,9 @@ async function main() {
   const omdbKey = process.env.OMDB_API_KEY || config.omdbApiKey;
   if (omdbKey) {
     const uniqueGroups = [...new Set(filesWithLinks.map(f => {
-      const parts = f.path.split('/').filter(p => p);
-      const idx = parts.indexOf(rootFolder);
-      if (idx === -1 || idx + 1 >= parts.length) return null;
-      const subParts = parts.slice(idx + 1);
-      return subParts[subParts.length - 1];
-    }).filter(name => name && !isGenericFolderName(name)))];
+      const { searchName } = getGroupFromPath(f.path, rootFolder);
+      return searchName;
+    }).filter(name => name && name !== 'Otros' && !isGenericFolderName(name)))];
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
     posters = await fetchPosters(uniqueGroups, omdbKey);
     console.log('');
