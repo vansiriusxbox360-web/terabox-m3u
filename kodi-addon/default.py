@@ -133,4 +133,4 @@ if __name__ == '__main__':
     try:
         router(sys.argv[2])
     except Exception as e:
-        log(f'Error fatal: {e}\n{traceback.format_exc()}', xbmc.LOGERROR)
+        log('Error fatal: ' + str(e) + ' ' + traceback.format_exc(), xbmc.LOGERROR)
