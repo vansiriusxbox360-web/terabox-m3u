@@ -325,6 +325,12 @@ function isJokeFolder(name) {
   return skipWords.some(w => name.toLowerCase().includes(w.toLowerCase()));
 }
 
+const CONTAINER_FOLDERS = new Set(['dibus', 'videos', 'episodios', 'capítulos', 'capitulos', 'temporada', 'temp']);
+
+function isContainerFolder(name) {
+  return CONTAINER_FOLDERS.has(name.toLowerCase());
+}
+
 function getGroupFromPath(filePath, rootFolder) {
   const pathParts = filePath.split('/').filter(p => p);
   const rootIndex = pathParts.indexOf(rootFolder);
@@ -338,19 +344,17 @@ function getGroupFromPath(filePath, rootFolder) {
   let showName = null;
   for (let i = subParts.length - 2; i >= 1; i--) {
     const name = subParts[i];
-    if (!isSeasonFolder(name) && !isJokeFolder(name) && name !== topGroup) {
-      showName = name;
-      break;
-    }
+    if (isSeasonFolder(name) || isJokeFolder(name) || isContainerFolder(name) || name === topGroup) continue;
+    showName = name;
+    break;
   }
   
   if (!showName) {
     for (let i = 1; i < subParts.length; i++) {
       const name = subParts[i];
-      if (!isSeasonFolder(name) && !isJokeFolder(name) && name !== topGroup) {
-        showName = name;
-        break;
-      }
+      if (isSeasonFolder(name) || isJokeFolder(name) || isContainerFolder(name) || name === topGroup) continue;
+      showName = name;
+      break;
     }
   }
   
