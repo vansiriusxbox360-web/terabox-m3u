@@ -473,12 +473,7 @@ async function main() {
     const groupA = getGroupFromPath(a.path, rootFolder);
     const groupB = getGroupFromPath(b.path, rootFolder);
     if (groupA.group !== groupB.group) return groupA.group.localeCompare(groupB.group, 'es');
-
-    const epA = extractEpisode(a.cleanName);
-    const epB = extractEpisode(b.cleanName);
-    if (epA.season !== epB.season) return epA.season - epB.season;
-    if (epA.episode !== epB.episode) return epA.episode - epB.episode;
-    return a.cleanName.localeCompare(b.cleanName, 'es', { numeric: true });
+    return a.path.localeCompare(b.path, 'es', { numeric: true });
   });
   console.log(`Archivos ordenados.\n`);
 
