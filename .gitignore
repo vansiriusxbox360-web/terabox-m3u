@@ -1,6 +1,7 @@
 node_modules/
 config.json
 lista.m3u
+posters-cache.json
 *.log
 .DS_Store
 Thumbs.db

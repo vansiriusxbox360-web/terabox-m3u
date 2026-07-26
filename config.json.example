@@ -1,5 +1,5 @@
 {
   "ndus": "TU_COOKIE_NDUS_AQUI",
-  "jsToken": "TU_JSTOKEN_AQUI",
-  "appId": "250528"
+  "rootFolder": "Las cositas",
+  "omdbApiKey": "TU_OMDB_API_KEY_AQUI"
 }

@@ -1,9 +1,11 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const { TeraBoxApp } = require('terabox-api');
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
 const DELAY_MS = 300;
+const OMD_DELAY_MS = 250;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -93,6 +95,78 @@ function isVideoFile(filename) {
 
 function cleanName(name) {
   return name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function loadPosterCache() {
+  const cachePath = path.join(__dirname, 'posters-cache.json');
+  try {
+    if (fs.existsSync(cachePath)) {
+      return JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
+    }
+  } catch (e) {}
+  return {};
+}
+
+function savePosterCache(cache) {
+  const cachePath = path.join(__dirname, 'posters-cache.json');
+  fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
+}
+
+function omdbSearch(title, apiKey) {
+  return new Promise((resolve) => {
+    const url = `http://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${apiKey}`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.Response === 'True' && json.Poster && json.Poster !== 'N/A') {
+            resolve(json.Poster);
+          } else {
+            resolve(null);
+          }
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).on('error', () => resolve(null));
+  });
+}
+
+async function fetchPosters(groups, apiKey) {
+  const cache = loadPosterCache();
+  const posters = {};
+  let fetched = 0;
+  let cached = 0;
+  let missed = 0;
+
+  for (const group of groups) {
+    if (cache[group]) {
+      posters[group] = cache[group];
+      cached++;
+      continue;
+    }
+
+    const poster = await omdbSearch(group, apiKey);
+    await sleep(OMD_DELAY_MS);
+
+    if (poster) {
+      posters[group] = poster;
+      cache[group] = poster;
+      fetched++;
+      if ((fetched + cached) % 10 === 0) {
+        console.log(`  Portadas: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached})`);
+      }
+    } else {
+      posters[group] = null;
+      missed++;
+    }
+  }
+
+  savePosterCache(cache);
+  console.log(`  Portadas obtenidas: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached}, sin resultado: ${missed})`);
+  return posters;
 }
 
 async function listDirectory(tb, dirPath, page = 1) {
@@ -220,7 +294,7 @@ async function getDownloadLinks(tb, files) {
   return results;
 }
 
-function generateM3U(files, rootFolder) {
+function generateM3U(files, rootFolder, posters) {
   let m3u = '#EXTM3U\n';
   
   for (const file of files) {
@@ -233,7 +307,13 @@ function generateM3U(files, rootFolder) {
     }
     
     const displayName = file.cleanName;
-    m3u += `#EXTINF:-1 group-title="${group}",${displayName}\n`;
+    const poster = posters && posters[group];
+
+    if (poster) {
+      m3u += `#EXTINF:-1 tvg-logo="${poster}" group-title="${group}",${displayName}\n`;
+    } else {
+      m3u += `#EXTINF:-1 group-title="${group}",${displayName}\n`;
+    }
     m3u += `${file.dlink}\n`;
   }
 
@@ -329,8 +409,23 @@ async function main() {
   const filesWithLinks = await getDownloadLinks(tb, allFiles);
   console.log(`Enlaces obtenidos: ${filesWithLinks.length}/${allFiles.length}\n`);
 
+  let posters = {};
+  const omdbKey = process.env.OMDB_API_KEY || config.omdbApiKey;
+  if (omdbKey) {
+    const uniqueGroups = [...new Set(filesWithLinks.map(f => {
+      const parts = f.path.split('/').filter(p => p);
+      const idx = parts.indexOf(rootFolder);
+      return (idx !== -1 && idx + 1 < parts.length) ? parts[idx + 1] : 'Otros';
+    }))];
+    console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
+    posters = await fetchPosters(uniqueGroups, omdbKey);
+    console.log('');
+  } else {
+    console.log('No hay API key de OMDb. Se genera M3U sin portadas.\n');
+  }
+
   console.log('Generando lista M3U...');
-  const m3uContent = generateM3U(filesWithLinks, rootFolder);
+  const m3uContent = generateM3U(filesWithLinks, rootFolder, posters);
   
   const outputPath = process.env.GITHUB_ACTIONS 
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
