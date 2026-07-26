@@ -131,6 +131,7 @@ def router(paramstring):
 
 if __name__ == '__main__':
     try:
-        router(sys.argv[2])
+        paramstring = sys.argv[2] if len(sys.argv) > 2 else ''
+        router(paramstring)
     except Exception as e:
         log('Error fatal: ' + str(e) + ' ' + traceback.format_exc(), xbmc.LOGERROR)
