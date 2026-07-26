@@ -2,6 +2,7 @@ import xbmcgui
 import xbmcplugin
 import xbmcaddon
 import xbmc
+import xbmcvfs
 import json
 import urllib.request
 import urllib.parse
@@ -14,7 +15,7 @@ HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
 BASE_URL = sys.argv[0] if sys.argv else ''
 JSON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
 ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png'
-CACHE_FILE = os.path.join(xbmc.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
+CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
 
 
 def log(msg, level=xbmc.LOGINFO):
