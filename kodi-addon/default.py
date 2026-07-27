@@ -9,6 +9,7 @@ import urllib.parse
 import sys
 import traceback
 import os
+import re
 
 ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
@@ -17,10 +18,36 @@ JSON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/m
 ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png'
 FANART = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/vaporwave_fine_grid.png'
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
+RAW_BASE = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main'
+
+FOLDER_IMAGES = {
+    '\u00aanime': f'{RAW_BASE}/img-anime.png',
+    'Dibus que no son \u00aanime': f'{RAW_BASE}/img-dibus.png',
+    'Tele5 / Club Disney / TPH / Megatrix': f'{RAW_BASE}/img-tele5.png',
+    'en la 2 con mucha marcha y \u2bc9TPH,  en la 3 Megatrix o el Club Disney en Tele5': f'{RAW_BASE}/img-tele5.png',
+    'Digital+': f'{RAW_BASE}/img-digital.png',
+    'y si eras un ni\u00f1o afortunado y tus padres ten\u00edan Digital+': f'{RAW_BASE}/img-digital.png',
+    'spin-off': f'{RAW_BASE}/img-spinoff.png',
+    '(la carpeta spin-off que no te pillaba jamando)': f'{RAW_BASE}/img-spinoff.png',
+    'VHS o tu madre': f'{RAW_BASE}/img-vhs.png',
+    'las que te pon\u00edas en VHS o tu madre te dec\u00eda en mis tiempos habia cosas muy bonitas': f'{RAW_BASE}/img-vhs.png',
+    'Sine': f'{RAW_BASE}/img-sine.png',
+    'Sine malo y sine g\u00fceno': f'{RAW_BASE}/img-sine.png',
+}
 
 
 def log(msg, level=xbmc.LOGDEBUG):
     xbmc.log(f'[VanSirius] {msg}', level)
+
+
+def natural_sort_key(s):
+    return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', str(s))]
+
+
+def get_folder_image(name):
+    if name in FOLDER_IMAGES:
+        return FOLDER_IMAGES[name]
+    return None
 
 
 def get_json():
@@ -105,13 +132,22 @@ def build_tree(data):
     return tree
 
 
+def resolve_icon(node, current_path=''):
+    folder_img = get_folder_image(current_path)
+    if folder_img:
+        return folder_img
+    if node.get('_groups'):
+        return node.get('_icon', ICON)
+    return ICON
+
+
 def list_root(data):
     tree = build_tree(data)
     top_keys = sorted(tree.keys())
     log(f'Root: {len(top_keys)} carpetas top-level: {top_keys[:5]}')
     for name in top_keys:
         node = tree[name]
-        icon = node.get('_icon', ICON)
+        icon = resolve_icon(node, name)
         url = build_url('folder', name)
         li = xbmcgui.ListItem(name)
         if icon:
@@ -144,12 +180,12 @@ def list_folder(data, path):
             count += 1
 
     subfolders = 0
-    for key in sorted(node.keys()):
-        if key.startswith('_'):
-            continue
+    child_keys = [k for k in node.keys() if not k.startswith('_')]
+    child_keys.sort(key=natural_sort_key)
+    for key in child_keys:
         child = node[key]
-        icon = child.get('_icon', ICON)
         full_path = f'{path}/{key}'
+        icon = resolve_icon(child, key)
         url = build_url('folder', full_path)
         li = xbmcgui.ListItem(key)
         if icon:

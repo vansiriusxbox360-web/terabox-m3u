@@ -94,7 +94,7 @@ function isVideoFile(filename) {
 }
 
 function cleanName(name) {
-  return name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+  return name.replace(/\[[^\]]*\]\s*/g, '').replace(/\.[^/.]+$/, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function loadPosterCache() {
@@ -225,6 +225,16 @@ const TITLE_ALIASES = {
   'QVMT TEMPORADA 5': 'Qué vida más triste',
   'QVMT TEMPORADA 6': 'Qué vida más triste',
   'QVMT TEMPORADA 7': 'Qué vida más triste',
+  'Off the air': 'Off the Air',
+  'Peep show': 'Peep Show',
+  'Robot chicken': 'Robot Chicken',
+  'Trailer Park Boys': 'Trailer Park Boys',
+  'Problem Solverz': 'The Problem Solverz',
+  'Superjail': 'Superjail!',
+  'Triptank': 'Triptank',
+  'Archer': 'Archer',
+  'Monty Python Flying Circus': 'Monty Python\'s Flying Circus',
+  'Asterix y Obelix La batalla de los dioses': 'Astérix et Obélix : Mission Cléopâtre',
 };
 
 function generateSearchVariants(title) {
@@ -550,14 +560,35 @@ function generateJSON(files, rootFolder, posters) {
   const dateStr = `${day}-${month}-${year}`;
 
   const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png';
+  const VS_ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png';
+  const COLLECTION_ICON = VS_ICON;
 
-  const COLLECTION_ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png';
+  const BASE = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main';
+  const FOLDER_IMAGES = {
+    '\u00aanime': `${BASE}/img-anime.png`,
+    'Dibus que no son \u00aanime': `${BASE}/img-dibus.png`,
+    'en la 2 con mucha marcha y \u2bc9TPH,  en la 3 Megatrix o el Club Disney en Tele5': `${BASE}/img-tele5.png`,
+    'y si eras un ni\u00f1o afortunado y tus padres ten\u00edan Digital+': `${BASE}/img-digital.png`,
+    '(la carpeta spin-off que no te pillaba jamando)': `${BASE}/img-spinoff.png`,
+    'las que te pon\u00edas en VHS o tu madre te dec\u00eda en mis tiempos habia cosas muy bonitas': `${BASE}/img-vhs.png`,
+    'Sine malo y sine g\u00fceno': `${BASE}/img-sine.png`,
+  };
+
+  function getFolderImage(groupPath) {
+    const parts = groupPath.split('/');
+    for (const part of parts) {
+      if (FOLDER_IMAGES[part]) return FOLDER_IMAGES[part];
+    }
+    return null;
+  }
 
   const groupsMap = {};
   for (const file of files) {
     const { group, searchName } = getGroupFromPath(file.path, rootFolder);
     if (!groupsMap[group]) {
-      groupsMap[group] = { name: group, image: posters && posters[searchName] ? posters[searchName] : ICON_URL, info: '', stations: [] };
+      const folderImg = getFolderImage(group);
+      const groupImg = folderImg || (posters && posters[searchName] ? posters[searchName] : VS_ICON);
+      groupsMap[group] = { name: group, image: groupImg, info: '', stations: [] };
     }
     const poster = posters && posters[searchName] ? posters[searchName] : ICON_URL;
     groupsMap[group].stations.push({
