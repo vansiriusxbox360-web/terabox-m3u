@@ -216,6 +216,15 @@ const TITLE_ALIASES = {
   'El conde Pátula': 'Count Duckula',
   'Rafaela Y Su Loco Mundo': 'Rafaela',
   'Quentin Taran tantarantino': 'Quentin Tarantino',
+  'QVMT': 'Qué vida más triste',
+  'QVMT TEMPORADA 0': 'Qué vida más triste',
+  'QVMT TEMPORADA 1': 'Qué vida más triste',
+  'QVMT TEMPORADA 2': 'Qué vida más triste',
+  'QVMT TEMPORADA 3': 'Qué vida más triste',
+  'QVMT TEMPORADA 4': 'Qué vida más triste',
+  'QVMT TEMPORADA 5': 'Qué vida más triste',
+  'QVMT TEMPORADA 6': 'Qué vida más triste',
+  'QVMT TEMPORADA 7': 'Qué vida más triste',
 };
 
 function generateSearchVariants(title) {
