@@ -113,7 +113,7 @@ function savePosterCache(cache) {
 }
 
 function isGenericFolderName(name) {
-  return /^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|Especiales?|Pelis|Extras|Ovas|MP3|Promociones|Reportajes|dibus|no dibus|adultos|no adultos)$/i.test(name);
+  return /^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|Especiales?|Pelis|Extras|Ovas|MP3|Promociones|Reportajes|dibus|no dibus|adultos|no adultos|chorris|no chorris|eplis|Cortos|Pilotos|QVMT\s+Temporada\s*\d+|T\d+\s+Final\s+Act)$/i.test(name);
 }
 
 function normalizeTitle(title) {
@@ -128,18 +128,121 @@ function normalizeTitle(title) {
     .trim();
 }
 
+const TITLE_ALIASES = {
+  'El viaje de Chihiro': 'Spirited Away',
+  'Mi vecino Totoro': 'My Neighbor Totoro',
+  'La princesa Mononoke': 'Princess Mononoke',
+  'La Tumba de las Luciérnagas': 'Grave of the Fireflies',
+  'El Castillo en el aire - La leyenda de Laputa': 'Castle in the Sky',
+  'El Infierno de Dante': 'Dante\'s Inferno',
+  'La chica que saltaba através del tiempo': 'The Girl Who Leapt Through Time',
+  'Puedo escuchar el mar': 'I Can Hear the Sea',
+  'Viaje a Agartha': 'Journey to Agartha',
+  'Hadashi no Gen 1&2 (Barefoot Gen)': 'Barefoot Gen',
+  'Vampire Hunter + Bloodlust': 'Vampire Hunter D Bloodlust',
+  'Cuentos de Terramar': 'Tales from Earthsea',
+  'Ovelord Ovas + special': 'Overlord',
+  'Astérix y Obélix La batalla de los jefes': 'Astérix & Obélix: Mission Cleopatra',
+  'Aggresive Retsuko': 'Aggretsuko',
+  'La leyenda de Korra': 'The Legend of Korra',
+  'Sand Lands': 'Sand Land',
+  'Mononoke Karakasa & Shou - Hinezumi': 'Mononoke',
+  'Death Note Rewrite': 'Death Note',
+  'Tenrou Sirius the Jaeger': 'Sirius the Jaeger',
+  'De yakuza a amo de casa': 'Like a Dragon: Yakuza',
+  'Forky Ask a Question': 'Forky Asks a Question',
+  'Ren y Stimpy': 'The Ren & Stimpy Show',
+  'Patoaventuras': 'DuckTales',
+  'El Laboratorio de Dexter': 'Dexter\'s Laboratory',
+  'El inspector Gadget': 'Inspector Gadget',
+  'Los Simpsons': 'The Simpsons',
+  'Codigo KND': 'Codename: Kids Next Door',
+  'Capitan N el amo del videojuego': 'Captain N',
+  'Capitán Cavernícola': 'Captain Caveman',
+  'La Familia Addams': 'The Addams Family',
+  'Pepe Potamo': 'Pepe Potamo',
+  'Maguila Gorila': 'Magilla Gorila',
+  'La Aldea del arce': 'Maison Ikkoku',
+  'La Tropa Goofy': 'Goof Troop',
+  'La Leyenda de Zelda': 'The Legend of Zelda',
+  'Las Aventuras de Tintin': 'The Adventures of Tintin',
+  'Soy Comadreja': 'I Am Weasel',
+  'Oggy y las cucarachas': 'Oggy and the Cockroaches',
+  'Bumpy el travieso': 'Bumpy',
+  'Brandy y Mr Whiskers': 'Brandy & Mr. Whiskers',
+  'Osos Revoltosos': 'We Bare Bears',
+  'Rocky y Bullwinkle': 'The Adventures of Rocky and Bullwinkle',
+  'La Pajareria de Transilvania': 'Count Duckula',
+  'Figaro y Cleo': 'Figaro and Cleo',
+  'Flint y los viajeros del tiempo': 'Time Rider',
+  'Los Oblongs': 'The Oblongs',
+  'Beavis and Butt-Head Remastered': 'Beavis and Butt-Head',
+  'Campeones hacia el mundial': 'Captain Tsubasa',
+  'La conserje Pokémon': 'Pokémon',
+  'Crónicas Pokémon': 'Pokémon',
+  'Pokémon Megaevolución': 'Pokémon',
+  'Pokémon Origin': 'Pokémon',
+  'BeyBlade 2000': 'Beyblade',
+  'BeyBlade Burst Evolution': 'Beyblade Burst',
+  'BeyBlade Burst Turbo': 'Beyblade Burst',
+  'Choppy y la princesa': 'Choppy and the Princess',
+  'Chicho Terremoto': 'Chicho Terremoto',
+  'Final Fantasy V': 'Final Fantasy',
+  'La brigada de los sepultureros': 'The Munsters',
+  'La M palabra y Tontico': 'The Smurfs',
+  'Los Terribles Gemelos Cramp': 'The Cramp Twins',
+  'Jackie y Nuca': 'Jackie and Nuca',
+  'Belfy Y Lillibit': 'Belfy and Lillibit',
+  'Virkikis': 'Virkikis',
+  'Serie Kinki': 'Serie Kinki',
+  'Rertorno a Lilifor': 'Return to Lillifor',
+  'Naranjito, fútbol en acción': 'Naranjito',
+  'Osos Revoltosos': 'We Bare Bears',
+  'Cocodrilos al rescate': 'Rescue Crocodiles',
+  'En busca de Carmen Sandiego': 'Where on Earth Is Carmen Sandiego?',
+  'La Tortuga DArtagnan y Dum Dum': 'Dogtanian',
+  'Teenage Mutant Ninja Tuuurtles': 'Teenage Mutant Ninja Turtles',
+  'HeroesinahalfshellNANANA': 'Teenage Mutant Ninja Turtles',
+  'Banner y Flappy': 'Banner and Flappy',
+  'Abbot y Costello': 'Abbott and Costello',
+  'Los Fruitis': 'The Fruitties',
+  'Pesadillas (Goosebumps) de R L Stine': 'Goosebumps',
+  'Historias de fútbol': 'Football Stories',
+  'La leyenda de Zelda': 'The Legend of Zelda',
+  'Super Mario Wolrd': 'Super Mario',
+  'La zapatero y la Princesa': 'The Thief and the Cobbler',
+  'El Zapatero y la Princesa (El Ladrón de Bagdad)': 'The Thief and the Cobbler',
+  'El cuentacuentos': 'The Storyteller',
+  'El conde Pátula': 'Count Duckula',
+  'Rafaela Y Su Loco Mundo': 'Rafaela',
+  'Quentin Taran tantarantino': 'Quentin Tarantino',
+};
+
 function generateSearchVariants(title) {
   const normalized = normalizeTitle(title);
-  const variants = [normalized];
+  const variants = [];
+
+  if (TITLE_ALIASES[normalized]) {
+    variants.push(TITLE_ALIASES[normalized]);
+  }
+
+  variants.push(normalized);
 
   const jpMatch = normalized.match(/^(.*?)\s+[\u3040-\u9FFF]+/);
   if (jpMatch && jpMatch[1].trim().length > 2) {
-    variants.push(jpMatch[1].trim());
+    const jpClean = jpMatch[1].trim();
+    variants.push(jpClean);
+    if (TITLE_ALIASES[jpClean]) variants.push(TITLE_ALIASES[jpClean]);
   }
 
   const dashSplit = normalized.split(/\s*[-–—]\s*/);
   if (dashSplit.length >= 2 && dashSplit[0].trim().length > 2) {
     variants.push(dashSplit[0].trim());
+  }
+
+  const plusSplit = normalized.split(/\s*\+\s*/);
+  if (plusSplit.length >= 2 && plusSplit[0].trim().length > 2) {
+    variants.push(plusSplit[0].trim());
   }
 
   const cleaned = normalized
@@ -148,6 +251,12 @@ function generateSearchVariants(title) {
     .trim();
   if (cleaned !== normalized && cleaned.length > 2) {
     variants.push(cleaned);
+  }
+
+  const noArticles = normalized.replace(/^(?:El|La|Los|Las|Un|Una|Le|Les|The|A|An)\s+/i, '').trim();
+  if (noArticles !== normalized && noArticles.length > 2) {
+    variants.push(noArticles);
+    if (TITLE_ALIASES[noArticles]) variants.push(TITLE_ALIASES[noArticles]);
   }
 
   return [...new Set(variants)];
