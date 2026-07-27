@@ -431,7 +431,9 @@ function generateJSON(files, rootFolder, posters) {
   const year = now.getUTCFullYear();
   const dateStr = `${day}-${month}-${year}`;
 
-  const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png';
+  const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png';
+
+  const COLLECTION_ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png';
 
   const groupsMap = {};
   for (const file of files) {
@@ -452,7 +454,7 @@ function generateJSON(files, rootFolder, posters) {
   return {
     name: 'La colección de VanSirius',
     author: `VanSirius (Actualizada al ${dateStr})`,
-    image: ICON_URL,
+    image: COLLECTION_ICON,
     url: 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u',
     groups: groups
   };

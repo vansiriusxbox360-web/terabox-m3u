@@ -14,7 +14,8 @@ ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
 BASE_URL = sys.argv[0] if sys.argv else ''
 JSON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
-ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png'
+ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png'
+FANART = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/vaporwave_fine_grid.png'
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
 
 
@@ -114,7 +115,7 @@ def list_root(data):
         url = build_url('folder', name)
         li = xbmcgui.ListItem(name)
         if icon:
-            li.setArt({'icon': icon, 'thumb': icon, 'fanart': icon})
+            li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
         ok = xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
         log(f'  addDir({name}) -> {ok}')
 
@@ -136,7 +137,7 @@ def list_folder(data, path):
                 continue
             li = xbmcgui.ListItem(name)
             if icon:
-                li.setArt({'icon': icon, 'thumb': icon})
+                li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
             li.setProperty('IsPlayable', 'true')
             li.setInfo('video', {'title': name})
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
@@ -152,7 +153,7 @@ def list_folder(data, path):
         url = build_url('folder', full_path)
         li = xbmcgui.ListItem(key)
         if icon:
-            li.setArt({'icon': icon, 'thumb': icon, 'fanart': icon})
+            li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
         subfolders += 1
 

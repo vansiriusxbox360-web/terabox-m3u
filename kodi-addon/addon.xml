@@ -10,5 +10,9 @@
     <summary>Colección de anime y dibus desde Terabox</summary>
     <description>Accede a la colección completa de VanSirius con anidación original de carpetas</description>
     <language>es</language>
+    <assets>
+      <icon>https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png</icon>
+      <fanart>https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/vaporwave_fine_grid.png</fanart>
+    </assets>
   </extension>
 </addon>
