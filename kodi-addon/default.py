@@ -96,9 +96,11 @@ def build_tree(data):
             if not part:
                 continue
             if part not in node:
-                node[part] = {'_groups': [], '_icon': group.get('image', ICON)}
+                node[part] = {'_groups': [], '_icon': ICON}
             node = node[part]
         node['_groups'].append(group)
+        if group.get('image'):
+            node['_icon'] = group['image']
     return tree
 
 

@@ -116,7 +116,44 @@ function isGenericFolderName(name) {
   return /^(T\d+|s\d+|Season\s*\d+|Temporada\s*\d+|Especiales?|Pelis|Extras|Ovas|MP3|Promociones|Reportajes|dibus|no dibus|adultos|no adultos)$/i.test(name);
 }
 
-function omdbSearch(title, apiKey) {
+function normalizeTitle(title) {
+  return title
+    .replace(/ª/g, 'n')
+    .replace(/\([^\)]*\)/g, '')
+    .replace(/\[[^\]]*\]/g, '')
+    .replace(/-\s*(?:BD|WEB|DVD|TV|1080p|720p|480p|BDRip|DVDRip|HDTV|Remux|HEVC|x264|x265|HDRip|WEBRip|AAC|AC3|DTS|Cast(?:ellano)?|Jap(?:on[eé]s?)?|Sub(?:s)?)\s*/gi, '')
+    .replace(/\s*\(Netflix\)\s*/gi, '')
+    .replace(/[:：]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function generateSearchVariants(title) {
+  const normalized = normalizeTitle(title);
+  const variants = [normalized];
+
+  const jpMatch = normalized.match(/^(.*?)\s+[\u3040-\u9FFF]+/);
+  if (jpMatch && jpMatch[1].trim().length > 2) {
+    variants.push(jpMatch[1].trim());
+  }
+
+  const dashSplit = normalized.split(/\s*[-–—]\s*/);
+  if (dashSplit.length >= 2 && dashSplit[0].trim().length > 2) {
+    variants.push(dashSplit[0].trim());
+  }
+
+  const cleaned = normalized
+    .replace(/[™©®]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (cleaned !== normalized && cleaned.length > 2) {
+    variants.push(cleaned);
+  }
+
+  return [...new Set(variants)];
+}
+
+function omdbSearchSingle(title, apiKey) {
   return new Promise((resolve) => {
     const url = `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${apiKey}`;
     https.get(url, (res) => {
@@ -136,6 +173,16 @@ function omdbSearch(title, apiKey) {
       });
     }).on('error', () => resolve(null));
   });
+}
+
+async function omdbSearch(title, apiKey) {
+  const variants = generateSearchVariants(title);
+  for (const variant of variants) {
+    const poster = await omdbSearchSingle(variant, apiKey);
+    if (poster) return poster;
+    await sleep(OMD_DELAY_MS);
+  }
+  return null;
 }
 
 async function fetchPosters(groups, apiKey) {
