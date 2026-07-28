@@ -18,8 +18,8 @@ JSON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/m
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 ICON = os.path.join(ADDON_PATH, 'icon.png')
-DETECTIVE = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png'
-FANART = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/vaporwave_fine_grid.png'
+DETECTIVE = os.path.join(ADDON_PATH, 'detective_worried_street.png')
+FANART = os.path.join(ADDON_PATH, 'vaporwave_fine_grid.png')
 
 FOLDER_IMAGES = {
     '\u00aanime': os.path.join(ADDON_PATH, 'img-anime.png'),

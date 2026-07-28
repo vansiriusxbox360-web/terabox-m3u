@@ -12,7 +12,7 @@
     <language>es</language>
     <assets>
       <icon>icon.png</icon>
-      <fanart>https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/vaporwave_fine_grid.png</fanart>
+      <fanart>vaporwave_fine_grid.png</fanart>
     </assets>
   </extension>
 </addon>
