@@ -133,7 +133,13 @@ def resolve_icon(node, current_path=''):
     if folder_img:
         return folder_img
     if node.get('_groups'):
-        return node.get('_icon', DETECTIVE)
+        icon = node.get('_icon')
+        if icon and icon != ICON:
+            return icon
+        return DETECTIVE
+    child_keys = [k for k in node.keys() if not k.startswith('_')]
+    if child_keys:
+        return ICON
     return DETECTIVE
 
 
@@ -161,10 +167,11 @@ def list_folder(data, path):
 
     count = 0
     for group in node.get('_groups', []):
+        group_icon = group.get('image', ICON)
         for station in group.get('stations', []):
             name = station.get('name', 'Sin nombre')
             url = station.get('url', '')
-            icon = station.get('image', ICON)
+            icon = station.get('image', group_icon)
             if not url:
                 continue
             li = xbmcgui.ListItem(name)
