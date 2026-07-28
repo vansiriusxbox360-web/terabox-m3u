@@ -549,6 +549,8 @@ function getGroupFromPath(filePath, rootFolder) {
     showName = folderParts.length > 0 ? folderParts[folderParts.length - 1] : topGroup;
   }
 
+  showName = cleanName(showName).replace(/\./g, ' ');
+
   return { group, searchName: showName };
 }
 
