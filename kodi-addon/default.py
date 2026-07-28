@@ -15,24 +15,20 @@ ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
 BASE_URL = sys.argv[0] if sys.argv else ''
 JSON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
-ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png'
-FANART = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/vaporwave_fine_grid.png'
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
-RAW_BASE = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main'
+ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
+ICON = os.path.join(ADDON_PATH, 'icon.png')
+DETECTIVE = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png'
+FANART = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/vaporwave_fine_grid.png'
 
 FOLDER_IMAGES = {
-    '\u00aanime': f'{RAW_BASE}/img-anime.png',
-    'Dibus que no son \u00aanime': f'{RAW_BASE}/img-dibus.png',
-    'Tele5 / Club Disney / TPH / Megatrix': f'{RAW_BASE}/img-tele5.png',
-    'en la 2 con mucha marcha y \u2bc9TPH,  en la 3 Megatrix o el Club Disney en Tele5': f'{RAW_BASE}/img-tele5.png',
-    'Digital+': f'{RAW_BASE}/img-digital.png',
-    'y si eras un ni\u00f1o afortunado y tus padres ten\u00edan Digital+': f'{RAW_BASE}/img-digital.png',
-    'spin-off': f'{RAW_BASE}/img-spinoff.png',
-    '(la carpeta spin-off que no te pillaba jamando)': f'{RAW_BASE}/img-spinoff.png',
-    'VHS o tu madre': f'{RAW_BASE}/img-vhs.png',
-    'las que te pon\u00edas en VHS o tu madre te dec\u00eda en mis tiempos habia cosas muy bonitas': f'{RAW_BASE}/img-vhs.png',
-    'Sine': f'{RAW_BASE}/img-sine.png',
-    'Sine malo y sine g\u00fceno': f'{RAW_BASE}/img-sine.png',
+    '\u00aanime': os.path.join(ADDON_PATH, 'img-anime.png'),
+    'Dibus que no son \u00aanime': os.path.join(ADDON_PATH, 'img-dibus.png'),
+    'en la 2 con mucha marcha y \u1409TPH,  en la 3 Megatrix o el Club Disney en Tele5': os.path.join(ADDON_PATH, 'img-tele5.png'),
+    'y si eras un ni\u00f1o afortunado y tus padres ten\u00edan Digital+': os.path.join(ADDON_PATH, 'img-digital.png'),
+    '(la carpeta spin-off que no te pillaba jamando)': os.path.join(ADDON_PATH, 'img-spinoff.png'),
+    'las que te pon\u00edas en VHS o tu madre te dec\u00eda en mis tiempos habia cosas muy bonitas': os.path.join(ADDON_PATH, 'img-vhs.png'),
+    'Sine malo y sine g\u00fceno': os.path.join(ADDON_PATH, 'img-sine.png'),
 }
 
 
@@ -137,8 +133,8 @@ def resolve_icon(node, current_path=''):
     if folder_img:
         return folder_img
     if node.get('_groups'):
-        return node.get('_icon', ICON)
-    return ICON
+        return node.get('_icon', DETECTIVE)
+    return DETECTIVE
 
 
 def list_root(data):

@@ -567,7 +567,7 @@ function generateJSON(files, rootFolder, posters) {
   const FOLDER_IMAGES = {
     '\u00aanime': `${BASE}/img-anime.png`,
     'Dibus que no son \u00aanime': `${BASE}/img-dibus.png`,
-    'en la 2 con mucha marcha y \u2bc9TPH,  en la 3 Megatrix o el Club Disney en Tele5': `${BASE}/img-tele5.png`,
+    'en la 2 con mucha marcha y \u1409TPH,  en la 3 Megatrix o el Club Disney en Tele5': `${BASE}/img-tele5.png`,
     'y si eras un ni\u00f1o afortunado y tus padres ten\u00edan Digital+': `${BASE}/img-digital.png`,
     '(la carpeta spin-off que no te pillaba jamando)': `${BASE}/img-spinoff.png`,
     'las que te pon\u00edas en VHS o tu madre te dec\u00eda en mis tiempos habia cosas muy bonitas': `${BASE}/img-vhs.png`,
