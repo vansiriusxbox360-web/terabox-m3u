@@ -578,7 +578,7 @@ function generateJSON(files, rootFolder, posters) {
   for (const file of files) {
     const { group, searchName } = getGroupFromPath(file.path, rootFolder);
     if (!groupsMap[group]) {
-      const groupImg = posters && posters[searchName] ? posters[searchName] : VS_ICON;
+      const groupImg = posters && posters[searchName] ? posters[searchName] : null;
       groupsMap[group] = { name: group, image: groupImg, info: '', stations: [] };
     }
     const poster = posters && posters[searchName] ? posters[searchName] : ICON_URL;
