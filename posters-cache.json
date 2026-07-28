@@ -1,4 +1,13 @@
 {
+  "1": "https://m.media-amazon.com/images/M/MV5BMjAxNDI5NTMxMF5BMl5BanBnXkFtZTgwMDMzMjg4MTE@._V1_SX300.jpg",
+  "2": "https://m.media-amazon.com/images/M/MV5BNGMyMGNkMDUtMjc2Ni00NWFlLTgyODEtZTY2MzBiZTg0OWZiXkEyXkFqcGc@._V1_QL75_UX380_CR0,1,380,562_.jpg",
+  "3": "https://m.media-amazon.com/images/M/MV5BMjIzMzAzMjQyM15BMl5BanBnXkFtZTcwNzM2NjcyOQ@@._V1_QL75_UX380_CR0,0,380,562_.jpg",
+  "4": "https://m.media-amazon.com/images/M/MV5BY2Q2ZmI5ZjUtNWVhMC00YzJkLTlmYjMtY2RmZDhkNzEzYjZhXkEyXkFqcGc@._V1_SX300.jpg",
+  "5": "https://m.media-amazon.com/images/M/MV5BMTgyOTExNDc1M15BMl5BanBnXkFtZTcwMDA0MTA4NQ@@._V1_SX300.jpg",
+  "6": "https://m.media-amazon.com/images/M/MV5BYjQ3YzUyOGQtNjdlYS00YmRhLWIyOWYtMGQ3YjkwMjJiYzRjXkEyXkFqcGc@._V1_SX300.jpg",
+  "7": "https://m.media-amazon.com/images/M/MV5BMTQxOTA2NDUzOV5BMl5BanBnXkFtZTgwNzY2MTMxMzE@._V1_SX300.jpg",
+  "8": "https://m.media-amazon.com/images/M/MV5BNDg1YzJiN2MtZGYzMi00YmVlLThkZGQtYTYyYmE5NGYzNzYyXkEyXkFqcGc@._V1_SX300.jpg",
+  "9": "https://m.media-amazon.com/images/M/MV5BMTY2ODE1MTgxMV5BMl5BanBnXkFtZTcwNTM1NTM2Mg@@._V1_SX300.jpg",
   "Akira": "https://m.media-amazon.com/images/M/MV5BYWUxMGRhZDQtMTBmMi00N2IxLWE5NmYtMDMyMWExODAwNWYzXkEyXkFqcGc@._V1_SX300.jpg",
   "Arion": "https://m.media-amazon.com/images/M/MV5BNTQyNWIyZWQtN2FjNS00OGNkLWJhZjEtODJmMTBhYjBjZTUxXkEyXkFqcGc@._V1_SX300.jpg",
   "Bio Hunter": "https://m.media-amazon.com/images/M/MV5BNGU1YTE2ODMtOWFmMy00OWEzLTgzOGItZWQzMjM1MDkyMTY5XkEyXkFqcGdeQXVyNTAyODkwOQ@@._V1_SX300.jpg",
@@ -203,5 +212,13 @@
   "Shaman King": "https://m.media-amazon.com/images/M/MV5BN2IwZTFjNzMtMjA0OC00MGRiLWExOGUtYTdmMjU3ZDMyMTQ5XkEyXkFqcGc@._V1_SX300.jpg",
   "Soy Comadreja": "https://m.media-amazon.com/images/M/MV5BYTdkOTBlZGQtYTk1Mi00OWNlLWIxNmItZjlkOWMwMzgyYTZiXkEyXkFqcGc@._V1_SX300.jpg",
   "Viewtiful Joe": "https://m.media-amazon.com/images/M/MV5BMTg1NTk5Mjk4MF5BMl5BanBnXkFtZTcwNDIyMjE1MQ@@._V1_SX300.jpg",
-  "Yu-Gi-Oh!": "https://m.media-amazon.com/images/M/MV5BYzNkNjA1YTctMzU3ZS00ZWY3LWJjNjYtMTgyMmI0YWVkNjU4XkEyXkFqcGc@._V1_SX300.jpg"
+  "Yu-Gi-Oh!": "https://m.media-amazon.com/images/M/MV5BYzNkNjA1YTctMzU3ZS00ZWY3LWJjNjYtMTgyMmI0YWVkNjU4XkEyXkFqcGc@._V1_SX300.jpg",
+  "NieR Automata Ver1": "https://m.media-amazon.com/images/M/MV5BZDFkM2M4MTItNDA1NS00YTE5LTgwNmQtOTkwM2ZlOGIxODZjXkEyXkFqcGc@._V1_SX300.jpg",
+  "Problem Solverz": "https://m.media-amazon.com/images/M/MV5BZmExNGNhOGUtMzVlZi00MjcwLWI5ZDAtZWFiOGVjZTkzYWZkXkEyXkFqcGc@._V1_SX300.jpg",
+  "Superjail! (sub)": "https://m.media-amazon.com/images/M/MV5BNmZmOTNkMTYtOGY0Zi00Y2M5LWFkYWItM2YwMTg4YWJjYjc0XkEyXkFqcGc@._V1_SX300.jpg",
+  "TripTank": "https://m.media-amazon.com/images/M/MV5BZDQ3ZjMwYjgtYTA2Yy00NDk4LTg0NGQtZWFlNzkxNzkwZDUzXkEyXkFqcGc@._V1_SX300.jpg",
+  "Mr": "https://m.media-amazon.com/images/M/MV5BMTUxMzcxNzQzOF5BMl5BanBnXkFtZTcwMzQxNjUyMw@@._V1_SX300.jpg",
+  "Alfred J": "https://m.media-amazon.com/images/M/MV5BYzc4ZWQ5YTQtMjYzOC00Yjg5LTg4NzMtOWE1MTVjZTVkMjhhXkEyXkFqcGc@._V1_SX300.jpg",
+  "Los ladrones van a la oficina": "https://m.media-amazon.com/images/M/MV5BMzM5NDBiNzctNjcxNC00MjUyLWFhMWUtOTliMTk2NjQzZTc0XkEyXkFqcGdeQXVyMTY5MDE5NA@@._V1_SX300.jpg",
+  "La M palabra y Tontico": "https://m.media-amazon.com/images/M/MV5BNzQxNDYyNTQtYjg1OC00OGJiLTk2YjMtZjZjZDgwOWFlOTJjXkEyXkFqcGc@._V1_SX300.jpg"
 }
