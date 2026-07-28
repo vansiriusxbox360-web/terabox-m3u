@@ -574,20 +574,11 @@ function generateJSON(files, rootFolder, posters) {
     'Sine malo y sine g\u00fceno': `${BASE}/img-sine.png`,
   };
 
-  function getFolderImage(groupPath) {
-    const parts = groupPath.split('/');
-    for (const part of parts) {
-      if (FOLDER_IMAGES[part]) return FOLDER_IMAGES[part];
-    }
-    return null;
-  }
-
   const groupsMap = {};
   for (const file of files) {
     const { group, searchName } = getGroupFromPath(file.path, rootFolder);
     if (!groupsMap[group]) {
-      const folderImg = getFolderImage(group);
-      const groupImg = folderImg || (posters && posters[searchName] ? posters[searchName] : VS_ICON);
+      const groupImg = posters && posters[searchName] ? posters[searchName] : VS_ICON;
       groupsMap[group] = { name: group, image: groupImg, info: '', stations: [] };
     }
     const poster = posters && posters[searchName] ? posters[searchName] : ICON_URL;
