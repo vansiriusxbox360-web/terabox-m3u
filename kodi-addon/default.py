@@ -170,6 +170,7 @@ def list_root(data):
 
     add_listitem('\ud83d\udd0d Buscar', build_url('search'), ICON, isFolder=True)
     add_listitem('\ud83c\udfb2 Video aleatorio', build_url('random'), ICON, isFolder=False)
+    add_listitem('\u2699\ufe0f Ajustes', build_url('settings'), ICON, isFolder=False)
 
     for name in top_keys:
         node = tree[name]
@@ -329,6 +330,9 @@ def router(paramstring):
         return
     elif action == 'random':
         play_random(data)
+        return
+    elif action == 'settings':
+        ADDON.openSettings()
         return
     elif action == 'play':
         play_video(path)
