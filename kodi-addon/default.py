@@ -225,37 +225,26 @@ def list_search(data):
         return
 
     term = search_term.lower().strip()
-    found_groups = set()
-    found_stations = []
+    found = set()
 
     for group in data.get('groups', []):
         gname = group.get('name', '').lower()
         if term in gname:
-            found_groups.add(group.get('name', ''))
+            found.add(group.get('name', ''))
         for station in group.get('stations', []):
             sname = station.get('name', '').lower()
             if term in sname:
-                found_stations.append((group, station))
+                found.add(group.get('name', ''))
 
-    if not found_groups and not found_stations:
+    if not found:
         xbmcgui.Dialog().ok('Buscar', f'No se encontraron resultados para "{search_term}"')
         xbmcplugin.endOfDirectory(HANDLE)
         return
 
-    seen = set()
-    for full_path in sorted(found_groups):
-        if full_path in seen:
-            continue
-        seen.add(full_path)
+    for full_path in sorted(found):
         parts = full_path.split('/')
-        label = f'[C] {parts[-1]}'
+        label = parts[-1]
         add_listitem(label, build_url('folder', full_path), ICON, isFolder=True)
-
-    for group, station in found_stations:
-        label = f'[V] {station["name"]}  ({group["name"]})'
-        icon = station.get('image', group.get('image', ICON))
-        url = station['url']
-        add_listitem(label, build_url('play', url), icon, isFolder=False)
 
     xbmcplugin.endOfDirectory(HANDLE)
 
