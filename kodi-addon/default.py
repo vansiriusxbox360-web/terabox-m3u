@@ -168,8 +168,8 @@ def list_root(data):
     tree = build_tree(data)
     top_keys = sorted(tree.keys())
 
-    add_listitem('\ud83d\udd0d Buscar', build_url('search'), ICON, isFolder=True)
-    add_listitem('\ud83c\udfb2 Video aleatorio', build_url('random'), ICON, isFolder=False)
+    add_listitem('\U0001f50d Buscar', build_url('search'), ICON, isFolder=True)
+    add_listitem('\U0001f3b2 Video aleatorio', build_url('random'), ICON, isFolder=False)
     add_listitem('\u2699\ufe0f Ajustes', build_url('settings'), ICON, isFolder=False)
 
     for name in top_keys:
@@ -248,11 +248,11 @@ def list_search(data):
             continue
         seen.add(full_path)
         parts = full_path.split('/')
-        label = f'\ud83d\udcc1 {parts[-1]}'
+        label = f'\U0001f4c1 {parts[-1]}'
         add_listitem(label, build_url('folder', full_path), ICON, isFolder=True)
 
     for group, station in found_stations:
-        label = f'\ud83c\udfac {station["name"]}  ({group["name"]})'
+        label = f'\U0001f3ac {station["name"]}  ({group["name"]})'
         icon = station.get('image', group.get('image', ICON))
         url = station['url']
         add_listitem(label, build_url('play', url), icon, isFolder=False)
