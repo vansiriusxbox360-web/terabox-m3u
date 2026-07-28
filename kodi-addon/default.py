@@ -10,11 +10,12 @@ import sys
 import traceback
 import os
 import re
+import random
 
 ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
 BASE_URL = sys.argv[0] if sys.argv else ''
-JSON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
+JSON_URL = ADDON.getSetting('json_url') or 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 ICON = os.path.join(ADDON_PATH, 'icon.png')
@@ -49,18 +50,14 @@ def get_folder_image(name):
 def get_json():
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
 
-    cached = None
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'r', encoding='utf-8') as f:
                 cached = json.load(f)
+            log(f'Usando cache local ({len(cached.get("groups", []))} grupos)')
+            return cached
         except Exception as e:
             log(f'Error leyendo cache: {e}', xbmc.LOGERROR)
-            cached = None
-
-    if cached:
-        log(f'Usando cache local ({len(cached.get("groups", []))} grupos)')
-        return cached
 
     progress = xbmcgui.DialogProgress()
     progress.create('VanSirius', 'Descargando coleccion...')
@@ -102,9 +99,10 @@ def get_json():
         return None
 
 
-def build_url(action, path=''):
-    params = urllib.parse.urlencode({'action': action, 'path': path})
-    return f'{BASE_URL}?{params}'
+def build_url(action, path='', **extra):
+    params = {'action': action, 'path': path}
+    params.update(extra)
+    return f'{BASE_URL}?{urllib.parse.urlencode(params)}'
 
 
 def build_tree(data):
@@ -156,19 +154,30 @@ def resolve_icon(node, current_path=''):
     return DETECTIVE
 
 
+def add_listitem(label, url, icon=None, isFolder=True):
+    li = xbmcgui.ListItem(label)
+    if icon:
+        li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
+    if not isFolder:
+        li.setProperty('IsPlayable', 'true')
+        li.setInfo('video', {'title': label})
+    return xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=isFolder)
+
+
 def list_root(data):
     tree = build_tree(data)
     top_keys = sorted(tree.keys())
-    log(f'Root: {len(top_keys)} carpetas top-level: {top_keys[:5]}')
+
+    add_listitem('\ud83d\udd0d Buscar', build_url('search'), ICON, isFolder=True)
+    add_listitem('\ud83c\udfb2 Video aleatorio', build_url('random'), ICON, isFolder=False)
+
     for name in top_keys:
         node = tree[name]
         icon = resolve_icon(node, name)
         url = build_url('folder', name)
-        li = xbmcgui.ListItem(name)
-        if icon:
-            li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
-        ok = xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
-        log(f'  addDir({name}) -> {ok}')
+        add_listitem(name, url, icon, isFolder=True)
+
+    xbmcplugin.endOfDirectory(HANDLE)
 
 
 def list_folder(data, path):
@@ -178,7 +187,6 @@ def list_folder(data, path):
     for part in parts:
         node = node.get(part, {})
 
-    count = 0
     for group in node.get('_groups', []):
         group_icon = group.get('image', ICON)
         for station in group.get('stations', []):
@@ -193,9 +201,7 @@ def list_folder(data, path):
             li.setProperty('IsPlayable', 'true')
             li.setInfo('video', {'title': name})
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
-            count += 1
 
-    subfolders = 0
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     child_keys.sort(key=natural_sort_key)
     for key in child_keys:
@@ -207,13 +213,76 @@ def list_folder(data, path):
         if icon:
             li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
-        subfolders += 1
 
-    log(f'Folder({path}): {count} videos, {subfolders} subcarpetas')
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def list_search(data):
+    search_term = xbmcgui.Dialog().input('Buscar...', type=xbmcgui.INPUT_ALPHANUM)
+    if not search_term:
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+
+    term = search_term.lower().strip()
+    found_groups = set()
+    found_stations = []
+
+    for group in data.get('groups', []):
+        gname = group.get('name', '').lower()
+        if term in gname:
+            found_groups.add(group.get('name', ''))
+        for station in group.get('stations', []):
+            sname = station.get('name', '').lower()
+            if term in sname:
+                found_stations.append((group, station))
+
+    if not found_groups and not found_stations:
+        xbmcgui.Dialog().ok('Buscar', f'No se encontraron resultados para "{search_term}"')
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+
+    seen = set()
+    for full_path in sorted(found_groups):
+        if full_path in seen:
+            continue
+        seen.add(full_path)
+        parts = full_path.split('/')
+        label = f'\ud83d\udcc1 {parts[-1]}'
+        add_listitem(label, build_url('folder', full_path), ICON, isFolder=True)
+
+    for group, station in found_stations:
+        label = f'\ud83c\udfac {station["name"]}  ({group["name"]})'
+        icon = station.get('image', group.get('image', ICON))
+        url = station['url']
+        add_listitem(label, build_url('play', url), icon, isFolder=False)
+
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def play_random(data):
+    all_stations = []
+    for group in data.get('groups', []):
+        for station in group.get('stations', []):
+            if station.get('url'):
+                all_stations.append(station)
+
+    if not all_stations:
+        xbmcgui.Dialog().ok('Random', 'No hay videos disponibles')
+        return
+
+    station = random.choice(all_stations)
+    name = station.get('name', 'Sin nombre')
+    url = station.get('url', '')
+    li = xbmcgui.ListItem(name, path=url)
+    li.setProperty('IsPlayable', 'true')
+    li.setInfo('video', {'title': name})
+    log(f'Random: {name}')
+    xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
 def play_video(url):
     li = xbmcgui.ListItem(path=url)
+    li.setProperty('IsPlayable', 'true')
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
@@ -222,14 +291,31 @@ def router(paramstring):
     log(f'HANDLE = {HANDLE}')
     log(f'BASE_URL = {BASE_URL}')
 
+    params = dict(urllib.parse.parse_qsl(paramstring.lstrip('?')))
+    action = params.get('action', 'root')
+    path = params.get('path', '')
+
+    if action == 'settings_setting':
+        setting = params.get('setting', '')
+        if setting == 'refresh':
+            if os.path.exists(CACHE_FILE):
+                os.remove(CACHE_FILE)
+                xbmcgui.Dialog().ok('Hecho', 'Cache borrada. Vuelve a entrar al addon para recargar.')
+        elif setting == 'thumb_cache':
+            thumb_path = xbmcvfs.translatePath('special://masterprofile/Thumbnails/')
+            xbmcgui.Dialog().ok(
+                'Cache de miniaturas',
+                f'Para limpiar las miniaturas:\n'
+                f'1. Cierra Kodi\n'
+                f'2. Borra esta carpeta:\n{thumb_path}\n'
+                f'3. Reinicia Kodi'
+            )
+        return
+
     data = get_json()
     if not data:
         log('No hay datos, saliendo', xbmc.LOGERROR)
         return
-
-    params = dict(urllib.parse.parse_qsl(paramstring.lstrip('?')))
-    action = params.get('action', 'root')
-    path = params.get('path', '')
 
     log(f'Action: {action}, Path: "{path}"')
     xbmcplugin.setContent(HANDLE, 'tvshows')
@@ -238,8 +324,15 @@ def router(paramstring):
         list_root(data)
     elif action == 'folder':
         list_folder(data, path)
+    elif action == 'search':
+        list_search(data)
+        return
+    elif action == 'random':
+        play_random(data)
+        return
     elif action == 'play':
         play_video(path)
+        return
 
     xbmcplugin.endOfDirectory(HANDLE)
 
