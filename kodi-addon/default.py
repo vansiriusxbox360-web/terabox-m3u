@@ -139,6 +139,19 @@ def resolve_icon(node, current_path=''):
         return DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     if child_keys:
+        all_alb = all(
+            isinstance(node[k], dict) and node[k].get('_groups')
+            for k in child_keys
+        )
+        if all_alb:
+            for k in child_keys:
+                icon = node[k].get('_icon')
+                if icon and icon not in (ICON, DETECTIVE):
+                    return icon
+            for k in child_keys:
+                icon = node[k].get('_icon')
+                if icon:
+                    return icon
         return ICON
     return DETECTIVE
 
