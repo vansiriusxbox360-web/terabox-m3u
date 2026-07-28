@@ -491,7 +491,7 @@ function isSeasonFolder(name) {
   if (/^\d+[\s.-]+\d+/.test(name)) return true;
   if (/^Saga\s/i.test(name)) return true;
   if (/Temporada\s+\d+/i.test(name)) return true;
-  if (/^\d+\.\s*\w+/.test(name) && /\(\d+/.test(name)) return true;
+  if (/^\d+\.\s*\w+/.test(name)) return true;
   return false;
 }
 
