@@ -142,14 +142,13 @@ def resolve_icon(node, current_path=''):
             for k in child_keys
         )
         if all_alb:
+            posters = set()
             for k in child_keys:
                 icon = node[k].get('_icon')
                 if icon and icon not in (ICON, DETECTIVE):
-                    return icon
-            for k in child_keys:
-                icon = node[k].get('_icon')
-                if icon:
-                    return icon
+                    posters.add(icon)
+            if len(posters) == 1:
+                return posters.pop()
         return ICON
     return DETECTIVE
 
