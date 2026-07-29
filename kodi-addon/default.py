@@ -168,6 +168,11 @@ def list_root(data):
     tree = build_tree(data)
     top_keys = sorted(tree.keys())
 
+    updated = data.get('_last_updated_display') or data.get('_last_updated', '')
+    if updated:
+        if 'T' in updated:
+            updated = updated[:10] + ' ' + updated[11:16]
+        add_listitem(f'[ Actualizado: {updated} ]', build_url('updated'), ICON, isFolder=False)
     add_listitem('[ Buscar ]', build_url('search'), ICON, isFolder=True)
     add_listitem('[ Video aleatorio ]', build_url('random'), ICON, isFolder=False)
     add_listitem('[ Ajustes ]', build_url('settings'), ICON, isFolder=False)
@@ -322,6 +327,17 @@ def router(paramstring):
         return
     elif action == 'settings':
         ADDON.openSettings()
+        return
+    elif action == 'updated':
+        updated = data.get('_last_updated_display') or data.get('_last_updated', '')
+        if updated:
+            xbmcgui.Dialog().ok(
+                'Actualizado',
+                f'La lista se actualizó:\n{updated}\n\n'
+                'GitHub Actions regenera\ndatos cada 8h automáticamente.'
+            )
+        else:
+            xbmcgui.Dialog().ok('Actualizado', 'Fecha no disponible')
         return
     elif action == 'play':
         play_video(path)

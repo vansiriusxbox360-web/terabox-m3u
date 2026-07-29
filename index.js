@@ -593,9 +593,15 @@ function generateJSON(files, rootFolder, posters) {
 
   const groups = Object.values(groupsMap).sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
+  const hours = String(now.getUTCHours()).padStart(2, '0');
+  const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+  const dateTimeStr = `${day}-${month}-${year} ${hours}:${minutes}`;
+
   return {
     name: 'La colección de VanSirius',
     author: `VanSirius (Actualizada al ${dateStr})`,
+    _last_updated: now.toISOString(),
+    _last_updated_display: dateTimeStr,
     image: COLLECTION_ICON,
     url: 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u',
     groups: groups
