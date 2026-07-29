@@ -173,9 +173,7 @@ def list_root(data):
         if 'T' in updated:
             updated = updated[:10] + ' ' + updated[11:16]
         add_listitem(f'[ Actualizado: {updated} ]', build_url('updated'), ICON, isFolder=False)
-    add_listitem('[ Buscar ]', build_url('search'), ICON, isFolder=True)
-    add_listitem('[ Video aleatorio ]', build_url('random'), ICON, isFolder=False)
-    add_listitem('[ Ajustes ]', build_url('settings'), ICON, isFolder=False)
+    add_listitem('[ \u00datiles ]', build_url('utiles'), ICON, isFolder=True)
 
     for name in top_keys:
         node = tree[name]
@@ -220,6 +218,13 @@ def list_folder(data, path):
             li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
 
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def list_utiles(data):
+    add_listitem('[ Buscar ]', build_url('search'), ICON, isFolder=True)
+    add_listitem('[ Video aleatorio ]', build_url('random'), ICON, isFolder=False)
+    add_listitem('[ Ajustes ]', build_url('settings_utiles'), ICON, isFolder=False)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -325,7 +330,25 @@ def router(paramstring):
     elif action == 'random':
         play_random(data)
         return
+    elif action == 'utiles':
+        list_utiles(data)
+        return
     elif action == 'settings':
+        ADDON.openSettings()
+        return
+    elif action == 'settings_utiles':
+        if os.path.exists(CACHE_FILE):
+            if xbmcgui.Dialog().yesno(
+                'Ajustes',
+                '\u00bfForzar recarga?',
+                'Se borrar\u00e1 la cache descargada.',
+                '\u00bfAbrir ajustes sin recargar?',
+                'S\u00ed, recargar',
+                'Solo ajustes'
+            ):
+                os.remove(CACHE_FILE)
+                xbmcgui.Dialog().ok('Hecho', 'Cache borrada.\nVuelve a entrar al addon.')
+                return
         ADDON.openSettings()
         return
     elif action == 'updated':
