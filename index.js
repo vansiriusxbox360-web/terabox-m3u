@@ -250,6 +250,29 @@ const TITLE_ALIASES = {
   'Sonic': 'Adventures of Sonic the Hedgehog',
 };
 
+const CUSTOM_POSTERS = {
+  'Basket Fever': 'https://mediaproxy.tvtropes.org/width/1200/https://static.tvtropes.org/pmwiki/pub/images/basket_fever_1.jpg',
+  'Campeones': 'https://peliculas.lavanguardia.com/imagenes/w500/pIvSw3qRmGLsQ63X38xf6ol1ND7.jpg',
+  'Daniel el travieso': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgTG2Ir-NbUHx4UmAuC259cofDkST2kYAqwxpLx211PNyqvjvE3VBsn2Q&s=10',
+  'La banda del patio': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhcAqXu5tG_xOfUFm5OYlogECZNAiSQCjkx1aqRXJYYQ&s=10',
+  'Los Fruitis': 'https://static.filmin.es/images/es/media/33551/1/poster_0_3.jpg',
+  'Los Trotamusicos': 'https://pics.filmaffinity.com/los_trotamusicos_aka_los_4_musicos_de_bremen_tv_series-362874770-large.jpg',
+  'Mortadelo y Filemón': 'https://www.tebeosfera.com/T3content/img/T3_audiovisuales/g/e/mortadelo_y_filem_n_serie_de_tv-965756502-large.jpg',
+  'Nicolás': 'https://m.media-amazon.com/images/M/MV5BNmZkNzMzNzUtYzhlZi00NWM4LWFjNzItZmRlYTY3YWY2NTA4XkEyXkFqcGc@._V1_.jpg',
+  'Sylvan': 'https://static.wikia.nocookie.net/doblaje-fanon/images/f/f9/Sylvan_poster.jpg/revision/latest?cb=20240308011600&path-prefix=es',
+  'Isidoro': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVJk_mc_PLaBBdioLSAbP8J6eAwwZf8ZfzLgAnZ6emQmGqHppxPJ4JbbEz&s=10',
+  'Rick y Morty': 'https://i.pinimg.com/originals/54/23/1f/54231fca60088a21f40581ace92e6941.jpg',
+  'Pokemon': 'https://pics.filmaffinity.com/pokemon-328038148-large.jpg',
+  'Pokémon': 'https://pics.filmaffinity.com/pokemon-328038148-large.jpg',
+  'Los Snorkels': 'https://image.tmdb.org/t/p/original/y3wesB2INohfa3lPRWaLWiL98ac.jpg',
+  'Chicho Terremoto': 'https://www.ecartelera.com/carteles-series/1400/1452/001.jpg',
+  'Cocodrilos al rescate': 'https://m.media-amazon.com/images/M/MV5BNzgyZmI3OTItMDM4OS00YjY4LWIyMTgtYzNlNDJiZTU4NWI4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
+  'Cosas de locos': 'https://m.media-amazon.com/images/I/912sd0EJQlL._SL1500_.jpg',
+  'Las aventuras de Super Mario Bros 3': 'https://m.media-amazon.com/images/M/MV5BOGJlZTI4NjUtYzJhZi00M2FkLWI2ZmYtOGZmZTFkNDIxOTJhXkEyXkFqcGc@._V1_.jpg',
+  'Los intocables de Elliot Mouse': 'https://static.wikia.nocookie.net/doblaje/images/8/85/LosintocablesElliotMouse_poster.jpg/revision/latest?cb=20210808012943&path-prefix=es',
+  'Super Mario World': 'https://m.media-amazon.com/images/M/MV5BYTZkZmEyNGItZDY0ZS00ZDYwLThiYTEtZjYzMzgzOTk0ZDI3XkEyXkFqcGc@._V1_.jpg',
+};
+
 function generateSearchVariants(title) {
   const normalized = normalizeTitle(title);
   const variants = [];
@@ -334,6 +357,13 @@ async function fetchPosters(groups, apiKey) {
   let missed = 0;
 
   for (const group of groups) {
+    if (CUSTOM_POSTERS[group]) {
+      posters[group] = CUSTOM_POSTERS[group];
+      cache[group] = CUSTOM_POSTERS[group];
+      cached++;
+      continue;
+    }
+
     if (cache[group]) {
       posters[group] = cache[group];
       cached++;
