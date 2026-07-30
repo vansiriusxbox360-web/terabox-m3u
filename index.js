@@ -296,20 +296,19 @@ const CUSTOM_POSTERS = {
   'Viaje a Agartha': 'https://www.selecta-vision.com/wp-content/uploads/2024/07/viaje-a-agartha-3.png',
   'El Castillo en el cielo - Tenku no Shiro Laputa': 'https://ghibliculture.wordpress.com/wp-content/uploads/2014/02/castle-in-the-sky-1986-1.jpg',
   'Pet Shop of Horror': 'https://m.media-amazon.com/images/I/71+uGyiQMLL._SL1000_.jpg',
-  'Beavis & Butt Head': 'https://image.tmdb.org/t/p/original/f7WsK9kOYmilGLLeLVnmL0KJR9T.jpg',
-  'Beavis and Butt Head Remastered (capis sueltos)': 'https://images.justwatch.com/poster/300604765/s332/beavis-y-butt-head.avif',
-  'Beavis & Butt Head T0': 'https://i.ebayimg.com/images/g/kroAAeSwpFhnyPmg/s-l500.webp',
-  'Beavis & Butt Head T1': 'https://images.justwatch.com/poster/340484014/s718/season-1.jpg',
-  'Beavis & Butt Head T2': 'https://images.justwatch.com/poster/340484015/s718/season-2.jpg',
-  'Beavis & Butt Head T3': 'https://images.justwatch.com/poster/340484021/s718/season-3.jpg',
-  'Beavis & Butt Head T4': 'https://images.justwatch.com/poster/340484018/s718/season-4.jpg',
-  'Beavis & Butt Head T5': 'https://images.justwatch.com/poster/340484035/s718/season-5.jpg',
-  'Beavis & Butt Head T6': 'https://images.justwatch.com/poster/340484039/s718/season-6.jpg',
-  'Beavis & Butt Head T7': 'https://images.justwatch.com/poster/340484049/s718/season-7.jpg',
-  'Beavis & Butt Head T8': 'https://images.justwatch.com/poster/340484055/s718/season-8.jpg',
-  'Beavis & Butt Head T9': 'https://static.wikia.nocookie.net/beavisandbutthead/images/e/ee/Season9Promo.jpeg/revision/latest/scale-to-width-down/1000?cb=20220716035629',
-  'Beavis & Butt Head T10': 'https://static.wikia.nocookie.net/beavisandbutthead/images/3/35/Season10Poster2.jpg/revision/latest/scale-to-width-down/1000?cb=20260605051717',
-  'Beavis & Butt Head T11': 'https://static.wikia.nocookie.net/beavisandbutthead/images/e/ea/Season_11_premiere_advertisement.jpg/revision/latest/scale-to-width-down/1000?cb=20250814041320',
+  'Beavis & Butt-Head': 'https://image.tmdb.org/t/p/original/f7WsK9kOYmilGLLeLVnmL0KJR9T.jpg',
+  'Beavis & Butt-Head T0': 'https://i.ebayimg.com/images/g/kroAAeSwpFhnyPmg/s-l500.webp',
+  'Beavis & Butt-Head T1': 'https://images.justwatch.com/poster/340484014/s718/season-1.jpg',
+  'Beavis & Butt-Head T2': 'https://images.justwatch.com/poster/340484015/s718/season-2.jpg',
+  'Beavis & Butt-Head T3': 'https://images.justwatch.com/poster/340484021/s718/season-3.jpg',
+  'Beavis & Butt-Head T4': 'https://images.justwatch.com/poster/340484018/s718/season-4.jpg',
+  'Beavis & Butt-Head T5': 'https://images.justwatch.com/poster/340484035/s718/season-5.jpg',
+  'Beavis & Butt-Head T6': 'https://images.justwatch.com/poster/340484039/s718/season-6.jpg',
+  'Beavis & Butt-Head T7': 'https://images.justwatch.com/poster/340484049/s718/season-7.jpg',
+  'Beavis & Butt-Head T8': 'https://images.justwatch.com/poster/340484055/s718/season-8.jpg',
+  'Beavis & Butt-Head T9': 'https://static.wikia.nocookie.net/beavisandbutthead/images/e/ee/Season9Promo.jpeg/revision/latest/scale-to-width-down/1000?cb=20220716035629',
+  'Beavis & Butt-Head T10': 'https://static.wikia.nocookie.net/beavisandbutthead/images/3/35/Season10Poster2.jpg/revision/latest/scale-to-width-down/1000?cb=20260605051717',
+  'Beavis & Butt-Head T11': 'https://static.wikia.nocookie.net/beavisandbutthead/images/e/ea/Season_11_premiere_advertisement.jpg/revision/latest/scale-to-width-down/1000?cb=20250814041320',
 };
 
 function generateSearchVariants(title) {
@@ -829,12 +828,6 @@ async function main() {
 
   let posters = {};
   const omdbKey = process.env.OMDB_API_KEY || config.omdbApiKey;
-  const beavisGroups = uniqueGroups.filter(g => g.includes('Beavis'));
-  if (beavisGroups.length > 0) {
-    console.log('  [DEBUG] Beavis uniqueGroups:');
-    beavisGroups.forEach(g => console.log(`    "${g}" -> en CUSTOM_POSTERS: ${!!CUSTOM_POSTERS[g]}`));
-  }
-
   if (omdbKey) {
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
     posters = await fetchPosters(uniqueGroups, omdbKey);
