@@ -286,8 +286,7 @@ const CUSTOM_POSTERS = {
   'Teenage Mutant Ninja Tuuurtles': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/teenage_mutant_ninja_turtles.jpg',
   'Teenage Mutant Ninja Turtles': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/teenage_mutant_ninja_turtles.jpg',
     'Dragon ball trilogia + eplis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dragon_ball_trilogia___eplis.jpg',
-    'Asterix dibus': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/asterix_dibus.jpg',
-    'Asterix no dibus': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/asterix_dibus.jpg',
+    'Astérix y Obélix La batalla de los jefes': 'https://cinefreaks.net/2023/wp-content/uploads/2025/05/poster-1-3.jpg',
     'De yakuza a amo de casa': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/de_yakuza_a_amo_de_casa.jpg',
     'Mr': 'https://m.media-amazon.com/images/M/MV5BOGRhNDQ2NTAtZTkzMy00YmRlLWJiZTgtMDg0NzkzYzk2YTI5XkEyXkFqcGc@._V1_SX300.jpg',
   };
