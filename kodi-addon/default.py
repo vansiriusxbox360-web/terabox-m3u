@@ -61,21 +61,8 @@ def get_json():
         except Exception as e:
             log(f'Error leyendo cache: {e}', xbmc.LOGERROR)
 
-    ahora = time.time()
-    cache_obsoleto = False
-    if cached:
-        cached_at = cached.get('_cached_at', 0)
-        if ahora - cached_at > 21600:
-            cache_obsoleto = True
-            log('Cache local obsoleta (>6h), descargando actualizacion...')
-    else:
-        cache_obsoleto = True
-
-    if not cache_obsoleto:
-        return cached
-
     progress = xbmcgui.DialogProgress()
-    progress.create('VanSirius', 'Descargando coleccion...')
+    progress.create('VanSirius', 'Refrescando enlaces...')
 
     try:
         req = urllib.request.Request(JSON_URL, headers={'User-Agent': 'Kodi-Addon/1.0'})
@@ -91,16 +78,16 @@ def get_json():
             read += len(chunk)
             if total > 0:
                 pct = int(read * 100 / total)
-                progress.update(pct, f'Descargando... {read // 1024}KB / {total // 1024}KB')
+                progress.update(pct, f'Refrescando... {read // 1024}KB / {total // 1024}KB')
             else:
-                progress.update(0, f'Descargando... {read // 1024}KB')
+                progress.update(0, f'Refrescando... {read // 1024}KB')
             if progress.iscanceled():
                 progress.close()
                 return cached if cached else None
 
         progress.update(100, 'Procesando...')
         result = json.loads(data.decode('utf-8'))
-        result['_cached_at'] = ahora
+        result['_cached_at'] = time.time()
 
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
@@ -354,16 +341,6 @@ def trigger_workflow(data):
         )
         resp = urllib.request.urlopen(req, timeout=30)
         if resp.status in (204, 200, 201):
-            if os.path.exists(CACHE_FILE):
-                try:
-                    with open(CACHE_FILE, 'r+', encoding='utf-8') as f:
-                        cache = json.load(f)
-                        cache['_cached_at'] = 0
-                        f.seek(0)
-                        json.dump(cache, f, ensure_ascii=False, indent=2)
-                        f.truncate()
-                except:
-                    pass
             xbmcgui.Dialog().ok('Hecho', 'Regeneración lanzada en GitHub.\n\nEspera ~25 min y entra al addon\npara recibir los datos nuevos.')
         else:
             xbmcgui.Dialog().ok('Error', f'Error del servidor:\n{resp.status}')
