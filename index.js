@@ -590,7 +590,7 @@ function getGroupFromPath(filePath, rootFolder) {
   const pathParts = filePath.split('/').filter(p => p);
   const rootIndex = pathParts.indexOf(rootFolder);
   if (rootIndex === -1 || rootIndex + 1 >= pathParts.length) {
-    return { group: 'Otros', searchName: 'Otros' };
+    return { group: 'Otros', searchName: 'Otros', fallbackName: null };
   }
   const subParts = pathParts.slice(rootIndex + 1);
   const topGroup = subParts[0];
@@ -599,13 +599,16 @@ function getGroupFromPath(filePath, rootFolder) {
   let group = folderParts.length > 0 ? folderParts.join('/') : topGroup;
 
   let showName = null;
+  let seasonName = null;
   for (let i = subParts.length - 2; i >= 1; i--) {
     const name = subParts[i];
-    if (isSeasonFolder(name) || isJokeFolder(name) || isContainerFolder(name) || name === topGroup) continue;
+    if (isSeasonFolder(name)) { if (!seasonName) seasonName = name; continue; }
+    if (isJokeFolder(name) || isContainerFolder(name) || name === topGroup) continue;
     showName = name;
     break;
   }
   if (!showName) {
+    seasonName = null;
     for (let i = 1; i < subParts.length; i++) {
       const name = subParts[i];
       if (isSeasonFolder(name) || isJokeFolder(name) || isContainerFolder(name) || name === topGroup) continue;
@@ -619,9 +622,15 @@ function getGroupFromPath(filePath, rootFolder) {
     group = group + '/' + cleanName(fileName).replace(/\./g, ' ');
   }
 
-  showName = cleanName(showName).replace(/\./g, ' ');
+  const cleanShowName = cleanName(showName).replace(/\./g, ' ');
+  let searchName = cleanShowName;
+  let fallbackName = null;
+  if (seasonName) {
+    searchName = cleanShowName + ' ' + cleanName(seasonName).replace(/\./g, ' ');
+    fallbackName = cleanShowName;
+  }
 
-  return { group, searchName: showName };
+  return { group, searchName, fallbackName };
 }
 
 function fetchJSON(url) {
@@ -659,12 +668,15 @@ function generateJSON(files, rootFolder, posters, oldGroupNames) {
 
   const groupsMap = {};
   for (const file of files) {
-    const { group, searchName } = getGroupFromPath(file.path, rootFolder);
+    const { group, searchName, fallbackName } = getGroupFromPath(file.path, rootFolder);
     if (!groupsMap[group]) {
-      const groupImg = posters && posters[searchName] ? posters[searchName] : null;
+      let groupImg = posters && posters[searchName] ? posters[searchName] : null;
+      if (!groupImg && fallbackName) groupImg = posters && posters[fallbackName] ? posters[fallbackName] : null;
       groupsMap[group] = { name: group, image: groupImg, info: '', stations: [] };
     }
-    const poster = posters && posters[searchName] ? posters[searchName] : ICON_URL;
+    let poster = posters && posters[searchName] ? posters[searchName] : null;
+    if (!poster && fallbackName) poster = posters && posters[fallbackName] ? posters[fallbackName] : null;
+    if (!poster) poster = ICON_URL;
     groupsMap[group].stations.push({
       name: file.cleanName,
       image: poster,
@@ -791,9 +803,11 @@ async function main() {
   let posters = {};
   const omdbKey = process.env.OMDB_API_KEY || config.omdbApiKey;
   if (omdbKey) {
-    const uniqueGroups = [...new Set(filesWithLinks.map(f => {
-      const { searchName } = getGroupFromPath(f.path, rootFolder);
-      return searchName;
+    const uniqueGroups = [...new Set(filesWithLinks.flatMap(f => {
+      const { searchName, fallbackName } = getGroupFromPath(f.path, rootFolder);
+      const names = [searchName];
+      if (fallbackName && fallbackName !== searchName) names.push(fallbackName);
+      return names;
     }).filter(name => name && name !== 'Otros' && !isGenericFolderName(name)))];
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
     posters = await fetchPosters(uniqueGroups, omdbKey);
