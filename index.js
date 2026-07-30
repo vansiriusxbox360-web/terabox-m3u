@@ -148,6 +148,9 @@ const TITLE_ALIASES = {
   'La leyenda de Korra': 'The Legend of Korra',
   'Sand Lands': 'Sand Land',
   'Mononoke Karakasa & Shou - Hinezumi': 'Mononoke',
+  'Mononoke Movie Dai-2 Shou - Hinezumi': 'Mononoke: The Ashes of Rage',
+  'El Castillo en el cielo - Tenku no Shiro Laputa': 'Castle in the Sky',
+  'Layton Kyouju to Eien no Utahime': 'Professor Layton and the Eternal Diva',
   'Death Note Rewrite': 'Death Note',
   'Tenrou Sirius the Jaeger': 'Sirius the Jaeger',
   'Forky Ask a Question': 'Forky Asks a Question',
@@ -285,11 +288,15 @@ const CUSTOM_POSTERS = {
   'Sonic': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sonic.jpg',
   'Teenage Mutant Ninja Tuuurtles': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/teenage_mutant_ninja_turtles.jpg',
   'Teenage Mutant Ninja Turtles': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/teenage_mutant_ninja_turtles.jpg',
-    'Dragon ball trilogia + eplis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dragon_ball_trilogia___eplis.jpg',
-    'Astérix y Obélix La batalla de los jefes': 'https://cinefreaks.net/2023/wp-content/uploads/2025/05/poster-1-3.jpg',
-    'De yakuza a amo de casa': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/de_yakuza_a_amo_de_casa.jpg',
-    'Mr': 'https://m.media-amazon.com/images/M/MV5BOGRhNDQ2NTAtZTkzMy00YmRlLWJiZTgtMDg0NzkzYzk2YTI5XkEyXkFqcGc@._V1_SX300.jpg',
-  };
+  'Dragon ball trilogia + eplis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dragon_ball_trilogia___eplis.jpg',
+  'Astérix y Obélix La batalla de los jefes': 'https://cinefreaks.net/2023/wp-content/uploads/2025/05/poster-1-3.jpg',
+  'De yakuza a amo de casa': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/de_yakuza_a_amo_de_casa.jpg',
+  'Mr': 'https://m.media-amazon.com/images/M/MV5BOGRhNDQ2NTAtZTkzMy00YmRlLWJiZTgtMDg0NzkzYzk2YTI5XkEyXkFqcGc@._V1_SX300.jpg',
+  'Puedo escuchar el mar': 'https://static.wikia.nocookie.net/studioghibli/images/0/03/Puedo_escuchar_el_mar_portada_ESP.jpg/revision/latest/scale-to-width-down/1000?cb=20200706142522&path-prefix=es',
+  'Viaje a Agartha': 'https://www.selecta-vision.com/wp-content/uploads/2024/07/viaje-a-agartha-3.png',
+  'El Castillo en el cielo - Tenku no Shiro Laputa': 'https://ghibliculture.wordpress.com/wp-content/uploads/2014/02/castle-in-the-sky-1986-1.jpg',
+  'Pet Shop of Horror': 'https://m.media-amazon.com/images/I/71+uGyiQMLL._SL1000_.jpg',
+};
 
 function generateSearchVariants(title) {
   const normalized = normalizeTitle(title);
