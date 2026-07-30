@@ -667,9 +667,8 @@ function generateJSON(files, rootFolder, posters, oldGroupNames) {
     ? groups.filter(g => !oldGroupNames.has(g.name)).map(g => g.name)
     : [];
 
-  const hours = String(now.getUTCHours()).padStart(2, '0');
-  const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-  const dateTimeStr = `${day}-${month}-${year} ${hours}:${minutes}`;
+  const esTime = now.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+  const dateTimeStr = `${day}-${month}-${year} ${esTime}`;
 
   return {
     name: 'La colección de VanSirius',
