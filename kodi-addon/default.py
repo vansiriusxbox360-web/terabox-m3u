@@ -11,12 +11,14 @@ import traceback
 import os
 import re
 import random
+import time
 
 ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
 BASE_URL = sys.argv[0] if sys.argv else ''
 JSON_URL = ADDON.getSetting('json_url') or 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
+
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 ICON = os.path.join(ADDON_PATH, 'icon.png')
 DETECTIVE = os.path.join(ADDON_PATH, 'detective_worried_street.png')
@@ -50,14 +52,27 @@ def get_folder_image(name):
 def get_json():
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
 
+    cached = None
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'r', encoding='utf-8') as f:
                 cached = json.load(f)
-            log(f'Usando cache local ({len(cached.get("groups", []))} grupos)')
-            return cached
+            log(f'Cache local encontrada ({len(cached.get("groups", []))} grupos)')
         except Exception as e:
             log(f'Error leyendo cache: {e}', xbmc.LOGERROR)
+
+    ahora = time.time()
+    cache_obsoleto = False
+    if cached:
+        cached_at = cached.get('_cached_at', 0)
+        if ahora - cached_at > 21600:
+            cache_obsoleto = True
+            log('Cache local obsoleta (>6h), descargando actualizacion...')
+    else:
+        cache_obsoleto = True
+
+    if not cache_obsoleto:
+        return cached
 
     progress = xbmcgui.DialogProgress()
     progress.create('VanSirius', 'Descargando coleccion...')
@@ -81,13 +96,14 @@ def get_json():
                 progress.update(0, f'Descargando... {read // 1024}KB')
             if progress.iscanceled():
                 progress.close()
-                return None
+                return cached if cached else None
 
         progress.update(100, 'Procesando...')
         result = json.loads(data.decode('utf-8'))
+        result['_cached_at'] = ahora
 
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-            f.write(data.decode('utf-8'))
+            json.dump(result, f, ensure_ascii=False, indent=2)
 
         progress.close()
         log(f'JSON descargado: {len(result.get("groups", []))} grupos')
@@ -95,6 +111,9 @@ def get_json():
     except Exception as e:
         progress.close()
         log(f'Error descargando JSON: {e}', xbmc.LOGERROR)
+        if cached:
+            log('Usando cache local como fallback')
+            return cached
         xbmcgui.Dialog().ok('Error', f'No se pudo cargar la lista:\n{e}')
         return None
 
@@ -172,6 +191,11 @@ def list_root(data):
         if 'T' in updated:
             updated = updated[:10] + ' ' + updated[11:16]
         add_listitem(f'[ Actualizado: {updated} ]', build_url('updated'), ICON, isFolder=False)
+
+    recently_added = data.get('_recently_added', [])
+    if recently_added:
+        add_listitem(f'[ Recién añadido ({len(recently_added)}) ]', build_url('recent'), ICON, isFolder=True)
+
     add_listitem('[ \u00datiles ]', build_url('utiles'), ICON, isFolder=True)
 
     for name in top_keys:
@@ -220,9 +244,22 @@ def list_folder(data, path):
     xbmcplugin.endOfDirectory(HANDLE)
 
 
+def list_recent(data):
+    items = data.get('_recently_added', [])
+    for full_path in sorted(items):
+        parts = full_path.split('/')
+        label = parts[-1]
+        add_listitem(label, build_url('folder', full_path), ICON, isFolder=True)
+    if not items:
+        add_listitem('[ Sin novedades ]', build_url('root'), ICON, isFolder=False)
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
 def list_utiles(data):
     add_listitem('[ Buscar ]', build_url('search'), ICON, isFolder=True)
     add_listitem('[ Video aleatorio ]', build_url('random'), ICON, isFolder=False)
+    add_listitem('[ Caché ]', build_url('cache_ajustes'), ICON, isFolder=False)
+    add_listitem('[ Forzar regeneración remota ]', build_url('trigger_workflow'), ICON, isFolder=True)
     add_listitem('[ Ajustes ]', build_url('settings_utiles'), ICON, isFolder=False)
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -285,6 +322,63 @@ def play_video(url):
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
+def trigger_workflow(data):
+    token = ADDON.getSetting('github_token')
+    if not token:
+        xbmcgui.Dialog().ok(
+            'Token requerido',
+            'Pega tu token de GitHub en:\nAjustes → Token de GitHub\n(una vez, no expira)'
+        )
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+    if not xbmcgui.Dialog().yesno(
+        'Forzar regeneración',
+        '¿Lanzar regeneración remota en\nGitHub ahora?\n\n'
+        'Tarda ~25 min en completarse.\nLos enlaces nuevos llegarán\ncon la próxima actualización\ndel addon (cada 6h).',
+        yeslabel='Sí, lanzar',
+        nolabel='No'
+    ):
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+
+    try:
+        req = urllib.request.Request(
+            'https://api.github.com/repos/vansiriusxbox360-web/terabox-m3u/actions/workflows/generate-m3u.yml/dispatches',
+            data=b'{"ref":"main"}',
+            headers={
+                'Authorization': f'token {token}',
+                'Content-Type': 'application/json',
+                'User-Agent': 'Kodi-Addon/1.0'
+            },
+            method='POST'
+        )
+        resp = urllib.request.urlopen(req, timeout=30)
+        if resp.status in (204, 200, 201):
+            if os.path.exists(CACHE_FILE):
+                try:
+                    with open(CACHE_FILE, 'r+', encoding='utf-8') as f:
+                        cache = json.load(f)
+                        cache['_cached_at'] = 0
+                        f.seek(0)
+                        json.dump(cache, f, ensure_ascii=False, indent=2)
+                        f.truncate()
+                except:
+                    pass
+            xbmcgui.Dialog().ok('Hecho', 'Regeneración lanzada en GitHub.\n\nEspera ~25 min y entra al addon\npara recibir los datos nuevos.')
+        else:
+            xbmcgui.Dialog().ok('Error', f'Error del servidor:\n{resp.status}')
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            xbmcgui.Dialog().ok('Error 401', 'Token inválido o sin permisos.\n\nRenueva el token en Ajustes.')
+        elif e.code == 403:
+            xbmcgui.Dialog().ok('Error 403', 'Sin permisos. Asegúrate de que el\ntoken tenga scope "repo".')
+        else:
+            xbmcgui.Dialog().ok('Error HTTP', f'Código: {e.code}')
+    except Exception as e:
+        xbmcgui.Dialog().ok('Error', f'No se pudo conectar:\n{e}')
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
 def router(paramstring):
     log(f'sys.argv = {sys.argv}')
     log(f'HANDLE = {HANDLE}')
@@ -329,6 +423,9 @@ def router(paramstring):
     elif action == 'random':
         play_random(data)
         return
+    elif action == 'recent':
+        list_recent(data)
+        return
     elif action == 'utiles':
         list_utiles(data)
         return
@@ -355,11 +452,67 @@ def router(paramstring):
         if updated:
             xbmcgui.Dialog().ok(
                 'Actualizado',
-                f'La lista se actualizó:\n{updated}\n\n'
-                'GitHub Actions regenera\ndatos cada 8h automáticamente.'
+                f'Última actualización: {updated}\n\n'
+                'GitHub Actions regenera el JSON\n'
+                'automáticamente cada 8 horas.\n\n'
+                'Los enlaces tardan ~30-45 min\n'
+                'en generarse desde la hora que\n'
+                'muestra, pueden no funcionar\n'
+                'hasta entonces.'
             )
         else:
             xbmcgui.Dialog().ok('Actualizado', 'Fecha no disponible')
+        return
+    elif action == 'trigger_workflow':
+        trigger_workflow(data)
+        return
+    elif action == 'cache_ajustes':
+        profile_dir = xbmcvfs.translatePath('special://masterprofile/')
+        advanced_xml = os.path.join(profile_dir, 'advancedsettings.xml')
+        cache_exists = os.path.exists(advanced_xml)
+
+        if cache_exists:
+            opcion = xbmcgui.Dialog().select(
+                'Caché de streaming',
+                ['Ver configuración actual', 'Restaurar valores por defecto', 'Cancelar']
+            )
+            if opcion == 0:
+                try:
+                    with open(advanced_xml, 'r', encoding='utf-8') as f:
+                        contenido = f.read()
+                    xbmcgui.Dialog().textviewer('advancedsettings.xml', contenido)
+                except Exception as e:
+                    xbmcgui.Dialog().ok('Error', f'No se pudo leer:\n{e}')
+                return
+            elif opcion == 1:
+                os.remove(advanced_xml)
+                xbmcgui.Dialog().ok('Hecho', 'advancedsettings.xml eliminado.\nCaché por defecto restaurada.\n\nReinicia Kodi para aplicar.')
+                return
+            return
+        else:
+            if xbmcgui.Dialog().yesno(
+                'Caché optimizado',
+                '¿Activar caché de 150 MB para\nmejorar el streaming?\n\n'
+                'Reduce cortes y buffering.\nSe creará advancedsettings.xml.\n\n'
+                '¿Continuar?',
+                yeslabel='Sí, activar',
+                nolabel='No'
+            ):
+                contenido = '''<advancedsettings>
+  <cache>
+    <buffermode>1</buffermode>
+    <memorysize>157286400</memorysize>
+    <cachemembuffersize>157286400</cachemembuffersize>
+    <readfactor>20</readfactor>
+  </cache>
+</advancedsettings>'''
+                try:
+                    with open(advanced_xml, 'w', encoding='utf-8') as f:
+                        f.write(contenido)
+                    xbmcgui.Dialog().ok('Hecho', 'advancedsettings.xml creado con\ncaché de 150 MB optimizado.\n\nReinicia Kodi para aplicar.')
+                except Exception as e:
+                    xbmcgui.Dialog().ok('Error', f'No se pudo escribir:\n{e}')
+            return
         return
     elif action == 'play':
         play_video(path)

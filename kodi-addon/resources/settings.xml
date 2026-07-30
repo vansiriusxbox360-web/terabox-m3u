@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
   <setting id="json_url" type="text" label="URL personalizada del JSON" default="https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u" />
+  <setting id="github_token" type="text" label="Token de GitHub" default="" option="hidden" />
   <setting id="refresh" type="action" label="Forzar recarga de datos" default="true" option="close" />
   <setting id="thumb_cache" type="action" label="Mostrar ruta de cache de miniaturas" default="true" option="close" />
 </settings>
