@@ -829,6 +829,12 @@ async function main() {
 
   let posters = {};
   const omdbKey = process.env.OMDB_API_KEY || config.omdbApiKey;
+  const beavisGroups = uniqueGroups.filter(g => g.includes('Beavis'));
+  if (beavisGroups.length > 0) {
+    console.log('  [DEBUG] Beavis uniqueGroups:');
+    beavisGroups.forEach(g => console.log(`    "${g}" -> en CUSTOM_POSTERS: ${!!CUSTOM_POSTERS[g]}`));
+  }
+
   if (omdbKey) {
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
     posters = await fetchPosters(uniqueGroups, omdbKey);
