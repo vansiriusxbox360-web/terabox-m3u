@@ -296,6 +296,20 @@ const CUSTOM_POSTERS = {
   'Viaje a Agartha': 'https://www.selecta-vision.com/wp-content/uploads/2024/07/viaje-a-agartha-3.png',
   'El Castillo en el cielo - Tenku no Shiro Laputa': 'https://ghibliculture.wordpress.com/wp-content/uploads/2014/02/castle-in-the-sky-1986-1.jpg',
   'Pet Shop of Horror': 'https://m.media-amazon.com/images/I/71+uGyiQMLL._SL1000_.jpg',
+  'Beavis & Butt Head': 'https://image.tmdb.org/t/p/original/f7WsK9kOYmilGLLeLVnmL0KJR9T.jpg',
+  'Beavis and Butt Head Remastered (capis sueltos)': 'https://images.justwatch.com/poster/300604765/s332/beavis-y-butt-head.avif',
+  'Beavis & Butt Head T0': 'https://i.ebayimg.com/images/g/kroAAeSwpFhnyPmg/s-l500.webp',
+  'Beavis & Butt Head T1': 'https://images.justwatch.com/poster/340484014/s718/season-1.jpg',
+  'Beavis & Butt Head T2': 'https://images.justwatch.com/poster/340484015/s718/season-2.jpg',
+  'Beavis & Butt Head T3': 'https://images.justwatch.com/poster/340484021/s718/season-3.jpg',
+  'Beavis & Butt Head T4': 'https://images.justwatch.com/poster/340484018/s718/season-4.jpg',
+  'Beavis & Butt Head T5': 'https://images.justwatch.com/poster/340484035/s718/season-5.jpg',
+  'Beavis & Butt Head T6': 'https://images.justwatch.com/poster/340484039/s718/season-6.jpg',
+  'Beavis & Butt Head T7': 'https://images.justwatch.com/poster/340484049/s718/season-7.jpg',
+  'Beavis & Butt Head T8': 'https://images.justwatch.com/poster/340484055/s718/season-8.jpg',
+  'Beavis & Butt Head T9': 'https://static.wikia.nocookie.net/beavisandbutthead/images/e/ee/Season9Promo.jpeg/revision/latest/scale-to-width-down/1000?cb=20220716035629',
+  'Beavis & Butt Head T10': 'https://static.wikia.nocookie.net/beavisandbutthead/images/3/35/Season10Poster2.jpg/revision/latest/scale-to-width-down/1000?cb=20260605051717',
+  'Beavis & Butt Head T11': 'https://static.wikia.nocookie.net/beavisandbutthead/images/e/ea/Season_11_premiere_advertisement.jpg/revision/latest/scale-to-width-down/1000?cb=20250814041320',
 };
 
 function generateSearchVariants(title) {
@@ -455,7 +469,13 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
 
     for (const item of folders) {
       console.log(`${indent}📁 ${item.server_filename}`);
-      await scanRecursive(tb, item.path, allFiles, depth + 1);
+    }
+
+    const subResults = await Promise.all(folders.map(item =>
+      scanRecursive(tb, item.path, [], depth + 1)
+    ));
+    for (const sub of subResults) {
+      allFiles.push(...sub);
     }
 
     for (const item of files) {
@@ -481,7 +501,7 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
 
 async function getDownloadLinks(tb, files) {
   const results = [];
-  const BATCH_SIZE = 10;
+  const BATCH_SIZE = 50;
   let debugShown = false;
   
   const batches = [];
@@ -499,7 +519,7 @@ async function getDownloadLinks(tb, files) {
     
     try {
       const meta = await tb.getFileMeta(paths);
-      await sleep(300);
+      await sleep(100);
       
       if (!debugShown && meta) {
         console.log('  [DEBUG] Estructura:', JSON.stringify(meta).substring(0, 200));
@@ -522,7 +542,7 @@ async function getDownloadLinks(tb, files) {
         for (const file of missing) {
           try {
             const single = await tb.getFileMeta([file.path]);
-            await sleep(300);
+            await sleep(100);
             const singleInfo = (single && single.info) || (single && single.list) || [];
             if (singleInfo.length > 0 && singleInfo[0].dlink) {
               results.push({ ...file, dlink: singleInfo[0].dlink });
@@ -800,20 +820,29 @@ async function main() {
   const filesWithLinks = await getDownloadLinks(tb, allFiles);
   console.log(`Enlaces obtenidos: ${filesWithLinks.length}/${allFiles.length}\n`);
 
+  const uniqueGroups = [...new Set(filesWithLinks.flatMap(f => {
+    const { searchName, fallbackName } = getGroupFromPath(f.path, rootFolder);
+    const names = [searchName];
+    if (fallbackName && fallbackName !== searchName) names.push(fallbackName);
+    return names;
+  }).filter(name => name && name !== 'Otros' && !isGenericFolderName(name)))];
+
   let posters = {};
   const omdbKey = process.env.OMDB_API_KEY || config.omdbApiKey;
   if (omdbKey) {
-    const uniqueGroups = [...new Set(filesWithLinks.flatMap(f => {
-      const { searchName, fallbackName } = getGroupFromPath(f.path, rootFolder);
-      const names = [searchName];
-      if (fallbackName && fallbackName !== searchName) names.push(fallbackName);
-      return names;
-    }).filter(name => name && name !== 'Otros' && !isGenericFolderName(name)))];
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
     posters = await fetchPosters(uniqueGroups, omdbKey);
     console.log('');
   } else {
-    console.log('No hay API key de OMDb. Se genera M3U sin portadas.\n');
+    console.log('No hay API key de OMDb. Se generan solo portadas personalizadas.\n');
+    const cache = loadPosterCache();
+    for (const group of uniqueGroups) {
+      if (CUSTOM_POSTERS[group]) {
+        posters[group] = CUSTOM_POSTERS[group];
+        cache[group] = CUSTOM_POSTERS[group];
+      }
+    }
+    savePosterCache(cache);
   }
 
   console.log('Comparando con lista anterior para detectar novedades...');
@@ -826,6 +855,8 @@ async function main() {
   } else {
     console.log('  No se pudo obtener lista anterior. Todos los grupos aparecerán como nuevos.');
   }
+
+  console.log(`\nPosters personalizados aplicados: ${Object.keys(posters).filter(k => CUSTOM_POSTERS[k]).length}`);
 
   console.log('Generando lista JSON...');
   const jsonContent = generateJSON(filesWithLinks, rootFolder, posters, oldGroupNames);
