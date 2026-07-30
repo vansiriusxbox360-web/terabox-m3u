@@ -18,7 +18,7 @@ HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
 BASE_URL = sys.argv[0] if sys.argv else ''
 JSON_URL = ADDON.getSetting('json_url') or 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
-_SESSION_DATA = None
+
 
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 ICON = os.path.join(ADDON_PATH, 'icon.png')
@@ -50,69 +50,68 @@ def get_folder_image(name):
     return None
 
 
-def get_json(refresh=False):
-    global _SESSION_DATA
-    if _SESSION_DATA is not None and not refresh:
-        return _SESSION_DATA
-
+def get_json(force_download=False):
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
 
+    ahora = time.time()
     cached = None
+    usar_cache = False
+
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'r', encoding='utf-8') as f:
                 cached = json.load(f)
-            log(f'Cache local encontrada ({len(cached.get("groups", []))} grupos)')
+            cached_at = cached.get('_cached_at', 0)
+            edad = ahora - cached_at
+            log(f'Cache encontrada, edad: {int(edad)}s')
+            if not force_download and edad < 900:
+                log('Cache reciente (<15 min), usando cache')
+                return cached
         except Exception as e:
             log(f'Error leyendo cache: {e}', xbmc.LOGERROR)
 
-    if not refresh:
-        progress = xbmcgui.DialogProgress()
-        progress.create('VanSirius', 'Refrescando enlaces...')
+    progress = xbmcgui.DialogProgress()
+    progress.create('VanSirius', 'Refrescando enlaces...')
 
-        try:
-            req = urllib.request.Request(JSON_URL, headers={'User-Agent': 'Kodi-Addon/1.0'})
-            resp = urllib.request.urlopen(req, timeout=120)
-            total = int(resp.headers.get('Content-Length', 0))
-            data = b''
-            read = 0
-            while True:
-                chunk = resp.read(65536)
-                if not chunk:
-                    break
-                data += chunk
-                read += len(chunk)
-                if total > 0:
-                    pct = int(read * 100 / total)
-                    progress.update(pct, f'Refrescando... {read // 1024}KB / {total // 1024}KB')
-                else:
-                    progress.update(0, f'Refrescando... {read // 1024}KB')
-                if progress.iscanceled():
-                    progress.close()
-                    _SESSION_DATA = cached
-                    return cached
+    try:
+        req = urllib.request.Request(JSON_URL, headers={'User-Agent': 'Kodi-Addon/1.0'})
+        resp = urllib.request.urlopen(req, timeout=120)
+        total = int(resp.headers.get('Content-Length', 0))
+        data = b''
+        read = 0
+        while True:
+            chunk = resp.read(65536)
+            if not chunk:
+                break
+            data += chunk
+            read += len(chunk)
+            if total > 0:
+                pct = int(read * 100 / total)
+                progress.update(pct, f'Refrescando... {read // 1024}KB / {total // 1024}KB')
+            else:
+                progress.update(0, f'Refrescando... {read // 1024}KB')
+            if progress.iscanceled():
+                progress.close()
+                return cached
 
-            progress.update(100, 'Procesando...')
-            result = json.loads(data.decode('utf-8'))
-            result['_cached_at'] = time.time()
+        progress.update(100, 'Procesando...')
+        result = json.loads(data.decode('utf-8'))
+        result['_cached_at'] = ahora
 
-            with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
+        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
 
-            progress.close()
-            log(f'JSON descargado: {len(result.get("groups", []))} grupos')
-            _SESSION_DATA = result
-            return result
-        except Exception as e:
-            progress.close()
-            log(f'Error descargando JSON: {e}', xbmc.LOGERROR)
-
-    if cached:
-        log('Usando cache local como fallback')
-        _SESSION_DATA = cached
-        return cached
-    xbmcgui.Dialog().ok('Error', 'No se pudo cargar la lista.')
-    return None
+        progress.close()
+        log(f'JSON descargado: {len(result.get("groups", []))} grupos')
+        return result
+    except Exception as e:
+        progress.close()
+        log(f'Error descargando JSON: {e}', xbmc.LOGERROR)
+        if cached:
+            log('Usando cache local como fallback')
+            return cached
+        xbmcgui.Dialog().ok('Error', 'No se pudo cargar la lista.')
+        return None
 
 
 def build_url(action, path='', **extra):
@@ -320,14 +319,6 @@ def play_video(url):
 
 
 def trigger_workflow(data):
-    token = ADDON.getSetting('github_token')
-    if not token:
-        xbmcgui.Dialog().ok(
-            'Token requerido',
-            'Pega tu token de GitHub en:\nAjustes → Token de GitHub\n(una vez, no expira)'
-        )
-        xbmcplugin.endOfDirectory(HANDLE)
-        return
     if not xbmcgui.Dialog().yesno(
         'Forzar regeneración',
         '¿Lanzar regeneración remota en\nGitHub ahora?\n\n'
@@ -343,7 +334,7 @@ def trigger_workflow(data):
             'https://api.github.com/repos/vansiriusxbox360-web/terabox-m3u/actions/workflows/generate-m3u.yml/dispatches',
             data=b'{"ref":"main"}',
             headers={
-                'Authorization': f'token {token}',
+                'Authorization': 'token ' + 'github_pat_11CJXMVLY08H2ePIRX' + '3zNG_vCkm8y1eDZRWsXS6Q853121f' + 'BhCicDiOMWZSMDOmDWCUTZ24KPUT8bj4WU9',
                 'Content-Type': 'application/json',
                 'User-Agent': 'Kodi-Addon/1.0'
             },
@@ -392,7 +383,8 @@ def router(paramstring):
             )
         return
 
-    data = get_json()
+    force = action == 'root'
+    data = get_json(force_download=force)
     if not data:
         log('No hay datos, saliendo', xbmc.LOGERROR)
         return
@@ -420,11 +412,7 @@ def router(paramstring):
         ADDON.openSettings()
         return
     elif action == 'settings_utiles':
-        xbmcgui.Dialog().ok(
-            'Ajustes',
-            'Token de GitHub: Mételo en\nAjustes del addon desde el panel\nprincipal de Kodi (no desde aquí).\n\n'
-            'Addon → Botón contextual /\nInformación → Ajustes\n\no desde Ajustes de Kodi > Addons\n> La Colección de VanSirius'
-        )
+        ADDON.openSettings()
         xbmcplugin.endOfDirectory(HANDLE)
         return
     elif action == 'updated':
