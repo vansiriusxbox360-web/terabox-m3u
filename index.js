@@ -589,7 +589,7 @@ function getGroupFromPath(filePath, rootFolder) {
   const topGroup = subParts[0];
 
   const folderParts = subParts.slice(0, -1);
-  const group = folderParts.length > 0 ? folderParts.join('/') : topGroup;
+  let group = folderParts.length > 0 ? folderParts.join('/') : topGroup;
 
   let showName = null;
   for (let i = subParts.length - 2; i >= 1; i--) {
@@ -607,7 +607,9 @@ function getGroupFromPath(filePath, rootFolder) {
     }
   }
   if (!showName) {
-    showName = folderParts.length > 0 ? folderParts[folderParts.length - 1] : topGroup;
+    const fileName = subParts[subParts.length - 1];
+    showName = fileName;
+    group = group + '/' + cleanName(fileName).replace(/\./g, ' ');
   }
 
   showName = cleanName(showName).replace(/\./g, ' ');
