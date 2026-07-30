@@ -322,7 +322,7 @@ def trigger_workflow(data):
     if not xbmcgui.Dialog().yesno(
         'Forzar regeneración',
         '¿Lanzar regeneración remota en\nGitHub ahora?\n\n'
-        'Tarda ~25 min en completarse.\nLos enlaces nuevos llegarán\ncon la próxima actualización\ndel addon (cada 6h).',
+        'Tarda ~9 min en completarse.\nLos enlaces nuevos llegarán\ncon la próxima actualización\ndel addon (cada 6h).',
         yeslabel='Sí, lanzar',
         nolabel='No'
     ):
@@ -342,7 +342,7 @@ def trigger_workflow(data):
         )
         resp = urllib.request.urlopen(req, timeout=30)
         if resp.status in (204, 200, 201):
-            xbmcgui.Dialog().ok('Hecho', 'Regeneración lanzada en GitHub.\n\nEspera ~25 min y entra al addon\npara recibir los datos nuevos.')
+            xbmcgui.Dialog().ok('Hecho', 'Regeneración lanzada en GitHub.\n\nEspera ~9 min y entra al addon\npara recibir los datos nuevos.')
         else:
             xbmcgui.Dialog().ok('Error', f'Error del servidor:\n{resp.status}')
     except urllib.error.HTTPError as e:
@@ -423,10 +423,10 @@ def router(paramstring):
                 f'Última actualización: {updated}\n\n'
                 'GitHub Actions regenera el JSON\n'
                 'automáticamente cada 8 horas.\n\n'
-                'Los enlaces tardan ~30-45 min\n'
-                'en generarse desde la hora que\n'
-                'muestra, pueden no funcionar\n'
-                'hasta entonces.'
+'Los enlaces tardan ~9 min\n'
+'en generarse desde la hora que\n'
+'muestra, pueden no funcionar\n'
+'hasta entonces.'
             )
         else:
             xbmcgui.Dialog().ok('Actualizado', 'Fecha no disponible')
