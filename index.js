@@ -885,6 +885,8 @@ function generateJSON(files, rootFolder, posters, filePosters) {
   const year = now.getUTCFullYear();
   const dateStr = `${day}-${month}-${year}`;
 
+  const posterCache = loadPosterCache();
+
   const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png';
   const VS_ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png';
   const COLLECTION_ICON = VS_ICON;
@@ -911,6 +913,7 @@ function generateJSON(files, rootFolder, posters, filePosters) {
     let poster = posters && posters[searchName] ? posters[searchName] : null;
     if (!poster && fallbackName) poster = posters && posters[fallbackName] ? posters[fallbackName] : null;
     if (filePosters && filePosters[file.cleanName]) poster = filePosters[file.cleanName];
+    if (!poster) poster = posterCache['FILE::' + file.cleanName] || null;
     if (!poster) poster = ICON_URL;
     groupsMap[group].stations.push({
       name: file.cleanName,
