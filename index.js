@@ -422,6 +422,8 @@ function generateSearchVariants(title) {
 
 const RATE_LIMIT = '__RATE_LIMIT__';
 const WIKIDATA_FAILED = '__WIKIDATA_FAILED__';
+const WIKIDATA_RETRY_WAIT_MS = 60000;
+const WIKIDATA_MAX_RETRIES = 4;
 
 function omdbSearchSingle(title, apiKey) {
   return new Promise((resolve) => {
@@ -620,6 +622,30 @@ async function wikidataSearch(title) {
     await sleep(WIKIDATA_DELAY_MS);
   }
   return null;
+}
+
+async function wikidataSearchWithRetry(title) {
+  for (let attempt = 1; attempt <= WIKIDATA_MAX_RETRIES; attempt++) {
+    const poster = await wikidataSearch(title);
+    if (poster !== RATE_LIMIT) return poster;
+    if (attempt < WIKIDATA_MAX_RETRIES) {
+      console.log(`  Wikidata rate-limited (intento ${attempt}/${WIKIDATA_MAX_RETRIES}). Esperando ${WIKIDATA_RETRY_WAIT_MS / 1000}s...`);
+      await sleep(WIKIDATA_RETRY_WAIT_MS);
+    }
+  }
+  return RATE_LIMIT;
+}
+
+async function wikidataSearchSingleWithRetry(title) {
+  for (let attempt = 1; attempt <= WIKIDATA_MAX_RETRIES; attempt++) {
+    const poster = await wikidataSearchSingle(title);
+    if (poster !== RATE_LIMIT) return poster;
+    if (attempt < WIKIDATA_MAX_RETRIES) {
+      console.log(`  Wikidata rate-limited en archivos (intento ${attempt}/${WIKIDATA_MAX_RETRIES}). Esperando ${WIKIDATA_RETRY_WAIT_MS / 1000}s...`);
+      await sleep(WIKIDATA_RETRY_WAIT_MS);
+    }
+  }
+  return RATE_LIMIT;
 }
 
 function tmdbSearchSingle(title, apiKey) {
@@ -879,10 +905,10 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
     const key = 'FILE::' + file.cleanName;
     const candidates = movieTitleCandidates(file.cleanName);
     const query = candidates[0] || file.cleanName;
-    const poster = await wikidataSearchSingle(query);
+    const poster = await wikidataSearchSingleWithRetry(query);
     await sleep(WIKIDATA_DELAY_MS);
     if (poster === RATE_LIMIT) {
-      console.log('  Wikidata rate-limited en archivos. Sin marcar fallos; se reintentará en próximos runs.');
+      console.log('  Wikidata sin respuesta tras reintentos en archivos. Sin marcar fallos; se reintentará en próximos runs.');
       break;
     }
     if (poster) {
@@ -978,10 +1004,10 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
   }
 
   for (const group of toFetchWikidata) {
-    const poster = await wikidataSearch(group);
+    const poster = await wikidataSearchWithRetry(group);
     await sleep(WIKIDATA_DELAY_MS);
     if (poster === RATE_LIMIT) {
-      console.log('  Wikidata rate-limited. Sin marcar fallos; se reintentará en próximos runs.');
+      console.log('  Wikidata sin respuesta tras reintentos. Sin marcar fallos; se reintentará en próximos runs.');
       break;
     }
     if (poster) {
@@ -1447,9 +1473,13 @@ async function main() {
   console.log('\n¡Completado!');
 }
 
-main().catch(error => {
-  const msg = error.message || String(error);
-  writeErrorLog(msg);
-  console.error('Error fatal:', msg);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(error => {
+    const msg = error.message || String(error);
+    writeErrorLog(msg);
+    console.error('Error fatal:', msg);
+    process.exit(1);
+  });
+}
+
+module.exports = { normalizeTitle, movieTitleCandidates, TITLE_ALIASES };
