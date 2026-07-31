@@ -1,5 +1,6 @@
 {
   "ndus": "TU_COOKIE_NDUS_AQUI",
   "rootFolder": "Las cositas",
-  "omdbApiKey": "TU_OMDB_API_KEY_AQUI"
+  "omdbApiKey": "TU_OMDB_API_KEY_AQUI",
+  "tmdbApiKey": "TU_TMDB_API_KEY_AQUI"
 }

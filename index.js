@@ -448,6 +448,68 @@ async function omdbSearch(title, apiKey) {
   return null;
 }
 
+const TMDB_IMG = 'https://image.tmdb.org/t/p/w500';
+
+function tmdbSearchSingle(title, apiKey) {
+  return new Promise((resolve) => {
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=es&include_adult=true`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          if (res.statusCode === 429) {
+            resolve(RATE_LIMIT);
+            return;
+          }
+          const json = JSON.parse(data);
+          if (json.results && json.results.length > 0) {
+            const movie = json.results.find(r => r.poster_path) || json.results[0];
+            if (movie && movie.poster_path) {
+              resolve(TMDB_IMG + movie.poster_path);
+              return;
+            }
+          }
+          resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).on('error', () => resolve(null));
+  });
+}
+
+async function tmdbSearch(title, apiKey) {
+  const variants = generateSearchVariants(title);
+  for (const variant of variants) {
+    const poster = await tmdbSearchSingle(variant, apiKey);
+    if (poster === RATE_LIMIT) return RATE_LIMIT;
+    if (poster) return poster;
+    await sleep(OMD_DELAY_MS);
+  }
+  return null;
+}
+
+async function searchWithFallback(title, omdbKey, tmdbKey) {
+  if (!omdbKey) return tmdbKey ? tmdbSearch(title, tmdbKey) : null;
+  let poster = await omdbSearch(title, omdbKey);
+  if (poster === RATE_LIMIT && tmdbKey) {
+    console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+    poster = await tmdbSearch(title, tmdbKey);
+  }
+  return poster;
+}
+
+async function searchSingleWithFallback(title, omdbKey, tmdbKey) {
+  if (!omdbKey) return tmdbKey ? tmdbSearchSingle(title, tmdbKey) : null;
+  let poster = await omdbSearchSingle(title, omdbKey);
+  if (poster === RATE_LIMIT && tmdbKey) {
+    console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+    poster = await tmdbSearchSingle(title, tmdbKey);
+  }
+  return poster;
+}
+
 const KNOWN_DIRECTORS = [
   'akira kurosawa', 'alfred hitchcock', 'david lynch', 'quentin tarantino',
   'quentin taran tantarantino', 'sergei eisenstein', 'serguei eisenstein',
@@ -539,13 +601,13 @@ function movieTitleCandidates(fileName) {
     .slice(0, 3);
 }
 
-async function fetchFilePosters(files, apiKey, maxFetch = 400) {
+async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
   const cache = loadPosterCache();
   const posters = {};
   let fetched = 0;
   let cached = 0;
   let missed = 0;
-  let rateLimited = false;
+  let omdbDown = false;
 
   const toFetch = [];
 
@@ -566,7 +628,7 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400) {
   }
 
   for (const file of toFetch) {
-    if (rateLimited) break;
+    if (omdbDown && !tmdbKey) break;
     if (fetched >= maxFetch) {
       console.log(`  Límite de ${maxFetch} fetch alcanzado. Resto quedará para próximos runs.`);
       break;
@@ -586,14 +648,19 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400) {
     }
     for (const query of queries) {
       if (fetched >= maxFetch) { completed = false; break; }
-      const poster = await omdbSearchSingle(query, apiKey);
+      let poster;
+      if (omdbDown && tmdbKey) {
+        poster = await tmdbSearchSingle(query, tmdbKey);
+      } else {
+        poster = await searchSingleWithFallback(query, apiKey, tmdbKey);
+      }
       await sleep(OMD_DELAY_MS);
       fetched++;
       if (poster === RATE_LIMIT) {
         console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
         completed = false;
         found = null;
-        rateLimited = true;
+        omdbDown = true;
         break;
       }
       if (poster) { found = poster; break; }
@@ -614,12 +681,13 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400) {
   return posters;
 }
 
-async function fetchPosters(groups, apiKey) {
+async function fetchPosters(groups, apiKey, tmdbKey) {
   const cache = loadPosterCache();
   const posters = {};
   let fetched = 0;
   let cached = 0;
   let missed = 0;
+  let omdbDown = false;
 
   const toFetch = [];
 
@@ -644,11 +712,17 @@ async function fetchPosters(groups, apiKey) {
   }
 
   for (const group of toFetch) {
-    const poster = await omdbSearch(group, apiKey);
+    let poster;
+    if (omdbDown && tmdbKey) {
+      poster = await tmdbSearch(group, tmdbKey);
+    } else {
+      poster = await searchWithFallback(group, apiKey, tmdbKey);
+    }
     await sleep(OMD_DELAY_MS);
 
     if (poster === RATE_LIMIT) {
       console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
+      omdbDown = true;
       break;
     }
 
@@ -1057,12 +1131,17 @@ async function main() {
 
   let posters = {};
   const omdbKey = process.env.OMDB_API_KEY || config.omdbApiKey;
+  const tmdbKey = process.env.TMDB_API_KEY || config.tmdbApiKey;
   if (omdbKey) {
     console.log(`\nBuscando portadas OMDb para ${uniqueGroups.length} grupos...`);
-    posters = await fetchPosters(uniqueGroups, omdbKey);
+    posters = await fetchPosters(uniqueGroups, omdbKey, tmdbKey);
+    console.log('');
+  } else if (tmdbKey) {
+    console.log(`\nSin OMDb. Buscando portadas TMDB para ${uniqueGroups.length} grupos...`);
+    posters = await fetchPosters(uniqueGroups, null, tmdbKey);
     console.log('');
   } else {
-    console.log('No hay API key de OMDb. Se generan solo portadas personalizadas.\n');
+    console.log('No hay API key de OMDb ni TMDB. Se generan solo portadas personalizadas.\n');
     const cache = loadPosterCache();
     for (const group of uniqueGroups) {
       if (CUSTOM_POSTERS[group]) {
@@ -1088,9 +1167,9 @@ async function main() {
   console.log(`Archivos en grupos sin portada que parecen películas: ${filesNeedingFilePoster.length}`);
 
   let filePosters = {};
-  if (omdbKey && filesNeedingFilePoster.length > 0) {
-    console.log(`\nBuscando portadas OMDb por archivo para ${filesNeedingFilePoster.length} archivos...`);
-    filePosters = await fetchFilePosters(filesNeedingFilePoster, omdbKey);
+  if ((omdbKey || tmdbKey) && filesNeedingFilePoster.length > 0) {
+    console.log(`\nBuscando portadas por archivo para ${filesNeedingFilePoster.length} archivos...`);
+    filePosters = await fetchFilePosters(filesNeedingFilePoster, omdbKey, 400, tmdbKey);
     console.log('');
   }
 

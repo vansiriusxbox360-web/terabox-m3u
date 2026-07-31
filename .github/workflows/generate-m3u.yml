@@ -36,6 +36,7 @@ jobs:
           TERABOX_EMAIL: ${{ secrets.TERABOX_EMAIL }}
           TERABOX_PASSWORD: ${{ secrets.TERABOX_PASSWORD }}
           OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: |
           node index.js
           if [ $? -ne 0 ]; then
