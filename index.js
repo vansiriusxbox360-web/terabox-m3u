@@ -547,12 +547,9 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400) {
   let missed = 0;
   let rateLimited = false;
 
+  const toFetch = [];
+
   for (const file of files) {
-    if (rateLimited) break;
-    if (fetched >= maxFetch) {
-      console.log(`  Límite de ${maxFetch} fetch alcanzado. Resto quedará para próximos runs.`);
-      break;
-    }
     const key = 'FILE::' + file.cleanName;
     const candidates = movieTitleCandidates(file.cleanName);
     const cleanAlias = FILE_CLEANNAME_ALIASES[file.cleanName];
@@ -564,6 +561,19 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400) {
         continue;
       }
     }
+
+    toFetch.push(file);
+  }
+
+  for (const file of toFetch) {
+    if (rateLimited) break;
+    if (fetched >= maxFetch) {
+      console.log(`  Límite de ${maxFetch} fetch alcanzado. Resto quedará para próximos runs.`);
+      break;
+    }
+    const key = 'FILE::' + file.cleanName;
+    const candidates = movieTitleCandidates(file.cleanName);
+    const cleanAlias = FILE_CLEANNAME_ALIASES[file.cleanName];
 
     let found = null;
     let completed = true;
@@ -611,6 +621,8 @@ async function fetchPosters(groups, apiKey) {
   let cached = 0;
   let missed = 0;
 
+  const toFetch = [];
+
   for (const group of groups) {
     if (CUSTOM_POSTERS[group]) {
       posters[group] = CUSTOM_POSTERS[group];
@@ -628,6 +640,10 @@ async function fetchPosters(groups, apiKey) {
       }
     }
 
+    toFetch.push(group);
+  }
+
+  for (const group of toFetch) {
     const poster = await omdbSearch(group, apiKey);
     await sleep(OMD_DELAY_MS);
 
