@@ -500,7 +500,7 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
 
 async function getDownloadLinks(tb, files) {
   const results = [];
-  const BATCH_SIZE = 50;
+  const BATCH_SIZE = 20;
   let debugShown = false;
   
   const batches = [];
@@ -518,7 +518,7 @@ async function getDownloadLinks(tb, files) {
     
     try {
       const meta = await tb.getFileMeta(paths);
-      await sleep(100);
+      await sleep(250);
       
       if (!debugShown && meta) {
         console.log('  [DEBUG] Estructura:', JSON.stringify(meta).substring(0, 200));
@@ -541,7 +541,7 @@ async function getDownloadLinks(tb, files) {
         for (const file of missing) {
           try {
             const single = await tb.getFileMeta([file.path]);
-            await sleep(100);
+            await sleep(250);
             const singleInfo = (single && single.info) || (single && single.list) || [];
             if (singleInfo.length > 0 && singleInfo[0].dlink) {
               results.push({ ...file, dlink: singleInfo[0].dlink });
