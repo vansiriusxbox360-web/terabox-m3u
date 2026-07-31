@@ -6,6 +6,7 @@ const { TeraBoxApp } = require('terabox-api');
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
 const DELAY_MS = 300;
 const OMD_DELAY_MS = 250;
+const WIKIDATA_DELAY_MS = 1000;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -377,6 +378,14 @@ function generateSearchVariants(title) {
 
   variants.push(normalized);
 
+  const seasonStripped = normalized
+    .replace(/\s*(?:s\d+|t\d+|season\s*\d+|temporada\s*\d+)\s*$/i, '')
+    .trim();
+  if (seasonStripped !== normalized && seasonStripped.length > 2) {
+    variants.unshift(seasonStripped);
+    if (TITLE_ALIASES[seasonStripped]) variants.unshift(TITLE_ALIASES[seasonStripped]);
+  }
+
   const jpMatch = normalized.match(/^(.*?)\s+[\u3040-\u9FFF]+/);
   if (jpMatch && jpMatch[1].trim().length > 2) {
     const jpClean = jpMatch[1].trim();
@@ -412,6 +421,7 @@ function generateSearchVariants(title) {
 }
 
 const RATE_LIMIT = '__RATE_LIMIT__';
+const WIKIDATA_FAILED = '__WIKIDATA_FAILED__';
 
 function omdbSearchSingle(title, apiKey) {
   return new Promise((resolve) => {
@@ -450,6 +460,20 @@ async function omdbSearch(title, apiKey) {
 
 const TMDB_IMG = 'https://image.tmdb.org/t/p/w500';
 
+const WIKIDATA_MEDIA_TYPES = new Set([
+  'Q11424',      // film
+  'Q506240',     // television film
+  'Q202866',     // animated film
+  'Q29168811',   // animated feature film
+  'Q5398426',    // television series
+  'Q117467246',  // animated television series
+  'Q63952888',   // anime television series
+  'Q20650540',   // anime film
+  'Q1261214',    // television special
+  'Q526877',     // web series
+  'Q1107',       // anime
+]);
+
 function wikidataGet(url) {
   return new Promise((resolve) => {
     https.get(url, { headers: { 'User-Agent': 'terabox-m3u/1.0 (github actions)' } }, (res) => {
@@ -460,13 +484,80 @@ function wikidataGet(url) {
   });
 }
 
+function isThrottled(body) {
+  if (!body || typeof body !== 'string') return false;
+  return /too many requests|rate limit/i.test(body) || !body.trim().startsWith('{');
+}
+
+const GENERIC_IMAGE_TOKENS = [
+  'animation disc', 'blank television', 'flag of', 'mad scientist', 'smirc',
+  'question book', 'question mark', 'nuvola', 'symbol', 'icon', 'commons-logo',
+  'wiki-logo', 'ambox', 'stop hand', 'crystal', 'star', 'x mark', 'check mark',
+  'redirect', 'category', 'portal', 'template', 'logo', 'map of', 'location',
+  'coat of arms', 'placeholder', 'disambig', 'spacer', 'transparent',
+];
+
+async function wikipediaPageImage(lang, title) {
+  const thumb = await wikipediaLeadImage(lang, title);
+  if (thumb) return thumb;
+  return wikipediaArticleImages(lang, title);
+}
+
+async function wikipediaLeadImage(lang, title) {
+  const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=pageimages&titles=${encodeURIComponent(title)}&format=json&pithumbsize=600`;
+  const body = await wikidataGet(url);
+  await sleep(WIKIDATA_DELAY_MS);
+  if (!body) return null;
+  if (isThrottled(body)) return RATE_LIMIT;
+  try {
+    const json = JSON.parse(body);
+    const pages = json.query && json.query.pages;
+    if (!pages) return null;
+    for (const p of Object.values(pages)) {
+      if (p.thumbnail && p.thumbnail.source) return p.thumbnail.source;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return null;
+}
+
+async function wikipediaArticleImages(lang, title) {
+  const url = `https://${lang}.wikipedia.org/w/api.php?action=query&generator=images&titles=${encodeURIComponent(title)}&gimlimit=30&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json`;
+  const body = await wikidataGet(url);
+  await sleep(WIKIDATA_DELAY_MS);
+  if (!body) return null;
+  if (isThrottled(body)) return RATE_LIMIT;
+  let pages = {};
+  try {
+    pages = (JSON.parse(body).query && JSON.parse(body).query.pages) || {};
+  } catch (e) {
+    return null;
+  }
+  const titleTokens = title.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2);
+  const candidates = [];
+  for (const p of Object.values(pages)) {
+    const file = p.title || '';
+    const lower = file.toLowerCase();
+    if (!lower.endsWith('.jpg') && !lower.endsWith('.jpeg') && !lower.endsWith('.png')) continue;
+    if (GENERIC_IMAGE_TOKENS.some(t => lower.includes(t))) continue;
+    const info = p.imageinfo && p.imageinfo[0];
+    if (!info || !info.thumburl) continue;
+    const score = titleTokens.some(t => lower.includes(t)) ? 1 : 0;
+    candidates.push({ score, thumburl: info.thumburl, file });
+  }
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates.length ? candidates[0].thumburl : null;
+}
+
 async function wikidataSearchSingle(title) {
   const langs = ['es', 'en'];
   for (const lang of langs) {
     const searchUrl = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(title)}&language=${lang}&type=item&format=json&limit=5`;
     const body = await wikidataGet(searchUrl);
-    await sleep(OMD_DELAY_MS);
+    await sleep(WIKIDATA_DELAY_MS);
     if (!body) continue;
+    if (isThrottled(body)) return RATE_LIMIT;
     let items = [];
     try {
       items = JSON.parse(body).search || [];
@@ -476,10 +567,11 @@ async function wikidataSearchSingle(title) {
     const ids = items.map(i => i.id).slice(0, 5);
     if (ids.length === 0) continue;
 
-    const entUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids.join('|')}&props=claims&format=json`;
+    const entUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids.join('|')}&props=claims|sitelinks&format=json`;
     const entBody = await wikidataGet(entUrl);
-    await sleep(OMD_DELAY_MS);
+    await sleep(WIKIDATA_DELAY_MS);
     if (!entBody) continue;
+    if (isThrottled(entBody)) return RATE_LIMIT;
     let entities = {};
     try {
       entities = JSON.parse(entBody).entities || {};
@@ -491,15 +583,28 @@ async function wikidataSearchSingle(title) {
       const ent = entities[id];
       if (!ent || !ent.claims) continue;
       const p31 = ent.claims.P31 || [];
-      const isFilm = p31.some(c =>
+      const isMedia = p31.some(c =>
         c.mainsnak && c.mainsnak.datavalue &&
-        (c.mainsnak.datavalue.value.id === 'Q11424' ||
-         c.mainsnak.datavalue.value.id === 'Q506240')
+        WIKIDATA_MEDIA_TYPES.has(c.mainsnak.datavalue.value.id)
       );
+      if (!isMedia) continue;
       const p18 = ent.claims.P18 && ent.claims.P18[0];
-      if (isFilm && p18 && p18.mainsnak && p18.mainsnak.datavalue) {
+      if (p18 && p18.mainsnak && p18.mainsnak.datavalue) {
         const file = p18.mainsnak.datavalue.value.replace(/ /g, '_');
         return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=600`;
+      }
+      const sitelinks = ent.sitelinks || {};
+      const esWiki = sitelinks.eswiki && sitelinks.eswiki.title;
+      if (esWiki) {
+        const img = await wikipediaPageImage('es', esWiki);
+        if (img === RATE_LIMIT) return RATE_LIMIT;
+        if (img) return img;
+      }
+      const enWiki = sitelinks.enwiki && sitelinks.enwiki.title;
+      if (enWiki) {
+        const img = await wikipediaPageImage('en', enWiki);
+        if (img === RATE_LIMIT) return RATE_LIMIT;
+        if (img) return img;
       }
     }
   }
@@ -511,7 +616,8 @@ async function wikidataSearch(title) {
   for (const variant of variants) {
     const poster = await wikidataSearchSingle(variant);
     if (poster) return poster;
-    await sleep(OMD_DELAY_MS);
+    if (poster === RATE_LIMIT) return RATE_LIMIT;
+    await sleep(WIKIDATA_DELAY_MS);
   }
   return null;
 }
@@ -692,6 +798,7 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
   let omdbDown = false;
 
   const toFetch = [];
+  const toFetchWikidata = [];
 
   for (const file of files) {
     const key = 'FILE::' + file.cleanName;
@@ -699,11 +806,22 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
     const cleanAlias = FILE_CLEANNAME_ALIASES[file.cleanName];
     const hasAlias = !!cleanAlias || candidates.some(c => FILE_TITLE_ALIASES[normalizeTitle(c)]);
     if (Object.prototype.hasOwnProperty.call(cache, key)) {
-      if (cache[key] || !hasAlias) {
-        if (cache[key]) posters[file.cleanName] = cache[key];
+      const cachedVal = cache[key];
+      if (cachedVal === WIKIDATA_FAILED) {
         cached++;
         continue;
       }
+      if (cachedVal) {
+        posters[file.cleanName] = cachedVal;
+        cached++;
+        continue;
+      }
+      if (hasAlias) {
+        toFetch.push(file);
+      } else {
+        toFetchWikidata.push(file);
+      }
+      continue;
     }
 
     toFetch.push(file);
@@ -757,6 +875,26 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
     }
   }
 
+  for (const file of toFetchWikidata) {
+    const key = 'FILE::' + file.cleanName;
+    const candidates = movieTitleCandidates(file.cleanName);
+    const query = candidates[0] || file.cleanName;
+    const poster = await wikidataSearchSingle(query);
+    await sleep(WIKIDATA_DELAY_MS);
+    if (poster === RATE_LIMIT) {
+      console.log('  Wikidata rate-limited en archivos. Sin marcar fallos; se reintentará en próximos runs.');
+      break;
+    }
+    if (poster) {
+      posters[file.cleanName] = poster;
+      cache[key] = poster;
+      fetched++;
+    } else {
+      cache[key] = WIKIDATA_FAILED;
+      missed++;
+    }
+  }
+
   savePosterCache(cache);
   console.log(`  Portadas por archivo: ${fetched} fetch, ${cached} cache, ${missed} sin resultado`);
   return posters;
@@ -771,6 +909,7 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
   let omdbDown = false;
 
   const toFetch = [];
+  const toFetchWikidata = [];
 
   for (const group of groups) {
     if (CUSTOM_POSTERS[group]) {
@@ -781,12 +920,23 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
     }
 
     if (Object.prototype.hasOwnProperty.call(cache, group)) {
-      const hasAlias = !!TITLE_ALIASES[normalizeTitle(group)];
-      if (cache[group] || !hasAlias) {
-        if (cache[group]) posters[group] = cache[group];
+      const cachedVal = cache[group];
+      if (cachedVal === WIKIDATA_FAILED) {
         cached++;
         continue;
       }
+      const hasAlias = !!TITLE_ALIASES[normalizeTitle(group)];
+      if (cachedVal) {
+        posters[group] = cachedVal;
+        cached++;
+        continue;
+      }
+      if (hasAlias) {
+        toFetch.push(group);
+      } else {
+        toFetchWikidata.push(group);
+      }
+      continue;
     }
 
     toFetch.push(group);
@@ -823,6 +973,27 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
     } else {
       posters[group] = null;
       cache[group] = null;
+      missed++;
+    }
+  }
+
+  for (const group of toFetchWikidata) {
+    const poster = await wikidataSearch(group);
+    await sleep(WIKIDATA_DELAY_MS);
+    if (poster === RATE_LIMIT) {
+      console.log('  Wikidata rate-limited. Sin marcar fallos; se reintentará en próximos runs.');
+      break;
+    }
+    if (poster) {
+      posters[group] = poster;
+      cache[group] = poster;
+      fetched++;
+      if ((fetched + cached) % 10 === 0) {
+        console.log(`  Portadas: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached})`);
+      }
+    } else {
+      posters[group] = null;
+      cache[group] = WIKIDATA_FAILED;
       missed++;
     }
   }
@@ -1090,7 +1261,10 @@ function generateJSON(files, rootFolder, posters, filePosters) {
     let poster = posters && posters[searchName] ? posters[searchName] : null;
     if (!poster && fallbackName) poster = posters && posters[fallbackName] ? posters[fallbackName] : null;
     if (filePosters && filePosters[file.cleanName]) poster = filePosters[file.cleanName];
-    if (!poster) poster = posterCache['FILE::' + file.cleanName] || null;
+    if (!poster) {
+      const cachedFilePoster = posterCache['FILE::' + file.cleanName];
+      if (cachedFilePoster && cachedFilePoster !== WIKIDATA_FAILED) poster = cachedFilePoster;
+    }
     if (!poster) poster = ICON_URL;
     groupsMap[group].stations.push({
       name: file.cleanName,
