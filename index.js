@@ -311,6 +311,62 @@ const CUSTOM_POSTERS = {
   'Beavis & Butt-Head T11': 'https://static.wikia.nocookie.net/beavisandbutthead/images/e/ea/Season_11_premiere_advertisement.jpg/revision/latest/scale-to-width-down/1000?cb=20250814041320',
 };
 
+const FILE_TITLE_ALIASES = {
+  'El jovencito Frankenstein': "Young Frankenstein",
+  'La vida de Brian BDrip': "Monty Python's Life of Brian",
+  'Los caballeros de la mesa cuadrada': 'Monty Python and the Holy Grail',
+  'El sentido de la vida': "Monty Python's The Meaning of Life",
+  'El gigante de hierro': 'The Iron Giant',
+  'La sustancia': 'The Substance',
+  'Idiocracia': 'Idiocracy',
+  'Rebelión en la granja': 'Animal Farm',
+  'El Planeta Salvaje': 'Fantastic Planet',
+  'Gigante': 'Giant',
+  'Super Mario Bros La': 'The Super Mario Bros Movie',
+  'Taron y el caldero magico': 'The Black Cauldron',
+  'Tim Burton James Y El Melocoton Gigante': 'James and the Giant Peach',
+  'Una Navidad con Mickey': "Mickey's Christmas Carol",
+  'Duelo silencioso': 'The Quiet Duel',
+  'El Angel Borracho': 'Drunken Angel',
+  'La fortaleza escondida': 'The Hidden Fortress',
+  'Los canallas duermen en paz': 'The Bad Sleep Well',
+  'Trono de sangre': 'Throne of Blood',
+  'Los sueños de Akira Kurosawa': "Akira Kurosawa's Dreams",
+  'Tygra Hielo y Fuego': 'Fire and Ice',
+  'Los surfistas nazis deben morir': 'Surf Nazis Must Die',
+  'La mesita del comedor': 'The Coffee Table',
+  'Premutos El Angel Caido': 'Premutos',
+  'Operación Ogro': 'Ogro',
+  'El Condon Asesino': 'Killer Condom',
+  'Cheap aka Down and Dirty Duck': 'Down and Dirty Duck',
+  'Asterix El Galo': 'Asterix the Gaul',
+  'Asterix Y Cleopatra': 'Asterix and Cleopatra',
+  'Las doce pruebas de Asterix': 'The Twelve Tasks of Asterix',
+  'Astérix Y la sorpresa del César': 'Asterix vs Caesar',
+  'Asterix En Bretaña': 'Asterix in Britain',
+  'Asterix Y el golpe del menhir': 'Asterix and the Big Fight',
+  'Asterix En America': 'Asterix Conquers America',
+  'Astérix Y los vikingos': 'Asterix and the Vikings',
+  'Astérix En los juegos olimpicos': 'Asterix at the Olympic Games',
+  'Asterix La residencia de los dioses': 'Asterix The Mansions of the Gods',
+  'Astérix El secreto de la poción mágica': 'Asterix The Secret of the Magic Potion',
+  'Astérix y Obélix y El ReinoMedio': 'Asterix and Obelix The Middle Kingdom',
+  'El Acorazado Potemkin': 'Battleship Potemkin',
+  'La Linea General': 'The General Line',
+  'Ivan El Terrible I': 'Ivan the Terrible Part I',
+  'Ivan El Terrible II': 'Ivan the Terrible Part II',
+  '¿Qué he hecho yo para merecer esto': 'What Have I Done to Deserve This',
+  'Pinocho la leyenda': 'The Adventures of Pinocchio',
+};
+
+const FILE_CLEANNAME_ALIASES = {
+  '1999 - Astérix y Obélix - Contra el César': 'Asterix and Obelix vs Caesar',
+  '2002 - Astérix y Obélix - Misión Cleopatra': 'Asterix and Obelix Mission Cleopatra',
+  '2012 - Astérix y Obélix - Al servicio de su majestad': 'Asterix and Obelix God Save Britannia',
+  'Howard Un nuevo heroe 1986 Lea Thompson,Jeffrey Jones Ficcion Extraterrestres': 'Howard the Duck',
+  'Pinocho, la leyenda (1996) m720p x264 MP3 2.0 EspaÃ±ol': 'The Adventures of Pinocchio',
+};
+
 function generateSearchVariants(title) {
   const normalized = normalizeTitle(title);
   const variants = [];
@@ -498,18 +554,29 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400) {
       break;
     }
     const key = 'FILE::' + file.cleanName;
+    const candidates = movieTitleCandidates(file.cleanName);
+    const cleanAlias = FILE_CLEANNAME_ALIASES[file.cleanName];
+    const hasAlias = !!cleanAlias || candidates.some(c => FILE_TITLE_ALIASES[normalizeTitle(c)]);
     if (Object.prototype.hasOwnProperty.call(cache, key)) {
-      if (cache[key]) posters[file.cleanName] = cache[key];
-      cached++;
-      continue;
+      if (cache[key] || !hasAlias) {
+        if (cache[key]) posters[file.cleanName] = cache[key];
+        cached++;
+        continue;
+      }
     }
 
-    const candidates = movieTitleCandidates(file.cleanName);
     let found = null;
     let completed = true;
+    const queries = cleanAlias ? [cleanAlias] : [];
     for (const cand of candidates) {
       if (fetched >= maxFetch) { completed = false; break; }
-      const poster = await omdbSearchSingle(cand, apiKey);
+      const alias = FILE_TITLE_ALIASES[normalizeTitle(cand)];
+      if (alias) queries.push(alias);
+      queries.push(cand);
+    }
+    for (const query of queries) {
+      if (fetched >= maxFetch) { completed = false; break; }
+      const poster = await omdbSearchSingle(query, apiKey);
       await sleep(OMD_DELAY_MS);
       fetched++;
       if (poster === RATE_LIMIT) {
