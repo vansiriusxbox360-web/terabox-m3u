@@ -3,8 +3,8 @@ const fs = require('fs');
 const index = require(path.join(__dirname, 'index.js'));
 
 const CACHE_PATH = path.join(__dirname, 'posters-cache.json');
-const WIKIDATA_DELAY_MS = 1200;
-const RETRY_WAIT_MS = 90000;
+const WIKIDATA_DELAY_MS = 2500;
+const RETRY_WAIT_MS = 120000;
 const MAX_RETRIES = 6;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
