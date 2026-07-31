@@ -355,6 +355,8 @@ function generateSearchVariants(title) {
   return [...new Set(variants)];
 }
 
+const RATE_LIMIT = '__RATE_LIMIT__';
+
 function omdbSearchSingle(title, apiKey) {
   return new Promise((resolve) => {
     const url = `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${apiKey}`;
@@ -364,7 +366,9 @@ function omdbSearchSingle(title, apiKey) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          if (json.Response === 'True' && json.Poster && json.Poster !== 'N/A') {
+          if (/limit/i.test(json.Error || '')) {
+            resolve(RATE_LIMIT);
+          } else if (json.Response === 'True' && json.Poster && json.Poster !== 'N/A') {
             resolve(json.Poster);
           } else {
             resolve(null);
@@ -381,10 +385,156 @@ async function omdbSearch(title, apiKey) {
   const variants = generateSearchVariants(title);
   for (const variant of variants) {
     const poster = await omdbSearchSingle(variant, apiKey);
+    if (poster === RATE_LIMIT) return RATE_LIMIT;
     if (poster) return poster;
     await sleep(OMD_DELAY_MS);
   }
   return null;
+}
+
+const KNOWN_DIRECTORS = [
+  'akira kurosawa', 'alfred hitchcock', 'david lynch', 'quentin tarantino',
+  'quentin taran tantarantino', 'sergei eisenstein', 'serguei eisenstein',
+  'stanley kubrick', 'stephen king', 'ralph bakshi', 'mel brooks', 'jerry lewis',
+  'tob browning', 'olaf ittenbach', 'manuel garcia ferre', 'pedro temboury',
+  'caye casas', 'gillo pontecorvo', 'benito zambrano', 'joy batchelor',
+  'john halas', 'robert rodriguez', 'jack nicholson', 'lea thompson',
+  'jeffrey jones', 'emilio estevez', 'david lochary', 'divine'
+];
+
+function isKnownDirector(name) {
+  const n = name.toLowerCase().trim();
+  return KNOWN_DIRECTORS.some(d => n === d || n.startsWith(d + ' '));
+}
+
+function stripMovieNoise(text) {
+  return text
+    .replace(/(\d)\.(\d{3})/g, '$1$2')
+    .replace(/[._]+/g, ' ')
+    .replace(/\b(?:v\.?o\.?s\.?e|vose|vos|v\.?o|sub(?:s|titl\w+)?|spanish|english|espanol|español|jap(?:onese|ones|on|onés|onesa)?|japonés|japones|japón|castellano|dual|remux|remaster\w*|restaur\w*|reescal\w*|hd|fullhd|uhd|\d{3,4}p|4k|8k|blu-?ray|brrip|web-?rip|web-?dl|hdtv|hdr?rip|dvd-?rip|dvd|xvid|x26[45]|h\.?26[45]|hevc|ac-?3|dts|aac|mp-?3|mhd|internal|proper|repack|readnfo|ia|vengas|etc|pelicula|película|complet\w*|versi\w*n|edici\w*|extendid\w*|anniversary|edition|traducid\w*|subtitulad\w*|originales?|inacabad\w*|rpegc|akantor)\b/gi, ' ')
+    .replace(/\b\d{1,2}[,.]\d\b/g, ' ')
+    .replace(/\b(?:19\d{2}|20\d{2})\b/g, ' ')
+    .replace(/[(),;'"*#]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isJunkParen(inner) {
+  const t = inner.trim();
+  const low = t.toLowerCase();
+  if (!t) return true;
+  if (/(?:\.?\s*(?:com|es|org|net|info)\b|by[\s.])/.test(low)) return true;
+  if (/(\d{3,4}p|4k|8k|rip|remux|spanish|english|jap|castellano|vose|dual|sub|director)/i.test(low)) return true;
+  if (/^\d{4}\b/.test(low)) return true;
+  if (/,\s*(?:19|20)\d{2}/.test(low)) return true;
+  if (isKnownDirector(low.replace(/^[\+\-]+/, ''))) return true;
+  if (/^[\+\-]?[a-zñáéíóú]{2,15}$/.test(t) && !/^[A-ZÑÁÉÍÓÚ]/.test(t)) return true;
+  return false;
+}
+
+function stripByPhrases(text) {
+  return text
+    .replace(/(?:^|\s)by\s+[\w.\-]+\s*/gi, ' ')
+    .replace(/(?:^|\s)por\s+\w+\s*/gi, ' ')
+    .replace(/(?:^|\s)\w+\.(?:com|es|org|net|info)\b\s*/gi, ' ')
+    .replace(/\s+by$/gi, ' ')
+    .replace(/\s+por$/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function movieTitleCandidates(fileName) {
+  let raw = fileName
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(new RegExp('\\\\.(?:' + VIDEO_EXTENSIONS.map(e => e.slice(1)).join('|') + ')$', 'i'), '')
+    .replace(/(\d)\.(\d{3})/g, '$1$2')
+    .replace(/[._]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const segments = raw.split(/\s*[-–—]\s*/).map(s => s.trim()).filter(s => s.length > 1);
+  if (segments.length === 0) segments.push(raw);
+
+  const candidates = [];
+
+  for (const seg of segments) {
+    const keptParens = [...seg.matchAll(/\(([^)]+)\)/g)]
+      .map(m => m[1])
+      .filter(inner => !isJunkParen(inner))
+      .map(inner => stripByPhrases(stripMovieNoise(inner)))
+      .filter(x => x.length > 2 && !isKnownDirector(x));
+
+    let cleaned = seg
+      .replace(/(\([^)]*\))/g, (m) => isJunkParen(m.slice(1, -1)) ? ' ' : m)
+      .replace(new RegExp('^\\s*(?:' + KNOWN_DIRECTORS.join('|') + ')\\s+', 'i'), ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    cleaned = stripByPhrases(stripMovieNoise(cleaned));
+
+    const beforeParen = stripByPhrases(stripMovieNoise(seg.split('(')[0].replace(new RegExp('^\\s*(?:' + KNOWN_DIRECTORS.join('|') + ')\\s+', 'i'), ' ')));
+
+    if (beforeParen.length > 2 && !isKnownDirector(beforeParen)) candidates.push(beforeParen);
+    candidates.push(...keptParens);
+    if (cleaned.length > 2 && !isKnownDirector(cleaned)) candidates.push(cleaned);
+  }
+
+  return [...new Set(candidates)]
+    .filter(c => c.length >= 3 && c.toLowerCase().trim() !== 'rip')
+    .slice(0, 3);
+}
+
+async function fetchFilePosters(files, apiKey, maxFetch = 400) {
+  const cache = loadPosterCache();
+  const posters = {};
+  let fetched = 0;
+  let cached = 0;
+  let missed = 0;
+  let rateLimited = false;
+
+  for (const file of files) {
+    if (rateLimited) break;
+    if (fetched >= maxFetch) {
+      console.log(`  Límite de ${maxFetch} fetch alcanzado. Resto quedará para próximos runs.`);
+      break;
+    }
+    const key = 'FILE::' + file.cleanName;
+    if (Object.prototype.hasOwnProperty.call(cache, key)) {
+      if (cache[key]) posters[file.cleanName] = cache[key];
+      cached++;
+      continue;
+    }
+
+    const candidates = movieTitleCandidates(file.cleanName);
+    let found = null;
+    let completed = true;
+    for (const cand of candidates) {
+      if (fetched >= maxFetch) { completed = false; break; }
+      const poster = await omdbSearchSingle(cand, apiKey);
+      await sleep(OMD_DELAY_MS);
+      fetched++;
+      if (poster === RATE_LIMIT) {
+        console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
+        completed = false;
+        found = null;
+        rateLimited = true;
+        break;
+      }
+      if (poster) { found = poster; break; }
+    }
+
+    if (completed) {
+      cache[key] = found;
+      if (found) {
+        posters[file.cleanName] = found;
+      } else {
+        missed++;
+      }
+    }
+  }
+
+  savePosterCache(cache);
+  console.log(`  Portadas por archivo: ${fetched} fetch, ${cached} cache, ${missed} sin resultado`);
+  return posters;
 }
 
 async function fetchPosters(groups, apiKey) {
@@ -402,14 +552,22 @@ async function fetchPosters(groups, apiKey) {
       continue;
     }
 
-    if (cache[group]) {
-      posters[group] = cache[group];
-      cached++;
-      continue;
+    if (Object.prototype.hasOwnProperty.call(cache, group)) {
+      const hasAlias = !!TITLE_ALIASES[normalizeTitle(group)];
+      if (cache[group] || !hasAlias) {
+        if (cache[group]) posters[group] = cache[group];
+        cached++;
+        continue;
+      }
     }
 
     const poster = await omdbSearch(group, apiKey);
     await sleep(OMD_DELAY_MS);
+
+    if (poster === RATE_LIMIT) {
+      console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
+      break;
+    }
 
     if (poster) {
       posters[group] = poster;
@@ -420,6 +578,7 @@ async function fetchPosters(groups, apiKey) {
       }
     } else {
       posters[group] = null;
+      cache[group] = null;
       missed++;
     }
   }
@@ -652,7 +811,7 @@ function getGroupFromPath(filePath, rootFolder) {
   return { group, searchName, fallbackName };
 }
 
-function generateJSON(files, rootFolder, posters) {
+function generateJSON(files, rootFolder, posters, filePosters) {
   const now = new Date();
   const day = String(now.getUTCDate()).padStart(2, '0');
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
@@ -684,6 +843,7 @@ function generateJSON(files, rootFolder, posters) {
     }
     let poster = posters && posters[searchName] ? posters[searchName] : null;
     if (!poster && fallbackName) poster = posters && posters[fallbackName] ? posters[fallbackName] : null;
+    if (filePosters && filePosters[file.cleanName]) poster = filePosters[file.cleanName];
     if (!poster) poster = ICON_URL;
     groupsMap[group].stations.push({
       name: file.cleanName,
@@ -829,8 +989,27 @@ async function main() {
 
   console.log(`Posters personalizados aplicados: ${Object.keys(posters).filter(k => CUSTOM_POSTERS[k]).length}`);
 
+  console.log('Buscando portadas por archivo para grupos sin portada...');
+  const filesNeedingFilePoster = filesWithLinks.filter(f => {
+    const { searchName, fallbackName } = getGroupFromPath(f.path, rootFolder);
+    const g = posters && posters[searchName] ? posters[searchName] : null;
+    const fb = !g && fallbackName ? posters && posters[fallbackName] : null;
+    if (g || fb) return false;
+    if (!/\b(?:19|20)\d{2}\b/.test(f.cleanName)) return false;
+    if (/S\d+E\d+|E\d{2,3}\b/i.test(f.cleanName)) return false;
+    return true;
+  });
+  console.log(`Archivos en grupos sin portada que parecen películas: ${filesNeedingFilePoster.length}`);
+
+  let filePosters = {};
+  if (omdbKey && filesNeedingFilePoster.length > 0) {
+    console.log(`\nBuscando portadas OMDb por archivo para ${filesNeedingFilePoster.length} archivos...`);
+    filePosters = await fetchFilePosters(filesNeedingFilePoster, omdbKey);
+    console.log('');
+  }
+
   console.log('Generando lista JSON...');
-  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters);
+  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters, filePosters);
   
   const outputPath = process.env.GITHUB_ACTIONS 
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
