@@ -450,6 +450,72 @@ async function omdbSearch(title, apiKey) {
 
 const TMDB_IMG = 'https://image.tmdb.org/t/p/w500';
 
+function wikidataGet(url) {
+  return new Promise((resolve) => {
+    https.get(url, { headers: { 'User-Agent': 'terabox-m3u/1.0 (github actions)' } }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', () => resolve(null));
+  });
+}
+
+async function wikidataSearchSingle(title) {
+  const langs = ['es', 'en'];
+  for (const lang of langs) {
+    const searchUrl = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(title)}&language=${lang}&type=item&format=json&limit=5`;
+    const body = await wikidataGet(searchUrl);
+    await sleep(OMD_DELAY_MS);
+    if (!body) continue;
+    let items = [];
+    try {
+      items = JSON.parse(body).search || [];
+    } catch (e) {
+      continue;
+    }
+    const ids = items.map(i => i.id).slice(0, 5);
+    if (ids.length === 0) continue;
+
+    const entUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids.join('|')}&props=claims&format=json`;
+    const entBody = await wikidataGet(entUrl);
+    await sleep(OMD_DELAY_MS);
+    if (!entBody) continue;
+    let entities = {};
+    try {
+      entities = JSON.parse(entBody).entities || {};
+    } catch (e) {
+      continue;
+    }
+
+    for (const id of ids) {
+      const ent = entities[id];
+      if (!ent || !ent.claims) continue;
+      const p31 = ent.claims.P31 || [];
+      const isFilm = p31.some(c =>
+        c.mainsnak && c.mainsnak.datavalue &&
+        (c.mainsnak.datavalue.value.id === 'Q11424' ||
+         c.mainsnak.datavalue.value.id === 'Q506240')
+      );
+      const p18 = ent.claims.P18 && ent.claims.P18[0];
+      if (isFilm && p18 && p18.mainsnak && p18.mainsnak.datavalue) {
+        const file = p18.mainsnak.datavalue.value.replace(/ /g, '_');
+        return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=600`;
+      }
+    }
+  }
+  return null;
+}
+
+async function wikidataSearch(title) {
+  const variants = generateSearchVariants(title);
+  for (const variant of variants) {
+    const poster = await wikidataSearchSingle(variant);
+    if (poster) return poster;
+    await sleep(OMD_DELAY_MS);
+  }
+  return null;
+}
+
 function tmdbSearchSingle(title, apiKey) {
   return new Promise((resolve) => {
     const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=es&include_adult=true`;
@@ -491,21 +557,37 @@ async function tmdbSearch(title, apiKey) {
 }
 
 async function searchWithFallback(title, omdbKey, tmdbKey) {
-  if (!omdbKey) return tmdbKey ? tmdbSearch(title, tmdbKey) : null;
-  let poster = await omdbSearch(title, omdbKey);
-  if (poster === RATE_LIMIT && tmdbKey) {
-    console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+  let poster = null;
+  if (omdbKey) {
+    poster = await omdbSearch(title, omdbKey);
+    if (poster === RATE_LIMIT && tmdbKey) {
+      console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+      poster = await tmdbSearch(title, tmdbKey);
+    }
+  } else if (tmdbKey) {
     poster = await tmdbSearch(title, tmdbKey);
+  }
+  if (poster === RATE_LIMIT || !poster) {
+    if (poster === RATE_LIMIT) console.log('  TMDB sin disponible, usando Wikidata como respaldo...');
+    poster = await wikidataSearch(title);
   }
   return poster;
 }
 
 async function searchSingleWithFallback(title, omdbKey, tmdbKey) {
-  if (!omdbKey) return tmdbKey ? tmdbSearchSingle(title, tmdbKey) : null;
-  let poster = await omdbSearchSingle(title, omdbKey);
-  if (poster === RATE_LIMIT && tmdbKey) {
-    console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+  let poster = null;
+  if (omdbKey) {
+    poster = await omdbSearchSingle(title, omdbKey);
+    if (poster === RATE_LIMIT && tmdbKey) {
+      console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+      poster = await tmdbSearchSingle(title, tmdbKey);
+    }
+  } else if (tmdbKey) {
     poster = await tmdbSearchSingle(title, tmdbKey);
+  }
+  if (poster === RATE_LIMIT || !poster) {
+    if (poster === RATE_LIMIT) console.log('  TMDB sin disponible, usando Wikidata como respaldo...');
+    poster = await wikidataSearchSingle(title);
   }
   return poster;
 }
@@ -628,7 +710,6 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
   }
 
   for (const file of toFetch) {
-    if (omdbDown && !tmdbKey) break;
     if (fetched >= maxFetch) {
       console.log(`  Límite de ${maxFetch} fetch alcanzado. Resto quedará para próximos runs.`);
       break;
@@ -649,8 +730,8 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
     for (const query of queries) {
       if (fetched >= maxFetch) { completed = false; break; }
       let poster;
-      if (omdbDown && tmdbKey) {
-        poster = await tmdbSearchSingle(query, tmdbKey);
+      if (omdbDown) {
+        poster = tmdbKey ? await tmdbSearchSingle(query, tmdbKey) : await wikidataSearchSingle(query);
       } else {
         poster = await searchSingleWithFallback(query, apiKey, tmdbKey);
       }
@@ -713,17 +794,23 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
 
   for (const group of toFetch) {
     let poster;
-    if (omdbDown && tmdbKey) {
-      poster = await tmdbSearch(group, tmdbKey);
+    if (omdbDown) {
+      poster = tmdbKey ? await tmdbSearch(group, tmdbKey) : await wikidataSearch(group);
     } else {
       poster = await searchWithFallback(group, apiKey, tmdbKey);
     }
     await sleep(OMD_DELAY_MS);
 
     if (poster === RATE_LIMIT) {
-      console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
+      if (!omdbDown) console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
       omdbDown = true;
-      break;
+      if (tmdbKey) {
+        poster = await wikidataSearch(group);
+        await sleep(OMD_DELAY_MS);
+        if (poster === RATE_LIMIT) poster = null;
+      } else {
+        break;
+      }
     }
 
     if (poster) {
