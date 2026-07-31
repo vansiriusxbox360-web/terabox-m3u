@@ -188,10 +188,6 @@ def list_root(data):
             updated = updated[:10] + ' ' + updated[11:16]
         add_listitem(f'[ Actualizado: {updated} ]', build_url('updated'), ICON, isFolder=False)
 
-    recently_added = data.get('_recently_added', [])
-    if recently_added:
-        add_listitem(f'[ Recién añadido ({len(recently_added)}) ]', build_url('recent'), ICON, isFolder=True)
-
     add_listitem('[ \u00datiles ]', build_url('utiles'), ICON, isFolder=True)
 
     for name in top_keys:
@@ -237,17 +233,6 @@ def list_folder(data, path):
             li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
 
-    xbmcplugin.endOfDirectory(HANDLE)
-
-
-def list_recent(data):
-    items = data.get('_recently_added', [])
-    for full_path in sorted(items):
-        parts = full_path.split('/')
-        label = parts[-1]
-        add_listitem(label, build_url('folder', full_path), ICON, isFolder=True)
-    if not items:
-        add_listitem('[ Sin novedades ]', build_url('root'), ICON, isFolder=False)
     xbmcplugin.endOfDirectory(HANDLE)
 
 
@@ -401,9 +386,6 @@ def router(paramstring):
         return
     elif action == 'random':
         play_random(data)
-        return
-    elif action == 'recent':
-        list_recent(data)
         return
     elif action == 'utiles':
         list_utiles(data)

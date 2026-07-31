@@ -652,18 +652,7 @@ function getGroupFromPath(filePath, rootFolder) {
   return { group, searchName, fallbackName };
 }
 
-function fetchJSON(url) {
-  return new Promise((resolve) => {
-    https.get(url, (res) => {
-      if (res.statusCode !== 200) { resolve(null); return; }
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => { try { resolve(JSON.parse(data)); } catch { resolve(null); } });
-    }).on('error', () => resolve(null));
-  });
-}
-
-function generateJSON(files, rootFolder, posters, oldGroupNames) {
+function generateJSON(files, rootFolder, posters) {
   const now = new Date();
   const day = String(now.getUTCDate()).padStart(2, '0');
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
@@ -705,11 +694,6 @@ function generateJSON(files, rootFolder, posters, oldGroupNames) {
 
   const groups = Object.values(groupsMap).sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
-  const newGroupNames = new Set(groups.map(g => g.name));
-  const recentlyAdded = oldGroupNames
-    ? groups.filter(g => !oldGroupNames.has(g.name)).map(g => g.name)
-    : [];
-
   const esTime = now.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
   const dateTimeStr = `${day}-${month}-${year} ${esTime}`;
 
@@ -718,7 +702,6 @@ function generateJSON(files, rootFolder, posters, oldGroupNames) {
     author: `VanSirius (Actualizada al ${dateStr})`,
     _last_updated: now.toISOString(),
     _last_updated_display: dateTimeStr,
-    _recently_added: recentlyAdded,
     image: COLLECTION_ICON,
     url: 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u',
     groups: groups
@@ -844,21 +827,10 @@ async function main() {
     savePosterCache(cache);
   }
 
-  console.log('Comparando con lista anterior para detectar novedades...');
-  const oldJSON = await fetchJSON('https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u');
-  const oldGroupNames = oldJSON && oldJSON.groups
-    ? new Set(oldJSON.groups.map(g => g.name))
-    : null;
-  if (oldGroupNames) {
-    console.log(`  Grupos anteriores: ${oldGroupNames.size}`);
-  } else {
-    console.log('  No se pudo obtener lista anterior. Todos los grupos aparecerán como nuevos.');
-  }
-
-  console.log(`\nPosters personalizados aplicados: ${Object.keys(posters).filter(k => CUSTOM_POSTERS[k]).length}`);
+  console.log(`Posters personalizados aplicados: ${Object.keys(posters).filter(k => CUSTOM_POSTERS[k]).length}`);
 
   console.log('Generando lista JSON...');
-  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters, oldGroupNames);
+  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters);
   
   const outputPath = process.env.GITHUB_ACTIONS 
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
