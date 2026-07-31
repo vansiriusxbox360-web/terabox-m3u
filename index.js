@@ -1030,14 +1030,22 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
 }
 
 async function listDirectory(tb, dirPath, page = 1) {
-  try {
-    const result = await tb.getRemoteDir(dirPath, page);
-    await sleep(DELAY_MS);
-    return result;
-  } catch (error) {
-    console.error(`Error listing ${dirPath} page ${page}:`, error.message);
-    return null;
+  const MAX_LIST_RETRIES = 3;
+  for (let attempt = 1; attempt <= MAX_LIST_RETRIES; attempt++) {
+    try {
+      const result = await tb.getRemoteDir(dirPath, page);
+      await sleep(DELAY_MS);
+      if (result && result.list && result.list.length > 0) return result;
+      if (attempt < MAX_LIST_RETRIES) {
+        console.warn(`  Listado vacio de ${dirPath} (intento ${attempt}/${MAX_LIST_RETRIES}). Reintentando...`);
+        await sleep(5000 * attempt);
+      }
+    } catch (error) {
+      console.error(`Error listing ${dirPath} page ${page} (intento ${attempt}/${MAX_LIST_RETRIES}):`, error.message);
+      if (attempt < MAX_LIST_RETRIES) await sleep(5000 * attempt);
+    }
   }
+  return null;
 }
 
 async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
@@ -1050,6 +1058,9 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
     
     if (!result || !result.list || result.list.length === 0) {
       hasMore = false;
+      if (result === null) {
+        console.error(`⚠️  No se pudo listar ${dirPath} (pagina ${page}) tras reintentos. El arbol bajo esta carpeta se omitira en este run.`);
+      }
       break;
     }
 
@@ -1394,6 +1405,25 @@ async function main() {
   if (allFiles.length === 0) {
     console.log('No se encontraron archivos de video.');
     process.exit(0);
+  }
+
+  const prevListPath = process.env.GITHUB_ACTIONS
+    ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
+    : path.join(__dirname, 'lista.m3u');
+  let prevStationCount = 0;
+  try {
+    if (fs.existsSync(prevListPath)) {
+      const prev = JSON.parse(fs.readFileSync(prevListPath, 'utf-8'));
+      prevStationCount = (prev.groups || []).reduce((sum, g) => sum + (g.stations || []).length, 0);
+    }
+  } catch (e) {
+    console.warn(`No se pudo leer la lista previa: ${e.message}`);
+  }
+  if (prevStationCount > 0 && allFiles.length < prevStationCount * 0.6) {
+    writeErrorLog(`Escaneo incompleto: ${allFiles.length} archivos vs ${prevStationCount} previos. No se sobreescribe la lista para no perder contenido.`);
+    console.error(`🔴 ERROR: El escaneo encontro ${allFiles.length} archivos, pero la lista previa tiene ${prevStationCount}.`);
+    console.error('   Abortando sin sobrescribir la lista (posible rate-limit de Terabox).');
+    process.exit(1);
   }
 
   console.log('Ordenando archivos...');
