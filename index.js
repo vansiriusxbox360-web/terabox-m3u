@@ -164,7 +164,15 @@ const TITLE_ALIASES = {
   'Codigo KND': 'Codename: Kids Next Door',
   'Capitan N el amo del videojuego': 'Captain N',
   'Capitán Cavernícola': 'Captain Caveman',
-  'Pepe Potamo': 'Pepe Potamo',
+  'Pepe Potamo': 'The Peter Potamus Show',
+  'Chopy y la princesa': 'Choppy and the Princess',
+  'Las Maravillosas Desventuras de Flapjack': 'The Marvelous Misadventures of Flapjack',
+  'El rey de la colina': 'King of the Hill',
+  'Ed, Edd y Eddy': 'Ed, Edd n Eddy',
+  'Ed Edd y Eddy': 'Ed, Edd n Eddy',
+  'Las Macabras aventuras de Billy y Mandy': 'The Grim Adventures of Billy & Mandy',
+  'Las Supernenas': 'The Powerpuff Girls',
+  'El Castillo en el cielo - Tenkū no Shiro Laputa': 'Laputa: Castle in the Sky',
   'Maguila Gorila': 'Magilla Gorilla',
   'La Aldea del arce': 'Maison Ikkoku',
   'La Tropa Goofy': 'Goof Troop',
@@ -527,6 +535,21 @@ const GENERIC_IMAGE_TOKENS = [
   'coat of arms', 'placeholder', 'disambig', 'spacer', 'transparent',
 ];
 
+const NON_POSTER_PATTERNS = /(?:^|[_\-\s])(?:logo|logotype|logo_|sign|slogan|cosplay|promo|promotional|title card|titlecard|opening|ending|frame|screenshot|screencap|photocard|photograph|photo_|_photo|cast photo|characters|copyright|trailer|tv spot|scene|capture|still|wallpaper|banner|header|logo\.svg)(?:$|[_\-\s])/i;
+
+function isLikelyNonPoster(filename) {
+  const f = filename.replace(/^960px-/i, '');
+  if (NON_POSTER_PATTERNS.test(f)) return true;
+  if (/\.svg($|\.)/i.test(f)) return true;
+  if (/logo/i.test(f)) return true;
+  if (/(?:cast|cosplay|panel|convention|office|showroom|broadway|building|street|store|electricity)/i.test(f)) return true;
+  if (/(?:statue|fan art|fanart|by_\w+_|-by-|_test|test\.|cropped|crop\)|crop\.jpg|crop\.jpeg|title_card|_film\b|foot\.png|foot_|characters\.|characters_|_characters|tree_house|painting|wheatfield|_crows|artist|portrait|photo of|imagen de)/i.test(f)) return true;
+  if (/(?:tartakovsky|quintel|van gogh|gribble|happy kittens)/i.test(f)) return true;
+  if (/(?:_title\.jpg|_title\.png|_screen|_screenshot|all_3_|_3_eds|adam_west|1965|promo|logotype|_logo\.png)/i.test(f)) return true;
+  if (/(?:^|_)(?:snorks|triptank|king_of_the_hill|codename|rocket_power|medabots)(?:$|_|\.)/i.test(f)) return true;
+  return false;
+}
+
 async function wikipediaPageImage(lang, title) {
   const thumb = await wikipediaLeadImage(lang, title);
   if (thumb) return thumb;
@@ -544,7 +567,10 @@ async function wikipediaLeadImage(lang, title) {
     const pages = json.query && json.query.pages;
     if (!pages) return null;
     for (const p of Object.values(pages)) {
-      if (p.thumbnail && p.thumbnail.source) return p.thumbnail.source;
+      if (p.thumbnail && p.thumbnail.source) {
+        const fn = decodeURIComponent(p.thumbnail.source.split('/').pop().replace(/\?.*$/, ''));
+        if (!isLikelyNonPoster(fn)) return p.thumbnail.source;
+      }
     }
   } catch (e) {
     // ignore
@@ -571,6 +597,7 @@ async function wikipediaArticleImages(lang, title) {
     const lower = file.toLowerCase();
     if (!lower.endsWith('.jpg') && !lower.endsWith('.jpeg') && !lower.endsWith('.png')) continue;
     if (GENERIC_IMAGE_TOKENS.some(t => lower.includes(t))) continue;
+    if (isLikelyNonPoster(file)) continue;
     const info = p.imageinfo && p.imageinfo[0];
     if (!info || !info.thumburl) continue;
     const score = titleTokens.some(t => lower.includes(t)) ? 1 : 0;
@@ -621,20 +648,22 @@ async function wikidataSearchSingle(title) {
       const p18 = ent.claims.P18 && ent.claims.P18[0];
       if (p18 && p18.mainsnak && p18.mainsnak.datavalue) {
         const file = p18.mainsnak.datavalue.value.replace(/ /g, '_');
-        return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=600`;
+        if (!isLikelyNonPoster(file)) {
+          return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=600`;
+        }
       }
       const sitelinks = ent.sitelinks || {};
       const esWiki = sitelinks.eswiki && sitelinks.eswiki.title;
       if (esWiki) {
         const img = await wikipediaPageImage('es', esWiki);
         if (img === RATE_LIMIT) return RATE_LIMIT;
-        if (img) return img;
+        if (img && !isLikelyNonPoster(decodeURIComponent(img.split('/').pop().replace(/\?.*$/, '')))) return img;
       }
       const enWiki = sitelinks.enwiki && sitelinks.enwiki.title;
       if (enWiki) {
         const img = await wikipediaPageImage('en', enWiki);
         if (img === RATE_LIMIT) return RATE_LIMIT;
-        if (img) return img;
+        if (img && !isLikelyNonPoster(decodeURIComponent(img.split('/').pop().replace(/\?.*$/, '')))) return img;
       }
     }
   }
@@ -1552,4 +1581,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { normalizeTitle, movieTitleCandidates, TITLE_ALIASES };
+module.exports = { normalizeTitle, movieTitleCandidates, TITLE_ALIASES, getGroupFromPath };
