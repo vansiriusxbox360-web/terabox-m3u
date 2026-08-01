@@ -151,7 +151,7 @@ const TITLE_ALIASES = {
   'La leyenda de Korra': 'The Legend of Korra',
   'Sand Lands': 'Sand Land',
   'Mononoke Karakasa & Shou - Hinezumi': 'Mononoke',
-  'Mononoke Movie Dai-2 Shou - Hinezumi': 'Mononoke: The Ashes of Rage',
+  'Mononoke Movie Dai-2 Shou - Hinezumi': 'Mononoke',
   'El Castillo en el cielo - Tenku no Shiro Laputa': 'Castle in the Sky',
   'Layton Kyouju to Eien no Utahime': 'Professor Layton and the Eternal Diva',
   'Death Note Rewrite': 'Death Note',
@@ -165,7 +165,7 @@ const TITLE_ALIASES = {
   'Capitan N el amo del videojuego': 'Captain N',
   'Capitán Cavernícola': 'Captain Caveman',
   'Pepe Potamo': 'Pepe Potamo',
-  'Maguila Gorila': 'Magilla Gorila',
+  'Maguila Gorila': 'Magilla Gorilla',
   'La Aldea del arce': 'Maison Ikkoku',
   'La Tropa Goofy': 'Goof Troop',
   'La Leyenda de Zelda': 'The Legend of Zelda',
@@ -254,6 +254,19 @@ const TITLE_ALIASES = {
   'Los Snorkels': 'Snorks',
   'Mozart': 'Viva la banda de Mozart',
   'Sonic': 'Adventures of Sonic the Hedgehog',
+  // === Alias con clave normalizada (sin paréntesis) ===
+  'Agallas el perro cobarde': 'Courage the Cowardly Dog',
+  'Vaca y Pollo': 'Cow and Chicken',
+  'Itou Junji Collection': 'Junji Ito Collection',
+  'Itou Junji Maniac': 'Junji Ito Maniac',
+  'Itou Junji Tomie': 'Tomie',
+  'Canuto y Canito': 'Heckle and Jeckle',
+  'Abbott y Costello': 'Abbott and Costello',
+  'El libro de la selva': 'The Jungle Book',
+  'Pesadillas de R L Stine': 'Goosebumps',
+  'Hadashi no Gen 1&2': 'Barefoot Gen',
+  'El Zapatero y la Princesa': 'The Thief and the Cobbler',
+  'Relatos de los hermanos Grimm': 'The Wonderful World of the Brothers Grimm',
 };
 
 const CUSTOM_POSTERS = {
@@ -275,6 +288,7 @@ const CUSTOM_POSTERS = {
   'Cocodrilos al rescate': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/cocodrilos_al_rescate.jpg',
   'Cosas de locos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/cosas_de_locos.jpg',
   'Cosas de locos!': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/cosas_de_locos.jpg',
+  'Cosas de Locos!': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/cosas_de_locos.jpg',
   'Las aventuras de Super Mario Bros 3': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/las_aventuras_de_super_mario_bros_3.jpg',
   'Los intocables de Elliot Mouse': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_intocables_de_elliot_mouse.jpg',
   'Super Mario World': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/super_mario_world.jpg',
@@ -704,36 +718,50 @@ async function tmdbSearch(title, apiKey) {
 
 async function searchWithFallback(title, omdbKey, tmdbKey) {
   let poster = null;
+  let omdbDown = false;
   if (omdbKey) {
     poster = await omdbSearch(title, omdbKey);
-    if (poster === RATE_LIMIT && tmdbKey) {
-      console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
-      poster = await tmdbSearch(title, tmdbKey);
+    if (poster === RATE_LIMIT) {
+      omdbDown = true;
+      if (tmdbKey) {
+        console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+        poster = await tmdbSearch(title, tmdbKey);
+      }
     }
   } else if (tmdbKey) {
     poster = await tmdbSearch(title, tmdbKey);
   }
-  if (poster === RATE_LIMIT || !poster) {
-    if (poster === RATE_LIMIT) console.log('  TMDB sin disponible, usando Wikidata como respaldo...');
-    poster = await wikidataSearch(title);
+  if (poster === RATE_LIMIT || omdbDown) {
+    return RATE_LIMIT;
+  }
+  if (!poster) {
+    const w = await wikidataSearch(title);
+    if (w !== RATE_LIMIT) poster = w;
   }
   return poster;
 }
 
 async function searchSingleWithFallback(title, omdbKey, tmdbKey) {
   let poster = null;
+  let omdbDown = false;
   if (omdbKey) {
     poster = await omdbSearchSingleWithRetry(title, omdbKey);
-    if (poster === RATE_LIMIT && tmdbKey) {
-      console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
-      poster = await tmdbSearchSingle(title, tmdbKey);
+    if (poster === RATE_LIMIT) {
+      omdbDown = true;
+      if (tmdbKey) {
+        console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
+        poster = await tmdbSearchSingle(title, tmdbKey);
+      }
     }
   } else if (tmdbKey) {
     poster = await tmdbSearchSingle(title, tmdbKey);
   }
-  if (poster === RATE_LIMIT || !poster) {
-    if (poster === RATE_LIMIT) console.log('  TMDB sin disponible, usando Wikidata como respaldo...');
-    poster = await wikidataSearchSingle(title);
+  if (poster === RATE_LIMIT || omdbDown) {
+    return RATE_LIMIT;
+  }
+  if (!poster) {
+    const w = await wikidataSearchSingle(title);
+    if (w !== RATE_LIMIT) poster = w;
   }
   return poster;
 }
@@ -961,11 +989,15 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
 
     if (Object.prototype.hasOwnProperty.call(cache, group)) {
       const cachedVal = cache[group];
+      const hasAlias = !!TITLE_ALIASES[normalizeTitle(group)];
       if (cachedVal === WIKIDATA_FAILED) {
-        cached++;
+        if (hasAlias) {
+          toFetch.push(group);
+        } else {
+          cached++;
+        }
         continue;
       }
-      const hasAlias = !!TITLE_ALIASES[normalizeTitle(group)];
       if (cachedVal) {
         posters[group] = cachedVal;
         cached++;
