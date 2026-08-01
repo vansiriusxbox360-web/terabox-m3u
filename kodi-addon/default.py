@@ -36,7 +36,7 @@ FOLDER_IMAGES = {
 }
 
 FOLDER_ICON_URLS = {
-    'Dragon Ball trilog\u00eda + eplis': 'https://images.openai.com/static-rsc-4/3qPRMBAuZtpY8mLVzGqJbQGHS9WhCNWgkRePZ9s6tV9lc-L_M4infyCrl3f1rsRtEkxT-HUwfrDDvuRWC9Y1lDRLrnpqllZr0tV-nm4escKBm6QIECx0ZehuLGOXC5ngj2jNaYl-qT0WwfO-Vt2WmLfm0NSVn875BZEURie8OYkfBXgVW_0_eLvk-jtS7ujz?purpose=fullsize',
+    'Dragon Ball trilog\u00eda + eplis': 'https://i.pinimg.com/736x/86/37/d4/8637d49f9329a827e93a306eda70e45f.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
