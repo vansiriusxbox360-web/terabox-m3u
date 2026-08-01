@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.vansirius" name="La Colección de VanSirius" version="1.0.25" provider-name="VanSirius">
+<addon id="plugin.video.vansirius" name="La Colección de VanSirius" version="1.0.26" provider-name="VanSirius">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
