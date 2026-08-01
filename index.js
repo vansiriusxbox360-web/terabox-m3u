@@ -5,7 +5,9 @@ const { TeraBoxApp } = require('terabox-api');
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
 const DELAY_MS = 300;
-const OMD_DELAY_MS = 250;
+const OMD_DELAY_MS = 1200;
+const OMD_RETRY_WAIT_MS = 30000;
+const OMD_MAX_RETRIES = 3;
 const WIKIDATA_DELAY_MS = 1000;
 
 function sleep(ms) {
@@ -449,10 +451,22 @@ function omdbSearchSingle(title, apiKey) {
   });
 }
 
+async function omdbSearchSingleWithRetry(title, apiKey) {
+  for (let attempt = 0; attempt <= OMD_MAX_RETRIES; attempt++) {
+    const poster = await omdbSearchSingle(title, apiKey);
+    if (poster !== RATE_LIMIT) return poster;
+    if (attempt < OMD_MAX_RETRIES) {
+      console.log(`  OMDb rate-limited (reintento ${attempt + 1}/${OMD_MAX_RETRIES}) en "${title}". Esperando ${OMD_RETRY_WAIT_MS / 1000}s...`);
+      await sleep(OMD_RETRY_WAIT_MS);
+    }
+  }
+  return RATE_LIMIT;
+}
+
 async function omdbSearch(title, apiKey) {
   const variants = generateSearchVariants(title);
   for (const variant of variants) {
-    const poster = await omdbSearchSingle(variant, apiKey);
+    const poster = await omdbSearchSingleWithRetry(variant, apiKey);
     if (poster === RATE_LIMIT) return RATE_LIMIT;
     if (poster) return poster;
     await sleep(OMD_DELAY_MS);
@@ -709,7 +723,7 @@ async function searchWithFallback(title, omdbKey, tmdbKey) {
 async function searchSingleWithFallback(title, omdbKey, tmdbKey) {
   let poster = null;
   if (omdbKey) {
-    poster = await omdbSearchSingle(title, omdbKey);
+    poster = await omdbSearchSingleWithRetry(title, omdbKey);
     if (poster === RATE_LIMIT && tmdbKey) {
       console.log('  Cuota OMDb agotada, usando TMDB como respaldo...');
       poster = await tmdbSearchSingle(title, tmdbKey);
@@ -1270,7 +1284,6 @@ function generateJSON(files, rootFolder, posters, filePosters) {
 
   const posterCache = loadPosterCache();
 
-  const ICON_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/detective_worried_street.png';
   const VS_ICON = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/icon.png';
   const COLLECTION_ICON = VS_ICON;
 
@@ -1300,12 +1313,9 @@ function generateJSON(files, rootFolder, posters, filePosters) {
       const cachedFilePoster = posterCache['FILE::' + file.cleanName];
       if (cachedFilePoster && cachedFilePoster !== WIKIDATA_FAILED) poster = cachedFilePoster;
     }
-    if (!poster) poster = ICON_URL;
-    groupsMap[group].stations.push({
-      name: file.cleanName,
-      image: poster,
-      url: file.dlink
-    });
+    const station = { name: file.cleanName, url: file.dlink };
+    if (poster && poster !== groupsMap[group].image) station.image = poster;
+    groupsMap[group].stations.push(station);
   }
 
   const groups = Object.values(groupsMap).sort((a, b) => a.name.localeCompare(b.name, 'es'));
