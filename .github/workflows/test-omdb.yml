@@ -1,0 +1,15 @@
+name: Test OMDb quota
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test OMDb quota
+        env:
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+        run: |
+          RESP=$(curl -s "http://www.omdbapi.com/?apikey=$OMDB_API_KEY&t=malcolm")
+          echo "RESP=$RESP"
