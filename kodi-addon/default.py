@@ -35,6 +35,10 @@ FOLDER_IMAGES = {
     'Sine malo y sine g\u00fceno': os.path.join(ADDON_PATH, 'img-sine.png'),
 }
 
+FOLDER_ICON_URLS = {
+    'Dragon Ball trilog\u00eda + eplis': 'https://images.openai.com/static-rsc-4/3qPRMBAuZtpY8mLVzGqJbQGHS9WhCNWgkRePZ9s6tV9lc-L_M4infyCrl3f1rsRtEkxT-HUwfrDDvuRWC9Y1lDRLrnpqllZr0tV-nm4escKBm6QIECx0ZehuLGOXC5ngj2jNaYl-qT0WwfO-Vt2WmLfm0NSVn875BZEURie8OYkfBXgVW_0_eLvk-jtS7ujz?purpose=fullsize',
+}
+
 
 def log(msg, level=xbmc.LOGDEBUG):
     xbmc.log(f'[VanSirius] {msg}', level)
@@ -145,6 +149,9 @@ def resolve_icon(node, current_path=''):
     folder_img = get_folder_image(current_path)
     if folder_img:
         return folder_img
+    folder_url = FOLDER_ICON_URLS.get(current_path)
+    if folder_url:
+        return folder_url
     if node.get('_groups'):
         icon = node.get('_icon')
         if icon and icon != ICON:
@@ -152,18 +159,23 @@ def resolve_icon(node, current_path=''):
         return DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     if child_keys:
-        all_alb = all(
-            isinstance(node[k], dict) and node[k].get('_groups')
-            for k in child_keys
-        )
-        if all_alb:
-            posters = set()
-            for k in child_keys:
-                icon = node[k].get('_icon')
-                if icon and icon not in (ICON, DETECTIVE):
-                    posters.add(icon)
-            if len(posters) == 1:
-                return posters.pop()
+        child_keys.sort(key=natural_sort_key)
+        inherited = []
+        for k in child_keys:
+            icon = resolve_icon(node[k], k)
+            if icon not in (ICON, DETECTIVE):
+                inherited.append(icon)
+        if inherited:
+            unique = set(inherited)
+            if len(unique) == 1:
+                return unique.pop()
+            counts = {}
+            for icon in inherited:
+                counts[icon] = counts.get(icon, 0) + 1
+            top_icon, top_count = max(counts.items(), key=lambda kv: kv[1])
+            if top_count > 1:
+                return top_icon
+            return inherited[0]
         return ICON
     return DETECTIVE
 
