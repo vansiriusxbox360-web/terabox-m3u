@@ -1038,11 +1038,11 @@ async function listDirectory(tb, dirPath, page = 1) {
       if (result && result.list && result.list.length > 0) return result;
       if (attempt < MAX_LIST_RETRIES) {
         console.warn(`  Listado vacio de ${dirPath} (intento ${attempt}/${MAX_LIST_RETRIES}). Reintentando...`);
-        await sleep(5000 * attempt);
+        await sleep(10000 * attempt);
       }
     } catch (error) {
       console.error(`Error listing ${dirPath} page ${page} (intento ${attempt}/${MAX_LIST_RETRIES}):`, error.message);
-      if (attempt < MAX_LIST_RETRIES) await sleep(5000 * attempt);
+      if (attempt < MAX_LIST_RETRIES) await sleep(10000 * attempt);
     }
   }
   return null;
@@ -1081,10 +1081,8 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
       console.log(`${indent}📁 ${item.server_filename}`);
     }
 
-    const subResults = await Promise.all(folders.map(item =>
-      scanRecursive(tb, item.path, [], depth + 1)
-    ));
-    for (const sub of subResults) {
+    for (const folder of folders) {
+      const sub = await scanRecursive(tb, folder.path, [], depth + 1);
       allFiles.push(...sub);
     }
 
