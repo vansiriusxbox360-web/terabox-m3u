@@ -1495,7 +1495,7 @@ async function main() {
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
     : path.join(__dirname, 'lista.m3u');
   
-  fs.writeFileSync(outputPath, JSON.stringify(jsonContent, null, 2), 'utf-8');
+  fs.writeFileSync(outputPath, JSON.stringify(jsonContent), 'utf-8');
   console.log(`Lista guardada en: ${outputPath}`);
   console.log(`Total de entradas: ${filesWithLinks.length}`);
   console.log('\n¡Completado!');
