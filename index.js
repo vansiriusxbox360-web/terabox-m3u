@@ -375,6 +375,7 @@ const CUSTOM_POSTERS = {
   'Virtua Fighter': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/virtua_fighter.jpg',
   'WillyFog': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/willyfog.jpg',
   'Una Navidad con Mickey': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_navidad_con_mickey.jpg',
+  'Festivales del tiri': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
 };
 
 const PATH_POSTER_SUFFIXES = {
@@ -438,6 +439,10 @@ const FILE_POSTER_URLS = {
   'Segundo Festival de Mortadelo y Filemón Estudios Vara 1970': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_segundo.jpg',
   'Tercer Festival de Mortadelo y Filemón Estudios Vara 1971': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_tercero.jpg',
 };
+
+const CHILD_INHERIT_GROUP_ICON = new Set([
+  'Festivales por capis',
+]);
 
 const FILE_CLEANNAME_ALIASES = {
   '1999 - Astérix y Obélix - Contra el César': 'Asterix and Obelix vs Caesar',
@@ -1436,6 +1441,7 @@ function generateJSON(files, rootFolder, posters, filePosters) {
       const cachedFilePoster = posterCache['FILE::' + file.cleanName];
       if (cachedFilePoster && cachedFilePoster !== WIKIDATA_FAILED) poster = cachedFilePoster;
     }
+    if (CHILD_INHERIT_GROUP_ICON.has(searchName)) poster = groupsMap[group].image || null;
     const station = { name: file.cleanName, url: file.dlink };
     if (poster && poster !== groupsMap[group].image) station.image = poster;
     groupsMap[group].stations.push(station);
