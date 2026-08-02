@@ -41,6 +41,10 @@ FOLDER_ICON_URLS = {
     'Muchachada Nui': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/muchachada_nui.jpg',
 }
 
+FOLDER_ICON_BY_PATH_SUFFIX = {
+    'Rick y Morty/\u00aanime': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rick_y_morty_anime.jpg',
+}
+
 INHERIT_CHILD_ICONS = {
     'Pok\u00e9mon',
     'La banda del patio',
@@ -156,10 +160,14 @@ def build_tree(data):
 
 
 def resolve_icon(node, current_path=''):
-    folder_img = get_folder_image(current_path)
+    for suffix, url in FOLDER_ICON_BY_PATH_SUFFIX.items():
+        if current_path == suffix or current_path.endswith('/' + suffix):
+            return url
+    leaf = current_path.rsplit('/', 1)[-1] if current_path else ''
+    folder_img = get_folder_image(leaf)
     if folder_img:
         return folder_img
-    folder_url = FOLDER_ICON_URLS.get(current_path)
+    folder_url = FOLDER_ICON_URLS.get(leaf)
     if folder_url:
         return folder_url
     if node.get('_groups'):
@@ -169,11 +177,12 @@ def resolve_icon(node, current_path=''):
         return DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     if child_keys:
-        if current_path in INHERIT_CHILD_ICONS:
+        if leaf in INHERIT_CHILD_ICONS:
             child_keys.sort(key=natural_sort_key)
             inherited = []
             for k in child_keys:
-                icon = resolve_icon(node[k], k)
+                child_path = f'{current_path}/{k}' if current_path else k
+                icon = resolve_icon(node[k], child_path)
                 if icon not in (ICON, DETECTIVE):
                     inherited.append(icon)
             if inherited:
@@ -262,7 +271,7 @@ def list_folder(data, path):
     for key in child_keys:
         child = node[key]
         full_path = f'{path}/{key}'
-        icon = resolve_icon(child, key)
+        icon = resolve_icon(child, full_path)
         url = build_url('folder', full_path)
         li = xbmcgui.ListItem(key)
         if icon:
