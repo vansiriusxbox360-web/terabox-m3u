@@ -37,6 +37,8 @@ FOLDER_IMAGES = {
 
 FOLDER_ICON_URLS = {
     'Dragon Ball trilog\u00eda + eplis': 'https://i.pinimg.com/736x/86/37/d4/8637d49f9329a827e93a306eda70e45f.jpg',
+    'unuiverso chananut': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/unuiverso_chananut.jpg',
+    'Muchachada Nui': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/muchachada_nui.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
