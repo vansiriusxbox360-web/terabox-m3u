@@ -374,6 +374,7 @@ const CUSTOM_POSTERS = {
   'Virkikis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_monchicchis.jpg',
   'Virtua Fighter': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/virtua_fighter.jpg',
   'WillyFog': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/willyfog.jpg',
+  'Una Navidad con Mickey': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_navidad_con_mickey.jpg',
 };
 
 const PATH_POSTER_SUFFIXES = {
@@ -430,6 +431,12 @@ const FILE_TITLE_ALIASES = {
   'Ivan El Terrible II': 'Ivan the Terrible Part II',
   '¿Qué he hecho yo para merecer esto': 'What Have I Done to Deserve This',
   'Pinocho la leyenda': 'The Adventures of Pinocchio',
+};
+
+const FILE_POSTER_URLS = {
+  'Primer Festival de Mortadelo y Filemón Estudios Vara 1969': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_primero.jpg',
+  'Segundo Festival de Mortadelo y Filemón Estudios Vara 1970': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_segundo.jpg',
+  'Tercer Festival de Mortadelo y Filemón Estudios Vara 1971': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_tercero.jpg',
 };
 
 const FILE_CLEANNAME_ALIASES = {
@@ -1424,6 +1431,7 @@ function generateJSON(files, rootFolder, posters, filePosters) {
     let poster = posters && posters[searchName] ? posters[searchName] : null;
     if (!poster && fallbackName) poster = posters && posters[fallbackName] ? posters[fallbackName] : null;
     if (filePosters && filePosters[file.cleanName]) poster = filePosters[file.cleanName];
+    if (FILE_POSTER_URLS && FILE_POSTER_URLS[file.cleanName]) poster = FILE_POSTER_URLS[file.cleanName];
     if (!poster) {
       const cachedFilePoster = posterCache['FILE::' + file.cleanName];
       if (cachedFilePoster && cachedFilePoster !== WIKIDATA_FAILED) poster = cachedFilePoster;
