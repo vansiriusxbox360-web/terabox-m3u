@@ -332,7 +332,7 @@
   "Naranjito, fútbol en acción": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/naranjito_futbol_en_accion.jpg",
   "Pepe Potamo": "https://m.media-amazon.com/images/M/MV5BM2Y5NDA1NWUtNDNiNi00OTQyLTljN2UtMDFkMTczMWMxM2JmXkEyXkFqcGdeQXVyNTE1NjY5Mg@@._V1_SX300.jpg",
   "Relatos de los hermanos Grimm": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/relatos_de_los_hermanos_grimm.jpg",
-  "Una Navidad con Mickey": "__WIKIDATA_FAILED__",
+  "Una Navidad con Mickey": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_navidad_con_mickey.jpg",
   "Virkikis": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_monchicchis.jpg",
   "WillyFog T1": "__WIKIDATA_FAILED__",
   "WillyFog": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/willyfog.jpg",
@@ -802,5 +802,7 @@
   "Twin Peaks T3": "https://m.media-amazon.com/images/M/MV5BMTExNzk2NjcxNTNeQTJeQWpwZ15BbWU4MDcxOTczOTIx._V1_SX300.jpg",
   "FILE::The Odyssey (La Odisea - Christopher Nolan 2026) 1080p (Subtítulos español-spa) - Uploaded by JuAnItO": "https://m.media-amazon.com/images/M/MV5BNTcyNmJlZmQtNDUwYy00NDBjLTg1NGQtYTY2Y2UxMWM3NmI1XkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg",
   "FILE::Un.simple.accidente.(2025).(Spanish.Persian.Subs).WEB-DL.1080p.x264-EAC3.by.xusman.(nocturniap2p)": null,
-  "Canito y Canuto": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/canito_y_canuto.jpg"
+  "Canito y Canuto": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/canito_y_canuto.jpg",
+  "FILE::El Odio (1995)": "https://upload.wikimedia.org/wikipedia/en/0/01/La_Haine_%281995_movie_poster%29.jpg",
+  "FILE::Una mirada a a la oscuridad (2006)": null
 }
