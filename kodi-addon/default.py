@@ -46,6 +46,7 @@ INHERIT_CHILD_ICONS = {
     'La banda del patio',
     'Campeones',
     'Bumpy',
+    'Rick y Morty',
 }
 
 
