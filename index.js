@@ -346,6 +346,7 @@ const CUSTOM_POSTERS = {
   'Enjuto Mojamuto': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/enjuto_mojamuto.jpg',
   'La M palabra y Tontico': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/la_m_palabra_y_tontico.jpg',
   'Rertorno a Lilifor': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rertorno_a_lilifor.jpg',
+  'Retorno a Lilifor': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rertorno_a_lilifor.jpg',
   'Museo Coconut': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/museo_coconut.jpg',
   'Rafaela Y Su Loco Mundo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rafaela_y_su_loco_mundo.jpg',
 };
