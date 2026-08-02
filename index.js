@@ -375,6 +375,7 @@ const CUSTOM_POSTERS = {
   'Virtua Fighter': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/virtua_fighter.jpg',
   'WillyFog': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/willyfog.jpg',
   'Una Navidad con Mickey': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_navidad_con_mickey.jpg',
+  'Pepe Potamo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pepe_potamo.jpg',
 };
 
 const PATH_POSTER_SUFFIXES = {
