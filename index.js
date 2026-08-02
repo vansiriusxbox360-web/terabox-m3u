@@ -375,7 +375,6 @@ const CUSTOM_POSTERS = {
   'Virtua Fighter': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/virtua_fighter.jpg',
   'WillyFog': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/willyfog.jpg',
   'Una Navidad con Mickey': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_navidad_con_mickey.jpg',
-  'Festivales del tiri': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
 };
 
 const PATH_POSTER_SUFFIXES = {
@@ -383,6 +382,7 @@ const PATH_POSTER_SUFFIXES = {
   'Festivales del tiri/Primer festival': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_primero.jpg',
   'Festivales del tiri/Segundo festival': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_segundo.jpg',
   'Festivales del tiri/Tercer festival': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_tercero.jpg',
+  'Festivales del tiri': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
   'Festivales por capis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
 };
 
@@ -443,6 +443,13 @@ const FILE_POSTER_URLS = {
 const CHILD_INHERIT_GROUP_ICON = new Set([
   'Festivales por capis',
 ]);
+
+function groupInheritsChildIcon(group) {
+  for (const name of CHILD_INHERIT_GROUP_ICON) {
+    if (group === name || group.endsWith('/' + name) || group.includes(name + '/')) return true;
+  }
+  return false;
+}
 
 const FILE_CLEANNAME_ALIASES = {
   '1999 - Astérix y Obélix - Contra el César': 'Asterix and Obelix vs Caesar',
@@ -1441,7 +1448,7 @@ function generateJSON(files, rootFolder, posters, filePosters) {
       const cachedFilePoster = posterCache['FILE::' + file.cleanName];
       if (cachedFilePoster && cachedFilePoster !== WIKIDATA_FAILED) poster = cachedFilePoster;
     }
-    if (CHILD_INHERIT_GROUP_ICON.has(searchName)) poster = groupsMap[group].image || null;
+    if (groupInheritsChildIcon(group)) poster = groupsMap[group].image || null;
     const station = { name: file.cleanName, url: file.dlink };
     if (poster && poster !== groupsMap[group].image) station.image = poster;
     groupsMap[group].stations.push(station);
