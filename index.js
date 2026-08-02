@@ -376,6 +376,13 @@ const CUSTOM_POSTERS = {
   'WillyFog': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/willyfog.jpg',
   'Una Navidad con Mickey': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_navidad_con_mickey.jpg',
   'Pepe Potamo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pepe_potamo.jpg',
+  'Digimon Adventure': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure.jpg',
+  'Digimon Adventure 02': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure_02.jpg',
+  'Digimon tamers': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_tamers.jpg',
+  'Digimon Frontier': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_frontier.jpg',
+  'Digimon Data Squad': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_data_squad.jpg',
+  'Digimon Adventure Remake (2020)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure_remake.jpg',
+  'Digimon Adventure (2020)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure_remake.jpg',
 };
 
 const PATH_POSTER_SUFFIXES = {
