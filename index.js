@@ -351,6 +351,10 @@ const CUSTOM_POSTERS = {
   'Rafaela Y Su Loco Mundo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rafaela_y_su_loco_mundo.jpg',
 };
 
+const PATH_POSTER_SUFFIXES = {
+  'Rick y Morty/\u00aanime': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rick_y_morty_anime.jpg',
+};
+
 const FILE_TITLE_ALIASES = {
   'El jovencito Frankenstein': "Young Frankenstein",
   'La vida de Brian BDrip': "Monty Python's Life of Brian",
@@ -1380,6 +1384,12 @@ function generateJSON(files, rootFolder, posters, filePosters) {
     if (!groupsMap[group]) {
       let groupImg = posters && posters[searchName] ? posters[searchName] : null;
       if (!groupImg && fallbackName) groupImg = posters && posters[fallbackName] ? posters[fallbackName] : null;
+      for (const [suffix, url] of Object.entries(PATH_POSTER_SUFFIXES)) {
+        if (group === suffix || group.includes(suffix + '/') || group.endsWith('/' + suffix)) {
+          groupImg = url;
+          break;
+        }
+      }
       groupsMap[group] = { name: group, image: groupImg, info: '', stations: [] };
     }
     let poster = posters && posters[searchName] ? posters[searchName] : null;
