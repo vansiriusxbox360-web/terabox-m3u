@@ -806,9 +806,9 @@
   "FILE::El Odio (1995)": "https://upload.wikimedia.org/wikipedia/en/0/01/La_Haine_%281995_movie_poster%29.jpg",
   "FILE::Una mirada a a la oscuridad (2006)": "__WIKIDATA_FAILED__",
   "Digimon Adventure Remake (2020)": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure_remake.jpg",
-  "T1 - Digimon Adventure": null,
-  "T2 - Digimon Adventure 02": null,
-  "T3 - Digimon Tamers": null,
-  "T4 - Digimon Frontier": null,
-  "T5 - Digimon Savers": null
+  "T1 - Digimon Adventure": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure.jpg",
+  "T2 - Digimon Adventure 02": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure_02.jpg",
+  "T3 - Digimon Tamers": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_tamers.jpg",
+  "T4 - Digimon Frontier": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_frontier.jpg",
+  "T5 - Digimon Savers": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_data_squad.jpg"
 }
