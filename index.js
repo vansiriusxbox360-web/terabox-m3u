@@ -388,13 +388,6 @@ const CUSTOM_POSTERS = {
   'T3 - Digimon Tamers': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_tamers.jpg',
   'T4 - Digimon Frontier': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_frontier.jpg',
   'T5 - Digimon Savers': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_data_squad.jpg',
-  'Pelis+especiales': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_pelis_especiales.jpg',
-  '1. Saga Saiyan (1-35)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_saiyan.jpg',
-  '2.Saga Freezer (36-107)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_freezer.jpg',
-  '3.Saga Garlick Jr. (108-117)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_garlick.jpg',
-  '4.Saga Androides y Cell (118-194)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_androides.jpg',
-  '5.Saga del Otro Mundo (195-199)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_otro_mundo.jpg',
-  '6.Saga Buu (200-291)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_buu.jpg',
 };
 
 const PATH_POSTER_SUFFIXES = {
@@ -404,6 +397,13 @@ const PATH_POSTER_SUFFIXES = {
   'Festivales del tiri/Tercer festival': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festival_tercero.jpg',
   'Festivales del tiri': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
   'Festivales por capis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
+  'Dragon Ball Z - Selecta Vision/Pelis+especiales': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_pelis_especiales.jpg',
+  'Dragon Ball Z - Selecta Vision/1. Saga Saiyan (1-35)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_saiyan.jpg',
+  'Dragon Ball Z - Selecta Vision/2.Saga Freezer (36-107)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_freezer.jpg',
+  'Dragon Ball Z - Selecta Vision/3.Saga Garlick Jr. (108-117)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_garlick.jpg',
+  'Dragon Ball Z - Selecta Vision/4.Saga Androides y Cell (118-194)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_androides.jpg',
+  'Dragon Ball Z - Selecta Vision/5.Saga del Otro Mundo (195-199)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_otro_mundo.jpg',
+  'Dragon Ball Z - Selecta Vision/6.Saga Buu (200-291)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_buu.jpg',
 };
 
 const FILE_TITLE_ALIASES = {
