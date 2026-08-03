@@ -45,6 +45,7 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Rick y Morty/\u00aanime': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rick_y_morty_anime.jpg',
     'Mortadelo y Filem\u00f3n Estudios Vara': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/mortadelo_y_filemon_estudios_vara.jpg',
     'Festivales por capis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
+    'Dragon Ball Z - Selecta Vision': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_saiyan.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
