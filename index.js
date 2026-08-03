@@ -527,6 +527,12 @@ const FILE_POSTER_URLS = {
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
   'Festivales por capis',
+  'Dragon Ball Z - Selecta Vision/1. Saga Saiyan (1-35)',
+  'Dragon Ball Z - Selecta Vision/2.Saga Freezer (36-107)',
+  'Dragon Ball Z - Selecta Vision/3.Saga Garlick Jr. (108-117)',
+  'Dragon Ball Z - Selecta Vision/4.Saga Androides y Cell (118-194)',
+  'Dragon Ball Z - Selecta Vision/5.Saga del Otro Mundo (195-199)',
+  'Dragon Ball Z - Selecta Vision/6.Saga Buu (200-291)',
 ]);
 
 function groupInheritsChildIcon(group) {
