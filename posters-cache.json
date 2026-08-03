@@ -449,7 +449,7 @@
   "FILE::1985 - Astérix Y la sorpresa del César": null,
   "FILE::1986 - Asterix En Bretaña": "https://m.media-amazon.com/images/M/MV5BMjhmZWI0NTctZTZiMC00M2VkLTliMTEtMjliZmRmMzY0ZDRiXkEyXkFqcGc@._V1_SX300.jpg",
   "FILE::1989 - Asterix Y el golpe del menhir": "https://m.media-amazon.com/images/M/MV5BM2Q0ZDNiNWYtMTU1NS00YWViLWI5ZmQtOWQ2YTk2M2NlMmYwXkEyXkFqcGc@._V1_SX300.jpg",
-  "FILE::1994 - Asterix En America": null,
+  "FILE::1994 - Asterix En America": "https://upload.wikimedia.org/wikipedia/en/8/87/Asterix_conquers_america_cover.jpg",
   "FILE::2006 - Astérix Y los vikingos": "https://m.media-amazon.com/images/M/MV5BZmJmNmY0ZmQtMmJmZC00ODZjLTg0MTAtM2U4YzAzMDI2MDM0XkEyXkFqcGc@._V1_SX300.jpg",
   "FILE::2014 - Asterix La residencia de los dioses": null,
   "FILE::2018 - Astérix El secreto de la poción mágica": "https://m.media-amazon.com/images/M/MV5BMDMzZjU5ZDgtMDc5Yi00ZmQxLWIzNzctZGQ5NWYxYjI1ODYxXkEyXkFqcGc@._V1_SX300.jpg",
@@ -804,5 +804,11 @@
   "FILE::Un.simple.accidente.(2025).(Spanish.Persian.Subs).WEB-DL.1080p.x264-EAC3.by.xusman.(nocturniap2p)": null,
   "Canito y Canuto": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/canito_y_canuto.jpg",
   "FILE::El Odio (1995)": "https://upload.wikimedia.org/wikipedia/en/0/01/La_Haine_%281995_movie_poster%29.jpg",
-  "FILE::Una mirada a a la oscuridad (2006)": "__WIKIDATA_FAILED__"
+  "FILE::Una mirada a a la oscuridad (2006)": "__WIKIDATA_FAILED__",
+  "Digimon Adventure Remake (2020)": "https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_adventure_remake.jpg",
+  "T1 - Digimon Adventure": null,
+  "T2 - Digimon Adventure 02": null,
+  "T3 - Digimon Tamers": null,
+  "T4 - Digimon Frontier": null,
+  "T5 - Digimon Savers": null
 }
