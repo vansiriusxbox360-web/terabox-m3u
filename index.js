@@ -651,6 +651,7 @@ const FILE_POSTER_URLS = {
   'Todos Me Llaman Gato (1981)': 'https://image.tmdb.org/t/p/w500/dZHfMB92FzzLf1vjt1ZhFNhBgMb.jpg',
   'Super Mario Bros La pelicula (2023)': 'https://image.tmdb.org/t/p/w500/4CDkQMpNDTtVKwS0BBZw5RIXDtY.jpg',
   'Resurrección (1999) HD 1080 - Película Completa en Español (Castellano). #peliculas #2025 #1999': 'https://m.media-amazon.com/images/M/MV5BM2I5NWM1NzAtOTU4MC00Mzk2LTliZjItNjA1MDgwMTJjZmQ2XkEyXkFqcGc@._V1_.jpg',
+  'Una mirada a a la oscuridad (2006)': 'https://play-lh.googleusercontent.com/WEcGXUB97Jy1c5QvUyyT19vgsydiu0woE-DigscTrici7dIux2W_KJ8oCmtDuhyRa_P7Or8nb-Jo-0RPwP4',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
