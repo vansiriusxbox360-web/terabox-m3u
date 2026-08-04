@@ -659,6 +659,17 @@ const FILE_POSTER_URLS = {
   'Relatos de Disney Vol. V Los Tres Cerditos - Fernandito El Toro - Los Tres Mosqueteros Ciegos': 'https://image.tmdb.org/t/p/w500/mooNeFE8ziSsaY8GhP2i1JSQVrm.jpg',
   'Relatos de Disney Vol. VI El Dragon Chiflado - Mickey Y Las Habichuelas Magicas': 'https://image.tmdb.org/t/p/w500/o3pxSdoO3XZhCBHKvk6AjdsdBkb.jpg',
   'The Thief and the Cobbler Recobbled Cut (Traducido y subtitulado por VanSiriusX)': 'https://image.tmdb.org/t/p/w500/3OKtFuTxahr7hokPB9aO38qgOfc.jpg',
+  'Angerla Kirkwook - It\'s time to blah blah': 'https://freight.cargo.site/t/original/i/426b2110e0d3b4a593e0288f3b1882626deb424d18ef2e93dcc3c28006479240/Illo24_Experiment1_Concept_V2_Web.jpg',
+  'Yoji Kuri — AU FOU!': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/au_fou.png',
+  'THE ELECTRIC WIZARD - EPISODE FOUR - THE CULT OF DOOM MOUNTAIN (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
+  'THE ELECTRIC WIZARD - EPISODE THREE - THE COSMIC REALM (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
+  'THE ELECTRIC WIZARD - EPISODE TWO - THRASHWORLD (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
+  'THE ELECTRIC WIZARD (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
+  'THE SOCKS AND SQUIMMY SHOW - EPISODE ONE - THE VISITOR (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
+  'Blue Shining (Stanley Kubrick x David Lynch) on Vimeo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/blue_shining.png',
+  'Chicos Perversos (1983)': 'https://preview.redd.it/bad-boys-1983-v0-qrcz1hs8wqje1.jpeg?width=1080&crop=smart&auto=webp&s=c8fbadb915d5c0c97d8ac98c54938ba934284a11',
+  'Perros callejeros III': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/perros_callejeros_3.jpg',
+  'Perros callejeros Tres días de libertad (1995) Cierre final': 'https://image.tmdb.org/t/p/w500/E9YGCZuRxGBXTTVdVq8bhSetLO.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
