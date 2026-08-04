@@ -665,7 +665,7 @@ const FILE_POSTER_URLS = {
   'THE ELECTRIC WIZARD - EPISODE THREE - THE COSMIC REALM (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
   'THE ELECTRIC WIZARD - EPISODE TWO - THRASHWORLD (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
   'THE ELECTRIC WIZARD (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
-  'THE SOCKS AND SQUIMMY SHOW - EPISODE ONE - THE VISITOR (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/electric_wizard.png',
+  'THE SOCKS AND SQUIMMY SHOW - EPISODE ONE - THE VISITOR (1080p 12fps H264-128kbit AAC)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/socks_squimmy.png',
   'Blue Shining (Stanley Kubrick x David Lynch) on Vimeo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/blue_shining.png',
   'Chicos Perversos (1983)': 'https://preview.redd.it/bad-boys-1983-v0-qrcz1hs8wqje1.jpeg?width=1080&crop=smart&auto=webp&s=c8fbadb915d5c0c97d8ac98c54938ba934284a11',
   'Perros callejeros III': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/perros_callejeros_3.jpg',
