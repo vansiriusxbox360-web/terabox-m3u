@@ -650,6 +650,7 @@ const FILE_POSTER_URLS = {
   'Ratas de la ciudad (1985)': 'https://image.tmdb.org/t/p/w500/6hnCjxxGkfMFRSZL017eRHZX5Hi.jpg',
   'Todos Me Llaman Gato (1981)': 'https://image.tmdb.org/t/p/w500/dZHfMB92FzzLf1vjt1ZhFNhBgMb.jpg',
   'Super Mario Bros La pelicula (2023)': 'https://image.tmdb.org/t/p/w500/4CDkQMpNDTtVKwS0BBZw5RIXDtY.jpg',
+  'Resurrección (1999) HD 1080 - Película Completa en Español (Castellano). #peliculas #2025 #1999': 'https://m.media-amazon.com/images/M/MV5BM2I5NWM1NzAtOTU4MC00Mzk2LTliZjItNjA1MDgwMTJjZmQ2XkEyXkFqcGc@._V1_.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
