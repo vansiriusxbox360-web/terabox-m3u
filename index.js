@@ -670,6 +670,7 @@ const FILE_POSTER_URLS = {
   'Chicos Perversos (1983)': 'https://preview.redd.it/bad-boys-1983-v0-qrcz1hs8wqje1.jpeg?width=1080&crop=smart&auto=webp&s=c8fbadb915d5c0c97d8ac98c54938ba934284a11',
   'Perros callejeros III': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/perros_callejeros_3.jpg',
   'Perros callejeros Tres días de libertad (1995) Cierre final': 'https://image.tmdb.org/t/p/w500/E9YGCZuRxGBXTTVdVq8bhSetLO.jpg',
+  'La Malcriada - Mr. Pizza Serie Completa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRteKKUo4SMvHTIL8OixHTgrLToN_bnrXfgeUsN-PGWuqGzKN1_jzvS_120GV1VgfE&s=10&ec=121902086',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
