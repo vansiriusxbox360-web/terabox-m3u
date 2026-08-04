@@ -40,6 +40,7 @@ FOLDER_ICON_URLS = {
     'unuiverso chananut': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/unuiverso_chananut.jpg',
     'Muchachada Nui': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/muchachada_nui.jpg',
     'Pok\u00e9mon': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pokemon_padre.jpg',
+    'Avatar La Leyenda de Aang': 'https://image.tmdb.org/t/p/w500/ucNtkZfpZ6KgxqPo039nN4LAyFR.jpg',
 }
 
 FOLDER_ICON_BY_PATH_SUFFIX = {
@@ -161,6 +162,30 @@ def build_tree(data):
         node['_groups'].append(group)
         if group.get('image'):
             node['_icon'] = group['image']
+
+    def folder_icon_by_name(name):
+        if name in FOLDER_IMAGES:
+            return FOLDER_IMAGES[name]
+        if name in FOLDER_ICON_URLS:
+            return FOLDER_ICON_URLS[name]
+        return None
+
+    def inherit(parent_node, parent_name=''):
+        parent_icon = parent_node.get('_icon')
+        if parent_icon == ICON:
+            parent_icon = None
+        if not parent_icon and parent_name:
+            parent_icon = folder_icon_by_name(parent_name)
+        for key, child in parent_node.items():
+            if key.startswith('_'):
+                continue
+            if child.get('_icon') == ICON and parent_icon:
+                child['_icon'] = parent_icon
+            inherit(child, key)
+
+    for key, child in tree.items():
+        if not key.startswith('_'):
+            inherit(child, key)
     return tree
 
 
@@ -257,7 +282,7 @@ def list_folder(data, path):
         node = node.get(part, {})
 
     for group in node.get('_groups', []):
-        group_icon = group.get('image', ICON)
+        group_icon = group.get('image')
         for station in group.get('stations', []):
             name = station.get('name', 'Sin nombre')
             url = station.get('url', '')
