@@ -682,6 +682,7 @@ const CHILD_INHERIT_GROUP_ICON = new Set([
   'Dragon Ball Z - Selecta Vision/4.Saga Androides y Cell (118-194)',
   'Dragon Ball Z - Selecta Vision/5.Saga del Otro Mundo (195-199)',
   'Dragon Ball Z - Selecta Vision/6.Saga Buu (200-291)',
+  'Tres amigos y Jerry',
 ]);
 
 function groupInheritsChildIcon(group) {
