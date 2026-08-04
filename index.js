@@ -652,6 +652,13 @@ const FILE_POSTER_URLS = {
   'Super Mario Bros La pelicula (2023)': 'https://image.tmdb.org/t/p/w500/4CDkQMpNDTtVKwS0BBZw5RIXDtY.jpg',
   'Resurrección (1999) HD 1080 - Película Completa en Español (Castellano). #peliculas #2025 #1999': 'https://m.media-amazon.com/images/M/MV5BM2I5NWM1NzAtOTU4MC00Mzk2LTliZjItNjA1MDgwMTJjZmQ2XkEyXkFqcGc@._V1_.jpg',
   'Una mirada a a la oscuridad (2006)': 'https://play-lh.googleusercontent.com/WEcGXUB97Jy1c5QvUyyT19vgsydiu0woE-DigscTrici7dIux2W_KJ8oCmtDuhyRa_P7Or8nb-Jo-0RPwP4',
+  'Relatos de Disney Vol. I El Principe Y El Mendigo - La Leyenda De Sleepy Hollow': 'https://image.tmdb.org/t/p/w500/hn985uJJtaBIu46lFLVYeYZd1GT.jpg',
+  'Relatos de Disney Vol. II El Patito Feo Y Otros cuentos': 'https://image.tmdb.org/t/p/w500/cLUM6AHSK4HnUtT78jlAznWQ3T3.jpg',
+  'Relatos de Disney Vol. III Donald En El País De Las Matemáticas - Franklin y yo - 24 Inventos Modernos': 'https://image.tmdb.org/t/p/w500/1VIk3O5qX80FQAvGKueJeg3cYH7.jpg',
+  'Relatos de Disney Vol. IV La Liebre Y La Tortuga - Otros Cortos': 'https://image.tmdb.org/t/p/w500/9CQ22jfqaV9rq6gPnAC53oQ0EIn.jpg',
+  'Relatos de Disney Vol. V Los Tres Cerditos - Fernandito El Toro - Los Tres Mosqueteros Ciegos': 'https://image.tmdb.org/t/p/w500/mooNeFE8ziSsaY8GhP2i1JSQVrm.jpg',
+  'Relatos de Disney Vol. VI El Dragon Chiflado - Mickey Y Las Habichuelas Magicas': 'https://image.tmdb.org/t/p/w500/o3pxSdoO3XZhCBHKvk6AjdsdBkb.jpg',
+  'The Thief and the Cobbler Recobbled Cut (Traducido y subtitulado por VanSiriusX)': 'https://image.tmdb.org/t/p/w500/3OKtFuTxahr7hokPB9aO38qgOfc.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
