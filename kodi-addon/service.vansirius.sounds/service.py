@@ -1,4 +1,5 @@
 import xbmc
+import xbmcgui
 import xbmcaddon
 import xbmcvfs
 import os
@@ -9,12 +10,14 @@ ADDON = xbmcaddon.Addon()
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 SOUND_DIR = os.path.join(ADDON_PATH, 'resources', 'sounds')
 
-# Ventanas donde NO debe sonar (video a pantalla completa, pvr, etc.)
-NO_SOUND_WINDOWS = {12005, 12006, 12010, 12012}
+# Ventanas donde NO debe sonar (video fullscreen, pvr, music osd, etc.)
+NO_SOUND_WINDOWS = {12005, 12006, 12010, 12012, 12016, 12901}
 
 sounds = [f for f in os.listdir(SOUND_DIR) if f.endswith('.ogg')] if os.path.isdir(SOUND_DIR) else []
+
+xbmc.log(f'[VanSiriusSounds] Servicio iniciado. Sonidos disponibles: {len(sounds)}', xbmc.LOGINFO)
 if not sounds:
-    xbmc.log('[VanSiriusSounds] No hay sonidos en resources/sounds', xbmc.LOGERROR)
+    xbmc.log('[VanSiriusSounds] ERROR: No hay sonidos en resources/sounds', xbmc.LOGERROR)
 
 player = xbmc.Player()
 
@@ -27,9 +30,12 @@ def play_random():
         return
     path = os.path.join(SOUND_DIR, random.choice(sounds))
     try:
-        player.play(path)
+        li = xbmcgui.ListItem(path=path)
+        li.setIsPlayable(True)
+        player.play(path, li)
+        xbmc.log(f'[VanSiriusSounds] Reproduciendo: {os.path.basename(path)}', xbmc.LOGDEBUG)
     except Exception as e:
-        xbmc.log(f'[VanSiriusSounds] Error al reproducir: {e}', xbmc.LOGERROR)
+        xbmc.log(f'[VanSiriusSounds] Error al reproducir {path}: {e}', xbmc.LOGERROR)
 
 
 monitor = xbmc.Monitor()
@@ -60,4 +66,4 @@ while not monitor.abortRequested():
 
     last_pos = pos
 
-xbmc.log('[VanSiriusSounds] Servicio detenido', xbmc.LOGDEBUG)
+xbmc.log('[VanSiriusSounds] Servicio detenido', xbmc.LOGINFO)
