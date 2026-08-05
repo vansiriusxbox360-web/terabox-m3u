@@ -40,7 +40,7 @@ FOLDER_ICON_URLS = {
     'unuiverso chananut': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/unuiverso_chananut.jpg',
     'Muchachada Nui': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/muchachada_nui.jpg',
     'Pok\u00e9mon': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pokemon_padre.jpg',
-    'Avatar La Leyenda de Aang': 'https://image.tmdb.org/t/p/w500/ucNtkZfpZ6KgxqPo039nN4LAyFR.jpg',
+    'Avatar La Leyenda de Aang': 'https://m.media-amazon.com/images/M/MV5BZTZmMWU3ZTUtM2U4Ni00YmNhLTkwODktN2IzNzkyZmRlYjZjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
     'chorris': ICON,
     'no chorris': ICON,
 }
@@ -51,6 +51,8 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Festivales por capis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
     'Dragon Ball Z - Selecta Vision': 'https://wallpapercave.com/wp/wp11901987.jpg',
     'Disney/Cortos': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
+    'Disney': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
+    'BeyBlade': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
