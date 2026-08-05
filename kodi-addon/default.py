@@ -41,13 +41,16 @@ FOLDER_ICON_URLS = {
     'Muchachada Nui': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/muchachada_nui.jpg',
     'Pok\u00e9mon': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pokemon_padre.jpg',
     'Avatar La Leyenda de Aang': 'https://image.tmdb.org/t/p/w500/ucNtkZfpZ6KgxqPo039nN4LAyFR.jpg',
+    'chorris': ICON,
+    'no chorris': ICON,
 }
 
 FOLDER_ICON_BY_PATH_SUFFIX = {
     'Rick y Morty/\u00aanime': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/rick_y_morty_anime.jpg',
     'Mortadelo y Filem\u00f3n Estudios Vara': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/mortadelo_y_filemon_estudios_vara.jpg',
     'Festivales por capis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/festivales_por_capis.jpg',
-    'Dragon Ball Z - Selecta Vision': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dbz_saga_saiyan.jpg',
+    'Dragon Ball Z - Selecta Vision': 'https://wallpapercave.com/wp/wp11901987.jpg',
+    'Disney/Cortos': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
 }
 
 INHERIT_CHILD_ICONS = {

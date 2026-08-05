@@ -431,7 +431,16 @@ const PATH_POSTER_SUFFIXES = {
   'Hora de Aventuras/T9': 'https://image.tmdb.org/t/p/w500/vpnV0g2VOounP0kHNi86oBPceMY.jpg',
   'Hora de Aventuras/T10': 'https://image.tmdb.org/t/p/w500/vpnV0g2VOounP0kHNi86oBPceMY.jpg',
   'Los Terribles Gemelos Cramp': 'https://image.tmdb.org/t/p/w500/vDbVBSQJx4xz7FAaOoJG9IFhAsB.jpg',
-  'Akira Kurosawa': 'https://image.tmdb.org/t/p/w500/zr4DkzWIMjaWtj6hlsbN6dnNeTX.jpg',
+  'Akira Kurosawa': 'https://m.media-amazon.com/images/I/91fPGYM7PyL._AC_UF894,1000_QL80_.jpg',
+  "Monty's movies": 'https://m.media-amazon.com/images/I/710PzQnaomL._AC_UF894,1000_QL80_.jpg',
+  'Sergei Eisentein': 'https://upload.wikimedia.org/wikipedia/commons/2/26/Sergei_Eisenstein_03.jpg',
+  'Sine Kinki': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sine_kinki.jpg',
+  'Stephen King': 'https://i.pinimg.com/736x/5d/43/bd/5d43bdd12310bc686a71e4fedbf20590.jpg',
+  'Disney/Cortos': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
+  'Disney/Pelis': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
+  'Disney/Cortos/Relatos de Disney': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
+  'Bumpy y sus amigos': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqoKEI0enZnyr-NoTQbkGqd6EMNbqmUEs2WbmEpkJKUQ&s=10',
+  'Street Fighter II': 'https://image.tmdb.org/t/p/w500/p7VSebvaZ6eWTrJDFh1sV7h6GV2.jpg',
 };
 
 const FILE_TITLE_ALIASES = {
@@ -672,6 +681,9 @@ const FILE_POSTER_URLS = {
   'Perros callejeros Tres días de libertad (1995) Cierre final': 'https://image.tmdb.org/t/p/w500/E9YGCZuRxGBXTTVdVq8bhSetLO.jpg',
   'La Malcriada - Mr. Pizza Serie Completa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRteKKUo4SMvHTIL8OixHTgrLToN_bnrXfgeUsN-PGWuqGzKN1_jzvS_120GV1VgfE&s=10&ec=121902086',
   'Chocolate (1980)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/chocolate_1980.jpg',
+  'Our War Game (2000) - WEBDL-1080p Proper': 'https://m.media-amazon.com/images/M/MV5BNWNmOTY5Y2YtNGNiNi00M2IxLTlhYjktNDIwMzcyYzE0MDdkXkEyXkFqcGc@._V1_.jpg',
+  'Street Fighter II Animated Movie': 'https://m.media-amazon.com/images/M/MV5BOGEwODg4NzUtM2U1ZS00NzU0LTg0NTgtOTk5ZDgyODNlNDY4XkEyXkFqcGc@._V1_.jpg',
+  'Super Mario Bros (La Pelicula) (1993)': 'https://es.web.img3.acsta.net/medias/nmedia/18/86/19/98/20435979.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
