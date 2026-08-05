@@ -4,7 +4,7 @@ const https = require('https');
 const { TeraBoxApp } = require('terabox-api');
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
-const DELAY_MS = 300;
+const DELAY_MS = 150;
 const OMD_DELAY_MS = 1200;
 const OMD_RETRY_WAIT_MS = 30000;
 const OMD_MAX_RETRIES = 3;
@@ -1476,10 +1476,20 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
       console.log(`${indent}📁 ${item.server_filename}`);
     }
 
-    for (const folder of folders) {
-      const sub = await scanRecursive(tb, folder.path, [], depth + 1);
-      allFiles.push(...sub);
+    const SCAN_CONCURRENCY = 6;
+    let scanIndex = 0;
+    async function scanWorker() {
+      while (scanIndex < folders.length) {
+        const folder = folders[scanIndex++];
+        const sub = await scanRecursive(tb, folder.path, [], depth + 1);
+        allFiles.push(...sub);
+      }
     }
+    const workers = [];
+    for (let w = 0; w < Math.min(SCAN_CONCURRENCY, folders.length); w++) {
+      workers.push(scanWorker());
+    }
+    await Promise.all(workers);
 
     for (const item of files) {
       allFiles.push({
