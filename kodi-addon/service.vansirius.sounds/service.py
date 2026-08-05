@@ -19,15 +19,19 @@ player = xbmc.Player()
 LOCK_FILE = os.path.join(ADDON_PATH, '.running')
 
 
+def log(msg):
+    xbmc.log(f'[VanSiriusSounds] {msg}', xbmc.LOGINFO)
+
+
 def play_random():
     if not sounds:
         return
     path = os.path.join(SOUND_DIR, random.choice(sounds))
     try:
         player.play(path)
-        xbmc.log(f'[VanSiriusSounds] Reproduciendo: {os.path.basename(path)}', xbmc.LOGINFO)
+        log(f'Reproduciendo: {os.path.basename(path)}')
     except Exception as e:
-        xbmc.log(f'[VanSiriusSounds] Error al reproducir {path}: {e}', xbmc.LOGERROR)
+        log(f'Error al reproducir {path}: {e}')
 
 
 def find_active_container():
@@ -47,12 +51,17 @@ def find_active_container():
     return (None, -1)
 
 
-def log(msg):
-    xbmc.log(f'[VanSiriusSounds] {msg}', xbmc.LOGINFO)
+def disable_kodi_ui_sounds():
+    """Desactiva el tick de interfaz de Kodi (lookandfeel.soundenabled)."""
+    try:
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue",'
+                            '"params":{"setting":"lookandfeel.soundenabled","value":false}}')
+        log('Sonidos de interfaz de Kodi desactivados (tick silenciado)')
+    except Exception as e:
+        log(f'No se pudo desactivar el tick de Kodi: {e}')
 
 
 # Si ya hay una instancia del servicio corriendo, esta ejecucion es manual (abrir addon)
-# -> reproducir un sonido de prueba para confirmar que la reproduccion funciona
 if os.path.exists(LOCK_FILE):
     log('Ejecucion manual: reproduciendo sonido de prueba')
     play_random()
@@ -65,13 +74,16 @@ with open(LOCK_FILE, 'w') as f:
 
 log(f'Servicio iniciado. Sonidos disponibles: {len(sounds)}')
 
+# Silenciar el tick de interfaz de Kodi para que solo suenen los nuestros
+disable_kodi_ui_sounds()
+
 last_key = (None, -1)
 last_time = 0.0
 monitor = xbmc.Monitor()
 
 try:
     while not monitor.abortRequested():
-        if monitor.waitForAbort(0.2):
+        if monitor.waitForAbort(0.15):
             break
 
         try:
@@ -79,7 +91,7 @@ try:
         except Exception:
             win = -1
 
-        if win in NO_SOUND_WINDOWS or player.isPlaying():
+        if win in NO_SOUND_WINDOWS:
             last_key = (None, -1)
             continue
 
@@ -87,8 +99,8 @@ try:
         now = time.time()
 
         if key != last_key and key[0] is not None and last_key[0] is not None:
-            log(f'Navegacion detectada: container {key[0]} pos {key[1]} (antes {last_key[1]})')
-            if now - last_time >= 0.15:
+            # Sin bloqueo de isPlaying: cada movimiento interrumpe y suena el nuevo
+            if now - last_time >= 0.05:
                 play_random()
                 last_time = now
 
