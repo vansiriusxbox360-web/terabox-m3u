@@ -1,6 +1,5 @@
 import sys
 import xbmc
-import xbmcgui
 import xbmcaddon
 import xbmcvfs
 import os
@@ -25,9 +24,7 @@ def play_random():
         return
     path = os.path.join(SOUND_DIR, random.choice(sounds))
     try:
-        li = xbmcgui.ListItem(path=path)
-        li.setIsPlayable(True)
-        player.play(path, li)
+        player.play(path)
         xbmc.log(f'[VanSiriusSounds] Reproduciendo: {os.path.basename(path)}', xbmc.LOGINFO)
     except Exception as e:
         xbmc.log(f'[VanSiriusSounds] Error al reproducir {path}: {e}', xbmc.LOGERROR)
