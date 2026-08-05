@@ -8,10 +8,24 @@ import subprocess
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 SOUND_DIR = os.path.join(ADDON_PATH, 'resources', 'sounds')
+REPRO_SCRIPT = os.path.join(ADDON_PATH, 'resources', 'reproduce.py')
 
 sounds = [f for f in os.listdir(SOUND_DIR) if f.lower().endswith(('.wav', '.ogg'))] if os.path.isdir(SOUND_DIR) else []
 
-POWERSHELL = r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+# Candidatos de python del sistema (el de Kodi no tiene winsound)
+PY_CANDIDATES = [
+    r'C:\Python314\python.exe',
+    r'C:\Python313\python.exe',
+    r'C:\Python312\python.exe',
+    r'C:\Python311\python.exe',
+    r'C:\Python310\python.exe',
+    r'C:\Python39\python.exe',
+    r'C:\Python38\python.exe',
+    os.path.expandvars(r'%LOCALAPPDATA%\Programs\Python\Python314\python.exe'),
+    os.path.expandvars(r'%LOCALAPPDATA%\Programs\Python\Python313\python.exe'),
+    os.path.expandvars(r'%LOCALAPPDATA%\Programs\Python\Python312\python.exe'),
+    os.path.expandvars(r'%LOCALAPPDATA%\Programs\Python\Python311\python.exe'),
+]
 
 
 def log(msg):
@@ -19,24 +33,25 @@ def log(msg):
 
 
 def play_external(path):
-    """Reproduce el sonido fuera del player de Kodi: sin OSD y pudiendo solaparse."""
-    # 1) winsound si el Python lo incluye (no suele en Kodi)
+    """Reproduce fuera del player de Kodi via python del sistema + winsound (suena, sin OSD)."""
+    # Buscar python del sistema que exista y con winsound
+    for py in PY_CANDIDATES:
+        if os.path.exists(py):
+            try:
+                subprocess.Popen([py, REPRO_SCRIPT, path],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                 creationflags=0x08000000)
+                return
+            except Exception as e:
+                log(f'Fallo python {py}: {e}')
+    # Fallback: winsound si estuviera en el python de Kodi
     try:
         import winsound
         winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC)
         return
     except Exception:
         pass
-    # 2) PowerShell MediaPlayer: asincrono, fuera de Kodi, permite solape
-    try:
-        cmd = [POWERSHELL, '-NoProfile', '-WindowStyle', 'Hidden', '-Command',
-               "Add-Type -AssemblyName PresentationCore; $m=New-Object System.Windows.Media.MediaPlayer; "
-               f"$m.Open('{path}'); $m.Play()"]
-        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=0x08000000)
-        return
-    except Exception as e:
-        log(f'PowerShell fallo: {e}')
-    # 3) fallback: player de Kodi
+    # Ultimo recurso: player de Kodi
     try:
         xbmc.Player().play(path)
     except Exception as e:
