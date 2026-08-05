@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="service.vansirius.sounds" name="VanSirius Sounds" version="1.0.0" provider-name="VanSirius">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+  </requires>
+  <extension point="xbmc.service" library="service.py" start="startup"/>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="es">Sonidos aleatorios de Big Red Racing al navegar por los menus de Kodi</summary>
+    <description lang="es">Reproduce sonidos goofy del juego Big Red Racing de forma aleatoria mientras navegas por los menus de Kodi.</description>
+    <platform>all</platform>
+    <assets>
+      <icon>resources/icon.png</icon>
+    </assets>
+  </extension>
+</addon>
