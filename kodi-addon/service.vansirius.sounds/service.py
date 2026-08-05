@@ -67,6 +67,25 @@ def play_random():
 
 
 def find_active_container():
+    # Preferir el contenedor que tiene el foco real (System.CurrentControl)
+    try:
+        ctrl = xbmc.getInfoLabel('System.CurrentControl')
+        cid = int(ctrl)
+    except Exception:
+        cid = -1
+    if cid >= 0:
+        try:
+            num = int(xbmc.getInfoLabel(f'Container({cid}).NumItems'))
+        except Exception:
+            num = 0
+        if num > 0:
+            try:
+                pos = int(xbmc.getInfoLabel(f'Container({cid}).Position'))
+            except Exception:
+                pos = -1
+            if pos >= 0:
+                return (cid, pos)
+    # Fallback: escanear contenedores
     for cid in range(1, 51):
         try:
             num = int(xbmc.getInfoLabel(f'Container({cid}).NumItems'))
