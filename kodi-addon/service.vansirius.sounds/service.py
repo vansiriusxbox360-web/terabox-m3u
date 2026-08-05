@@ -3,6 +3,7 @@ import xbmcaddon
 import xbmcvfs
 import os
 import random
+import subprocess
 
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
@@ -10,37 +11,44 @@ SOUND_DIR = os.path.join(ADDON_PATH, 'resources', 'sounds')
 
 sounds = [f for f in os.listdir(SOUND_DIR) if f.lower().endswith(('.wav', '.ogg'))] if os.path.isdir(SOUND_DIR) else []
 
-# winsound (solo Windows) reproduce sin tocar el player de Kodi: sin OSD ni bloqueo
-try:
-    import winsound
-    HAS_WINSOUND = True
-except Exception:
-    HAS_WINSOUND = False
-    import xbmcgui
-
-if HAS_WINSOUND:
-    player = None
-else:
-    player = xbmc.Player()
-
-last_key = (None, -1)
+POWERSHELL = r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
 
 
 def log(msg):
     xbmc.log(f'[VanSiriusSounds] {msg}', xbmc.LOGINFO)
 
 
+def play_external(path):
+    """Reproduce el sonido fuera del player de Kodi: sin OSD y pudiendo solaparse."""
+    # 1) winsound si el Python lo incluye (no suele en Kodi)
+    try:
+        import winsound
+        winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+        return
+    except Exception:
+        pass
+    # 2) PowerShell MediaPlayer: asincrono, fuera de Kodi, permite solape
+    try:
+        cmd = [POWERSHELL, '-NoProfile', '-WindowStyle', 'Hidden', '-Command',
+               "Add-Type -AssemblyName PresentationCore; $m=New-Object System.Windows.Media.MediaPlayer; "
+               f"$m.Open('{path}'); $m.Play()"]
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=0x08000000)
+        return
+    except Exception as e:
+        log(f'PowerShell fallo: {e}')
+    # 3) fallback: player de Kodi
+    try:
+        xbmc.Player().play(path)
+    except Exception as e:
+        log(f'Player fallo: {e}')
+
+
 def play_random():
     if not sounds:
         return
     path = os.path.join(SOUND_DIR, random.choice(sounds))
-    try:
-        if HAS_WINSOUND:
-            winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC)
-        else:
-            player.play(path)
-    except Exception as e:
-        log(f'Error al reproducir {path}: {e}')
+    play_external(path)
+    log(f'Reproduciendo: {os.path.basename(path)}')
 
 
 def find_active_container():
@@ -68,10 +76,12 @@ def disable_kodi_ui_sounds():
 
 
 def run():
-    log(f'Servicio iniciado. Sonidos: {len(sounds)} modo={"winsound" if HAS_WINSOUND else "player"}')
+    log(f'Servicio iniciado. Sonidos: {len(sounds)}')
     disable_kodi_ui_sounds()
 
+    last_key = (None, -1)
     monitor = xbmc.Monitor()
+
     try:
         while not monitor.abortRequested():
             if monitor.waitForAbort(0.15):
