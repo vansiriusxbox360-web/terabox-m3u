@@ -83,6 +83,21 @@ def find_active_container():
 
 
 def disable_kodi_ui_sounds():
+    # Kodi 21: audiooutput.guisoundmode=0 desactiva los sonidos de GUI (tick)
+    try:
+        xbmc.executebuiltin('SetSetting(audiooutput.guisoundmode,0)')
+    except Exception:
+        pass
+    try:
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue",'
+                            '"params":{"setting":"audiooutput.guisoundmode","value":0}}')
+    except Exception:
+        pass
+    # Clave alternativa por si el skin la respeta
+    try:
+        xbmc.executebuiltin('SetSetting(lookandfeel.soundenabled,false)')
+    except Exception:
+        pass
     try:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue",'
                             '"params":{"setting":"lookandfeel.soundenabled","value":false}}')
