@@ -408,55 +408,7 @@ def list_folder(data, path):
             li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
 
-    precache_folder_stations(node)
-
     xbmcplugin.endOfDirectory(HANDLE)
-
-
-def precache_folder_stations(node):
-    """Pre-genera los enlaces de los stations de la carpeta en lotes (filemetas), sin bloquear la UI."""
-    ndus = get_ndus()
-    if not ndus:
-        return
-    cookie = 'lang=en; ndus=' + ndus
-    cache = _load_link_cache()
-
-    to_fetch = []
-    for group in node.get('_groups', []):
-        for station in group.get('stations', []):
-            s_path = station.get('path', '')
-            if not s_path:
-                continue
-            cached = cache.get(s_path)
-            if cached and cached.get('ts', 0) > time.time() - LINK_CACHE_TTL and cached.get('url', '').startswith('http'):
-                continue
-            to_fetch.append(s_path)
-
-    if not to_fetch:
-        return
-
-    # Limitar para no bloquear la navegación: máximo 60 enlaces (~2 lotes, ~2.5s)
-    MAX_PRECACHE = 60
-    to_fetch = to_fetch[:MAX_PRECACHE]
-
-    done = 0
-    for i in range(0, len(to_fetch), 30):
-        batch = to_fetch[i:i + 30]
-        try:
-            res = _terabox_post(TERABOX_WHOST + '/api/filemetas', {
-                'dlink': 1,
-                'origin': 'dlna',
-                'target': json.dumps(batch),
-            }, cookie)
-            if res.get('errno') == 0 and isinstance(res.get('info'), list):
-                for item in res['info']:
-                    if isinstance(item, dict) and item.get('path') and item.get('dlink'):
-                        cache[item['path']] = {'url': item['dlink'], 'ts': time.time()}
-            done += len(batch)
-        except Exception as e:
-            log(f'Pre-cache error lote {i}: {e}')
-    _save_link_cache(cache)
-    log(f'Pre-cache: {done} enlaces generados', xbmc.LOGINFO)
 
 
 def list_utiles(data):
