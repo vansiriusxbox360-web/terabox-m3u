@@ -315,23 +315,14 @@ def show_welcome():
     """Cuadros de bienvenida y creditos cada vez que se abre el addon."""
     try:
         os.makedirs(os.path.dirname(WELCOME_FLAG), exist_ok=True)
-        path = ('Ooooohh buenos días\n'
-                '→ Que bueno que vinihte\n'
-                '→ Pase, pase\n'
-                '→ Ah los zapatos en la puerta\n'
-                '→ La que esta cayendo por aqui\n'
-                '→ Te ofreceria un vasito de agua\n'
-                '→ Pero esta chungo\n'
-                '→ A ver donde puñetas la tengo\n'
-                '→ Pero si estaba aqui hace 25 años\n'
-                '→ Aaaaahhhquiestáaaa\n'
-                '→ Pera que lo limpie un poquito\n'
-                '→ Toma, echa un ojo\n'
-                '→ Menú del día dos puntos\n'
-                '→ El rinconcito dharmatico de Vishnu\n'
-                '→ Las cositas')
-        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu',
-                            'Bienvenido. Esta es la ruta hacia el tesoro:\n\n' + path + '\n\n¿Pasa?')
+        frase = ('Ooooohh buenos días... que bueno que vinihte, pasa, pasa...\n'
+                 'aaahhh, los zapatos en la puerta. La que está cayendo por aquí,\n'
+                 'te ofrecería un vasito de agua, pero está chungo...\n'
+                 'a ver dónde puñetas la tengo, pero si estaba aquí hace 25 años...\n'
+                 'aaaaahhhquiestáaaa. Pera, que lo limpie un poquito...\n'
+                 'toma, echa un ojo. Menú del día dos puntos...\n'
+                 'El rinconcito dharmático de Vishnu... Las cositas.')
+        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu', frase + '\n\n¿Pasa?')
         xbmcgui.Dialog().ok('Créditos',
                             'Este rincón fue creado por VanSirius.\n\nQue lo disfrutes. 🙏')
     except Exception as e:
