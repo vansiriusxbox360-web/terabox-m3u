@@ -43,6 +43,7 @@ FOLDER_ICON_URLS = {
     'Avatar La Leyenda de Aang': 'https://m.media-amazon.com/images/M/MV5BZTZmMWU3ZTUtM2U4Ni00YmNhLTkwODktN2IzNzkyZmRlYjZjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
     'chorris': ICON,
     'no chorris': ICON,
+    'Martes y Trece': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
 }
 
 FOLDER_ICON_BY_PATH_SUFFIX = {
@@ -194,7 +195,7 @@ def build_tree(data):
     return tree
 
 
-def resolve_icon(node, current_path=''):
+def resolve_icon(node, current_path='', sibling_idx=0):
     for suffix, url in FOLDER_ICON_BY_PATH_SUFFIX.items():
         if current_path == suffix or current_path.endswith('/' + suffix):
             return url
@@ -209,7 +210,7 @@ def resolve_icon(node, current_path=''):
         icon = node.get('_icon')
         if icon and icon != ICON:
             return icon
-        rnd = folder_icon(current_path)
+        rnd = folder_icon(current_path, sibling_idx)
         return rnd if rnd else DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     if child_keys:
@@ -232,7 +233,7 @@ def resolve_icon(node, current_path=''):
                 if top_count > 1:
                     return top_icon
                 return inherited[0]
-            rnd = folder_icon(current_path)
+            rnd = folder_icon(current_path, sibling_idx)
             return rnd if rnd else ICON
         all_alb = all(
             isinstance(node[k], dict) and node[k].get('_groups')
@@ -246,9 +247,9 @@ def resolve_icon(node, current_path=''):
                     posters.add(icon)
             if len(posters) == 1:
                 return posters.pop()
-        rnd = folder_icon(current_path)
+        rnd = folder_icon(current_path, sibling_idx)
         return rnd if rnd else ICON
-    rnd = folder_icon(current_path)
+    rnd = folder_icon(current_path, sibling_idx)
     return rnd if rnd else DETECTIVE
 
 
@@ -282,11 +283,11 @@ FIXED_DOORS = {
 RANDOM_IMAGES = [d for d in ALL_DOORS
                  if os.path.basename(d).lower() not in ('maindoor.gif', 'door2.gif')]
 
-_last_random = None
+_last_random = {}
 
 
-def folder_icon(current_path=''):
-    """Puerta fija si la carpeta esta en el mapa; si no, random (sin repetir la ultima)."""
+def folder_icon(current_path='', sibling_idx=0):
+    """Puerta fija si la carpeta esta en el mapa; si no, random estable por ruta e indice en lista."""
     if not ALL_DOORS:
         return None
     leaf = current_path.rsplit('/', 1)[-1] if current_path else ''
@@ -294,10 +295,12 @@ def folder_icon(current_path=''):
         return FIXED_DOORS[leaf]
     if not RANDOM_IMAGES:
         return ALL_DOORS[0]
-    global _last_random
-    pool = [d for d in RANDOM_IMAGES if d != _last_random] or RANDOM_IMAGES
-    _last_random = random.choice(pool)
-    return _last_random
+    # semilla estable: ruta + indice -> carpetas vecinas distintas y estables al recargar
+    seed_src = current_path + '|' + str(sibling_idx)
+    seed = 0
+    for ch in seed_src:
+        seed = (seed * 31 + ord(ch)) & 0xFFFFFFFF
+    return RANDOM_IMAGES[seed % len(RANDOM_IMAGES)]
 
 
 def list_root(data):
@@ -312,9 +315,9 @@ def list_root(data):
 
     add_listitem('[ \u00datiles ]', build_url('utiles'), ICON, isFolder=True)
 
-    for name in top_keys:
+    for idx, name in enumerate(top_keys):
         node = tree[name]
-        icon = resolve_icon(node, name)
+        icon = resolve_icon(node, name, idx)
         url = build_url('folder', name)
         add_listitem(name, url, icon, isFolder=True)
 
@@ -345,10 +348,10 @@ def list_folder(data, path):
 
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     child_keys.sort(key=natural_sort_key)
-    for key in child_keys:
+    for idx, key in enumerate(child_keys):
         child = node[key]
         full_path = f'{path}/{key}'
-        icon = resolve_icon(child, full_path)
+        icon = resolve_icon(child, full_path, idx)
         url = build_url('folder', full_path)
         li = xbmcgui.ListItem(key)
         if icon:
