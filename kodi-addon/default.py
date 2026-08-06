@@ -12,7 +12,6 @@ import os
 import re
 import random
 import time
-import subprocess
 
 ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
@@ -467,13 +466,63 @@ def play_random(data):
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
+TERABOX_UA = 'terabox;1.40.0.132;PC;PC-Windows;10.0.26100;WindowsTeraBox'
+TERABOX_WHOST = 'https://www.terabox.com'
+
+
+def _sign_download(s1, s2):
+    """Port del SignDownload (RC4-like) de terabox-api."""
+    p = list(range(256))
+    a = [ord(s1[i % len(s1)]) for i in range(256)]
+    j = 0
+    for i in range(256):
+        j = (j + p[i] + a[i]) % 256
+        p[i], p[j] = p[j], p[i]
+    out = []
+    i = 0
+    j = 0
+    for q in range(len(s2)):
+        i = (i + 1) % 256
+        j = (j + p[i]) % 256
+        p[i], p[j] = p[j], p[i]
+        k = p[(p[i] + p[j]) % 256]
+        out.append(ord(s2[q]) ^ k)
+    import base64
+    return base64.b64encode(bytes(out)).decode()
+
+
+def _terabox_get(url, cookie):
+    req = urllib.request.Request(url, headers={'User-Agent': TERABOX_UA, 'Cookie': cookie})
+    resp = urllib.request.urlopen(req, timeout=20)
+    return json.loads(resp.read().decode())
+
+
+def _terabox_post(url, data, cookie):
+    body = urllib.parse.urlencode(data)
+    req = urllib.request.Request(url, data=body.encode(), headers={
+        'User-Agent': TERABOX_UA,
+        'Cookie': cookie,
+        'Content-Type': 'application/x-www-form-urlencoded',
+    })
+    resp = urllib.request.urlopen(req, timeout=20)
+    return json.loads(resp.read().decode())
+
+
 def get_ndus():
-    """Obtiene el token ndus: setting del addon, o token.txt del repo, o config.json."""
+    """Obtiene el token ndus: setting del addon, token.txt (dentro del addon o repo), o config.json."""
     ndus = ADDON.getSetting('ndus_token')
     if ndus:
         return ndus
     repo = ADDON.getSetting('repo_path') or r'C:\Users\VanSirius\terabox-m3u'
-    # token.txt generado por renovar_token.bat
+    # token.txt dentro del addon (incrustado en el zip que se distribuye)
+    try:
+        with open(os.path.join(ADDON_PATH, 'token.txt'), 'r', encoding='utf-8') as f:
+            tok = f.read().strip()
+            if tok:
+                return tok
+    except Exception:
+        pass
+    # token.txt generado por renovar_token.bat en el repo
     try:
         with open(os.path.join(repo, 'token.txt'), 'r', encoding='utf-8') as f:
             tok = f.read().strip()
@@ -493,24 +542,32 @@ def get_ndus():
 
 
 def refresh_link(fs_id):
-    """Obtiene un dlink fresco de Terabox usando node + refresh_link.js."""
+    """Obtiene un dlink fresco de Terabox en Python puro (sin node)."""
     ndus = get_ndus()
-    node = ADDON.getSetting('node_path') or r'C:\Program Files\nodejs\node.exe'
-    repo = ADDON.getSetting('repo_path') or r'C:\Users\VanSirius\terabox-m3u'
-    script = os.path.join(repo, 'refresh_link.js')
-    if not (ndus and os.path.exists(node) and os.path.exists(script)):
-        log(f'Refresh: falta ndus/node/script (ndus={"si" if ndus else "no"})')
+    if not ndus:
+        log('Refresh: falta ndus')
         return None
+    cookie = 'lang=en; ndus=' + ndus
     try:
-        env = os.environ.copy()
-        env['NODE_PATH'] = os.path.join(repo, 'node_modules')
-        r = subprocess.run([node, script, ndus, str(fs_id)],
-                           capture_output=True, text=True, timeout=60, env=env,
-                           creationflags=0x08000000)
-        url = r.stdout.strip()
-        if url and url.startswith('http'):
-            return url
-        log(f'Refresh fallo: {r.stderr.strip()[:100]}')
+        home = _terabox_get(TERABOX_WHOST + '/api/home/info', cookie)
+        if home.get('errno') != 0:
+            log(f'Refresh: home/info errno={home.get("errno")}')
+            return None
+        data = home['data']
+        signb = _sign_download(data['sign3'], data['sign1'])
+        res = _terabox_post(TERABOX_WHOST + '/api/download', {
+            'fidlist': json.dumps([fs_id]),
+            'type': 'dlink',
+            'vip': 2,
+            'sign': signb,
+            'timestamp': data['timestamp'],
+            'need_speed': 1,
+        }, cookie)
+        if isinstance(res.get('dlink'), list):
+            for item in res['dlink']:
+                if item and item.get('dlink'):
+                    return item['dlink']
+        log(f'Refresh: sin dlink en respuesta errno={res.get("errno")}')
     except Exception as e:
         log(f'Refresh error: {e}')
     return None

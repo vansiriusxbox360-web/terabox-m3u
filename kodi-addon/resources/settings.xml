@@ -3,8 +3,6 @@
   <setting id="json_url" type="text" label="URL personalizada del JSON" default="https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u" />
   <setting id="enable_menu_sounds" type="bool" label="Sonidos de menú (Big Red Racing)" default="true" />
   <setting id="ndus_token" type="text" label="Token ndus de Terabox (para refrescar enlaces)" default="" visible="true" />
-  <setting id="node_path" type="text" label="Ruta a node.exe" default="C:\Program Files\nodejs\node.exe" />
-  <setting id="repo_path" type="text" label="Ruta del repo terabox-m3u" default="C:\Users\VanSirius\terabox-m3u" />
   <setting id="refresh" type="action" label="Forzar recarga de datos" default="true" option="close" />
   <setting id="thumb_cache" type="action" label="Mostrar ruta de cache de miniaturas" default="true" option="close" />
 </settings>
