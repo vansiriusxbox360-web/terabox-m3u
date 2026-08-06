@@ -378,7 +378,11 @@ def list_folder(data, path):
             icon = station.get('image', group_icon)
             # Si tenemos fs_id, pasamos por el addon para refrescar el enlace
             if fs_id:
-                url = build_url('play', str(fs_id))
+                s_path = station.get('path', '')
+                if s_path:
+                    url = build_url('play', s_path, fs_id=str(fs_id))
+                else:
+                    url = build_url('play', str(fs_id))
             else:
                 url = raw_url
             if not url:
@@ -470,33 +474,6 @@ TERABOX_UA = 'terabox;1.40.0.132;PC;PC-Windows;10.0.26100;WindowsTeraBox'
 TERABOX_WHOST = 'https://www.terabox.com'
 
 
-def _sign_download(s1, s2):
-    """Port del SignDownload (RC4-like) de terabox-api."""
-    p = list(range(256))
-    a = [ord(s1[i % len(s1)]) for i in range(256)]
-    j = 0
-    for i in range(256):
-        j = (j + p[i] + a[i]) % 256
-        p[i], p[j] = p[j], p[i]
-    out = []
-    i = 0
-    j = 0
-    for q in range(len(s2)):
-        i = (i + 1) % 256
-        j = (j + p[i]) % 256
-        p[i], p[j] = p[j], p[i]
-        k = p[(p[i] + p[j]) % 256]
-        out.append(ord(s2[q]) ^ k)
-    import base64
-    return base64.b64encode(bytes(out)).decode()
-
-
-def _terabox_get(url, cookie):
-    req = urllib.request.Request(url, headers={'User-Agent': TERABOX_UA, 'Cookie': cookie})
-    resp = urllib.request.urlopen(req, timeout=20)
-    return json.loads(resp.read().decode())
-
-
 def _terabox_post(url, data, cookie):
     body = urllib.parse.urlencode(data)
     req = urllib.request.Request(url, data=body.encode(), headers={
@@ -541,42 +518,36 @@ def get_ndus():
     return None
 
 
-def refresh_link(fs_id):
-    """Obtiene un dlink fresco de Terabox en Python puro (sin node)."""
+def refresh_link(path, fs_id=None):
+    """Obtiene un dlink fresco de Terabox (endpoint filemetas, URLs con origin=dlna que Kodi reproduce)."""
     ndus = get_ndus()
     if not ndus:
         log('Refresh: falta ndus')
         return None
+    if not path:
+        log('Refresh: falta path')
+        return None
     cookie = 'lang=en; ndus=' + ndus
     try:
-        home = _terabox_get(TERABOX_WHOST + '/api/home/info', cookie)
-        if home.get('errno') != 0:
-            log(f'Refresh: home/info errno={home.get("errno")}')
-            return None
-        data = home['data']
-        signb = _sign_download(data['sign3'], data['sign1'])
-        res = _terabox_post(TERABOX_WHOST + '/api/download', {
-            'fidlist': json.dumps([fs_id]),
-            'type': 'dlink',
-            'vip': 2,
-            'sign': signb,
-            'timestamp': data['timestamp'],
-            'need_speed': 1,
+        res = _terabox_post(TERABOX_WHOST + '/api/filemetas', {
+            'dlink': 1,
+            'origin': 'dlna',
+            'target': json.dumps([path]),
         }, cookie)
-        if isinstance(res.get('dlink'), list):
-            for item in res['dlink']:
-                if item and item.get('dlink'):
+        if res.get('errno') == 0 and isinstance(res.get('info'), list):
+            for item in res['info']:
+                if isinstance(item, dict) and item.get('dlink'):
                     return item['dlink']
-        log(f'Refresh: sin dlink en respuesta errno={res.get("errno")}')
+        log(f'Refresh: sin dlink en filemetas errno={res.get("errno")}')
     except Exception as e:
         log(f'Refresh error: {e}')
     return None
 
 
 def play_video(param):
-    """Reproduce refrescando el enlace si es un fs_id, o directo si es URL."""
+    """Reproduce refrescando el enlace con el path, o directo si es URL."""
     url = param
-    if param and param.isdigit():
+    if param and not param.startswith('http'):
         fresh = refresh_link(param)
         if fresh:
             url = fresh
