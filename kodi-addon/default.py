@@ -467,13 +467,39 @@ def play_random(data):
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
+def get_ndus():
+    """Obtiene el token ndus: setting del addon, o token.txt del repo, o config.json."""
+    ndus = ADDON.getSetting('ndus_token')
+    if ndus:
+        return ndus
+    repo = ADDON.getSetting('repo_path') or r'C:\Users\VanSirius\terabox-m3u'
+    # token.txt generado por renovar_token.bat
+    try:
+        with open(os.path.join(repo, 'token.txt'), 'r', encoding='utf-8') as f:
+            tok = f.read().strip()
+            if tok:
+                return tok
+    except Exception:
+        pass
+    # config.json del repo
+    try:
+        with open(os.path.join(repo, 'config.json'), 'r', encoding='utf-8') as f:
+            cfg = json.load(f)
+            if cfg.get('ndus'):
+                return cfg['ndus']
+    except Exception:
+        pass
+    return None
+
+
 def refresh_link(fs_id):
     """Obtiene un dlink fresco de Terabox usando node + refresh_link.js."""
-    ndus = ADDON.getSetting('ndus_token')
+    ndus = get_ndus()
     node = ADDON.getSetting('node_path') or r'C:\Program Files\nodejs\node.exe'
     repo = ADDON.getSetting('repo_path') or r'C:\Users\VanSirius\terabox-m3u'
     script = os.path.join(repo, 'refresh_link.js')
     if not (ndus and os.path.exists(node) and os.path.exists(script)):
+        log(f'Refresh: falta ndus/node/script (ndus={"si" if ndus else "no"})')
         return None
     try:
         env = os.environ.copy()
