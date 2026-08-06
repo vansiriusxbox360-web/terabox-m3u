@@ -10,6 +10,18 @@ ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 SOUND_DIR = os.path.join(ADDON_PATH, 'resources', 'sounds')
 REPRO_SCRIPT = os.path.join(ADDON_PATH, 'resources', 'reproduce.py')
 
+# El interruptor vive en el addon principal (plugin.video.vansirius)
+MAIN_ADDON_ID = 'plugin.video.vansirius'
+
+
+def sounds_enabled():
+    """Lee el setting enable_menu_sounds del addon principal (default: activado)."""
+    try:
+        main_addon = xbmcaddon.Addon(MAIN_ADDON_ID)
+        return main_addon.getSetting('enable_menu_sounds') == 'true'
+    except Exception:
+        return True
+
 sounds = [f for f in os.listdir(SOUND_DIR) if f.lower().endswith(('.wav', '.ogg'))] if os.path.isdir(SOUND_DIR) else []
 
 # Candidatos de python del sistema (el de Kodi no tiene winsound)
@@ -103,38 +115,58 @@ def find_active_container():
 
 def disable_kodi_ui_sounds():
     # Kodi 21: audiooutput.guisoundmode=0 desactiva los sonidos de GUI (tick)
-    try:
-        xbmc.executebuiltin('SetSetting(audiooutput.guisoundmode,0)')
-    except Exception:
-        pass
-    try:
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue",'
-                            '"params":{"setting":"audiooutput.guisoundmode","value":0}}')
-    except Exception:
-        pass
-    # Clave alternativa por si el skin la respeta
-    try:
-        xbmc.executebuiltin('SetSetting(lookandfeel.soundenabled,false)')
-    except Exception:
-        pass
-    try:
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue",'
-                            '"params":{"setting":"lookandfeel.soundenabled","value":false}}')
-    except Exception:
-        pass
+    _set_gui_sound(0, False)
+
+
+def enable_kodi_ui_sounds():
+    # Restaura los sonidos de GUI de Kodi (tick) al desactivar los nuestros
+    _set_gui_sound(1, True)
+
+
+def _set_gui_sound(mode, enabled):
+    for setting, value in [('audiooutput.guisoundmode', mode), ('lookandfeel.soundenabled', enabled)]:
+        try:
+            xbmc.executebuiltin(f'SetSetting({setting},{str(value).lower()})')
+        except Exception:
+            pass
+        try:
+            payload = ('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue",'
+                       '"params":{"setting":"%s","value":%s}}') % (setting, str(value).lower())
+            xbmc.executeJSONRPC(payload)
+        except Exception:
+            pass
 
 
 def run():
     log(f'Servicio iniciado. Sonidos: {len(sounds)}')
-    disable_kodi_ui_sounds()
+    enabled = sounds_enabled()
+    if enabled:
+        disable_kodi_ui_sounds()
 
     last_key = (None, -1)
+    last_enabled = enabled
     monitor = xbmc.Monitor()
 
     try:
         while not monitor.abortRequested():
             if monitor.waitForAbort(0.15):
                 break
+
+            # Detectar cambio del interruptor en ajustes
+            now_enabled = sounds_enabled()
+            if now_enabled != last_enabled:
+                last_enabled = now_enabled
+                enabled = now_enabled
+                if enabled:
+                    log('Sonidos ACTIVADOS desde ajustes')
+                    disable_kodi_ui_sounds()
+                else:
+                    log('Sonidos DESACTIVADOS desde ajustes')
+                    enable_kodi_ui_sounds()
+
+            if not enabled:
+                last_key = (None, -1)
+                continue
 
             try:
                 win = int(xbmc.getInfoLabel('System.CurrentWindowID'))
