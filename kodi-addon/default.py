@@ -320,11 +320,22 @@ def show_welcome():
                  'te ofrecería un vasito de agua, pero está chungo...\n'
                  'a ver dónde puñetas la tengo, pero si estaba aquí hace 25 años...\n'
                  'aaaaahhhquiestáaaa. Pera, que lo limpie un poquito...\n'
-                 'toma, echa un ojo. Menú del día dos puntos...\n'
-                 'El rinconcito dharmático de Vishnu... Las cositas.')
-        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu', frase + '\n\n¿Pasa?')
+                 'toma, echa un ojo. Menú del día dos puntos.')
+        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu', frase)
+        try:
+            version = ADDON.getAddonInfo('version')
+        except Exception:
+            version = '?'
+        try:
+            mtime = os.path.getmtime(os.path.join(ADDON_PATH, 'addon.xml'))
+            fecha = time.strftime('%d/%m/%Y', time.localtime(mtime))
+        except Exception:
+            fecha = 'desconocida'
         xbmcgui.Dialog().ok('Créditos',
-                            'Este rincón fue creado por VanSirius.\n\nQue lo disfrutes. 🙏')
+                            f'Creado por VanSirius\n\n'
+                            f'Versión instalada: {version}\n'
+                            f'Actualización del addon: {fecha}\n\n'
+                            f'Que lo disfrutes. 🙏')
     except Exception as e:
         log(f'Error en bienvenida: {e}')
 
