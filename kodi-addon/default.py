@@ -12,6 +12,7 @@ import os
 import re
 import random
 import time
+import subprocess
 
 ADDON = xbmcaddon.Addon()
 HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
@@ -373,8 +374,14 @@ def list_folder(data, path):
         group_icon = group.get('image')
         for station in group.get('stations', []):
             name = station.get('name', 'Sin nombre')
-            url = station.get('url', '')
+            raw_url = station.get('url', '')
+            fs_id = station.get('fs_id')
             icon = station.get('image', group_icon)
+            # Si tenemos fs_id, pasamos por el addon para refrescar el enlace
+            if fs_id:
+                url = build_url('play', str(fs_id))
+            else:
+                url = raw_url
             if not url:
                 continue
             li = xbmcgui.ListItem(name)
@@ -460,7 +467,38 @@ def play_random(data):
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
-def play_video(url):
+def refresh_link(fs_id):
+    """Obtiene un dlink fresco de Terabox usando node + refresh_link.js."""
+    ndus = ADDON.getSetting('ndus_token')
+    node = ADDON.getSetting('node_path') or r'C:\Program Files\nodejs\node.exe'
+    repo = ADDON.getSetting('repo_path') or r'C:\Users\VanSirius\terabox-m3u'
+    script = os.path.join(repo, 'refresh_link.js')
+    if not (ndus and os.path.exists(node) and os.path.exists(script)):
+        return None
+    try:
+        env = os.environ.copy()
+        env['NODE_PATH'] = os.path.join(repo, 'node_modules')
+        r = subprocess.run([node, script, ndus, str(fs_id)],
+                           capture_output=True, text=True, timeout=60, env=env,
+                           creationflags=0x08000000)
+        url = r.stdout.strip()
+        if url and url.startswith('http'):
+            return url
+        log(f'Refresh fallo: {r.stderr.strip()[:100]}')
+    except Exception as e:
+        log(f'Refresh error: {e}')
+    return None
+
+
+def play_video(param):
+    """Reproduce refrescando el enlace si es un fs_id, o directo si es URL."""
+    url = param
+    if param and param.isdigit():
+        fresh = refresh_link(param)
+        if fresh:
+            url = fresh
+        else:
+            xbmcgui.Dialog().notification('VanSirius', 'No se pudo refrescar el enlace', xbmcgui.NOTIFICATION_ERROR)
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
     xbmcplugin.setResolvedUrl(HANDLE, True, li)

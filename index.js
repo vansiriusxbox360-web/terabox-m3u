@@ -1747,7 +1747,7 @@ function generateJSON(files, rootFolder, posters, filePosters) {
       if (cachedFilePoster && cachedFilePoster !== WIKIDATA_FAILED) poster = cachedFilePoster;
     }
     if (groupInheritsChildIcon(group)) poster = groupsMap[group].image || null;
-    const station = { name: file.cleanName, url: file.dlink };
+    const station = { name: file.cleanName, url: file.dlink, fs_id: file.fsId, path: file.path };
     if (poster && poster !== groupsMap[group].image) station.image = poster;
     groupsMap[group].stations.push(station);
   }
