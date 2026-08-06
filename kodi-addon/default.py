@@ -308,7 +308,38 @@ def folder_icon(current_path='', sibling_idx=0):
     return RANDOM_IMAGES[seed % len(RANDOM_IMAGES)]
 
 
+WELCOME_FLAG = os.path.join(xbmcvfs.translatePath('special://masterprofile/addon_data/plugin.video.vansirius'), '.welcome_shown')
+
+
+def show_welcome():
+    """Cuadros de bienvenida y creditos cada vez que se abre el addon."""
+    try:
+        os.makedirs(os.path.dirname(WELCOME_FLAG), exist_ok=True)
+        path = ('Ooooohh buenos días\n'
+                '→ Que bueno que vinihte\n'
+                '→ Pase, pase\n'
+                '→ Ah los zapatos en la puerta\n'
+                '→ La que esta cayendo por aqui\n'
+                '→ Te ofreceria un vasito de agua\n'
+                '→ Pero esta chungo\n'
+                '→ A ver donde puñetas la tengo\n'
+                '→ Pero si estaba aqui hace 25 años\n'
+                '→ Aaaaahhhquiestáaaa\n'
+                '→ Pera que lo limpie un poquito\n'
+                '→ Toma, echa un ojo\n'
+                '→ Menú del día dos puntos\n'
+                '→ El rinconcito dharmatico de Vishnu\n'
+                '→ Las cositas')
+        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu',
+                            'Bienvenido. Esta es la ruta hacia el tesoro:\n\n' + path + '\n\n¿Pasa?')
+        xbmcgui.Dialog().ok('Créditos',
+                            'Este rincón fue creado por VanSirius.\n\nQue lo disfrutes. 🙏')
+    except Exception as e:
+        log(f'Error en bienvenida: {e}')
+
+
 def list_root(data):
+    show_welcome()
     tree = build_tree(data)
     top_keys = sorted(tree.keys())
 
