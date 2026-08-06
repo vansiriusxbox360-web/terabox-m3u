@@ -18,6 +18,8 @@ HANDLE = int(sys.argv[1]) if len(sys.argv) > 1 else -1
 BASE_URL = sys.argv[0] if sys.argv else ''
 JSON_URL = ADDON.getSetting('json_url') or 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u'
 CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'cache.json')
+LINK_CACHE_FILE = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'link_cache.json')
+LINK_CACHE_TTL = 2 * 3600
 
 
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
@@ -518,14 +520,37 @@ def get_ndus():
     return None
 
 
-def refresh_link(path, fs_id=None):
-    """Obtiene un dlink fresco de Terabox (endpoint filemetas, URLs con origin=dlna que Kodi reproduce)."""
+def _load_link_cache():
+    try:
+        with open(LINK_CACHE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _save_link_cache(cache):
+    try:
+        os.makedirs(os.path.dirname(LINK_CACHE_FILE), exist_ok=True)
+        with open(LINK_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cache, f)
+    except Exception as e:
+        log(f'Error guardando caché de enlaces: {e}')
+
+
+def refresh_link(path, fs_id=None, force=False):
+    """Obtiene un dlink fresco de Terabox con caché (URLs valen 8h, reutilizamos 2h)."""
+    if not path:
+        log('Refresh: falta path')
+        return None
+    cache = _load_link_cache()
+    cached = cache.get(path)
+    if not force and cached and cached.get('ts', 0) > time.time() - LINK_CACHE_TTL and cached.get('url', '').startswith('http'):
+        log('Refresh: usando enlace en caché')
+        return cached['url']
+
     ndus = get_ndus()
     if not ndus:
         log('Refresh: falta ndus')
-        return None
-    if not path:
-        log('Refresh: falta path')
         return None
     cookie = 'lang=en; ndus=' + ndus
     try:
@@ -537,6 +562,8 @@ def refresh_link(path, fs_id=None):
         if res.get('errno') == 0 and isinstance(res.get('info'), list):
             for item in res['info']:
                 if isinstance(item, dict) and item.get('dlink'):
+                    cache[path] = {'url': item['dlink'], 'ts': time.time()}
+                    _save_link_cache(cache)
                     return item['dlink']
         log(f'Refresh: sin dlink en filemetas errno={res.get("errno")}')
     except Exception as e:
