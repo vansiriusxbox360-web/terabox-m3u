@@ -8,3 +8,4 @@ makezip.js
 token.txt
 token_raw.txt
 __pycache__/
+meta-cache.json

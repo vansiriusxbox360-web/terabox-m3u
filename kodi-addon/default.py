@@ -354,12 +354,18 @@ def list_root(data):
         add_listitem(f'[ Actualizado: {updated} ]', build_url('updated'), ICON, isFolder=False)
 
     add_listitem('[ \u00datiles ]', build_url('utiles'), ICON, isFolder=True)
+    add_listitem('[ Favoritos ]', build_url('favorites'), ICON, isFolder=True)
+    add_listitem('[ Continuar viendo ]', build_url('continue_watching'), ICON, isFolder=True)
 
     for idx, name in enumerate(top_keys):
         node = tree[name]
         icon = resolve_icon(node, name, idx)
         url = build_url('folder', name)
-        add_listitem(name, url, icon, isFolder=True)
+        li = xbmcgui.ListItem(name)
+        if icon:
+            li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
+        add_fav_context_menu(li, name)
+        xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
 
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -373,7 +379,29 @@ def list_folder(data, path):
 
     for group in node.get('_groups', []):
         group_icon = group.get('image')
-        for station in group.get('stations', []):
+        group_name = group.get('name', '')
+        group_meta = group.get('meta') or {}
+        stations = group.get('stations', [])
+
+        # Item de sinopsis/rating del grupo (serie o película)
+        if group_meta and (group_meta.get('plot') or group_meta.get('rating')):
+            info_name = group_name.split('/')[-1] if group_name else 'Info'
+            info_li = xbmcgui.ListItem(f'[ Info: {info_name} ]')
+            if group_icon:
+                info_li.setArt({'icon': group_icon, 'thumb': group_icon, 'fanart': FANART})
+            info_li.setInfo('video', {
+                'title': info_name,
+                'plot': (group_meta.get('plot') or '')[:1000],
+                'rating': float(group_meta.get('rating') or 0),
+            })
+            xbmcplugin.addDirectoryItem(
+                handle=HANDLE,
+                url=build_url('group_info', group_name, meta_source='json'),
+                listitem=info_li,
+                isFolder=False
+            )
+
+        for station in stations:
             name = station.get('name', 'Sin nombre')
             raw_url = station.get('url', '')
             fs_id = station.get('fs_id')
@@ -393,7 +421,12 @@ def list_folder(data, path):
             if icon:
                 li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
             li.setProperty('IsPlayable', 'true')
-            li.setInfo('video', {'title': name})
+            li.setInfo('video', {
+                'title': name,
+                'plot': (group_meta.get('plot') or '')[:1000],
+                'rating': float(group_meta.get('rating') or 0),
+            })
+            add_fav_context_menu(li, name)
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
 
     child_keys = [k for k in node.keys() if not k.startswith('_')]
@@ -406,6 +439,7 @@ def list_folder(data, path):
         li = xbmcgui.ListItem(key)
         if icon:
             li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
+        add_fav_context_menu(li, key)
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
 
     xbmcplugin.endOfDirectory(HANDLE)
@@ -582,9 +616,287 @@ def play_video(param):
             url = fresh
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo refrescar el enlace', xbmcgui.NOTIFICATION_ERROR)
+    # Avisar al servicio de seguimiento del path que se va a reproducir
+    try:
+        now_playing = os.path.join(os.path.dirname(CACHE_FILE), 'now_playing.json')
+        with open(now_playing, 'w', encoding='utf-8') as f:
+            json.dump({'path': param if param and not param.startswith('http') else '', 'name': '', 'ts': time.time()}, f)
+    except Exception as e:
+        log(f'Error now_playing: {e}')
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
+
+
+def get_omdb_key():
+    return ADDON.getSetting('omdb_key') or '80eae35e'
+
+
+def get_tmdb_key():
+    return ADDON.getSetting('tmdb_key') or ''
+
+
+def _meta_title_variants(title):
+    """Genera variantes de título para mejorar la búsqueda OMDb/TMDB."""
+    out = [title]
+    cleaned = re.sub(r'[™©®]', '', title)
+    if cleaned != title:
+        out.append(cleaned)
+    # quitar año entre paréntesis
+    no_year = re.sub(r'\s*\(\s*(?:19|20)\d{2}\s*\)\s*$', '', title).strip()
+    if no_year and no_year != title:
+        out.append(no_year)
+    # quitar sufijo de temporada (T1, S1, Temporada 1...)
+    no_season = re.sub(r'\s*(?:t\d+|s\d+|temporada\s*\d+|season\s*\d+)\s*$', '', title, flags=re.I).strip()
+    if no_season and no_season != title and no_season != no_year:
+        out.append(no_season)
+    # parte antes de guiones
+    dash = re.split(r'\s*[-–—]\s*', title)
+    first = dash[0].strip()
+    if first and first != title and len(first) > 2:
+        out.append(first)
+    return list(dict.fromkeys(out))
+
+
+def fetch_meta_live(title):
+    """Busca sinopsis/rating en vivo (OMDb, luego TMDB). Devuelve dict o None."""
+    title = title.strip()
+    if not title:
+        return None
+    omdb = get_omdb_key()
+    if omdb:
+        for variant in _meta_title_variants(title):
+            try:
+                url = f'https://www.omdbapi.com/?t={urllib.parse.quote(variant)}&plot=full&apikey={omdb}'
+                req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
+                resp = json.loads(urllib.request.urlopen(req, timeout=15).read())
+                if resp.get('Response') == 'True':
+                    meta = {
+                        'plot': resp.get('Plot') if resp.get('Plot') != 'N/A' else '',
+                        'rating': float(resp.get('imdbRating') or 0) if resp.get('imdbRating') not in (None, 'N/A') else 0,
+                        'year': resp.get('Year') if resp.get('Year') != 'N/A' else '',
+                        'genre': resp.get('Genre') if resp.get('Genre') != 'N/A' else '',
+                        'director': resp.get('Director') if resp.get('Director') != 'N/A' else '',
+                        'type': resp.get('Type', ''),
+                        'source': 'omdb',
+                    }
+                    if meta.get('plot') or meta.get('rating'):
+                        return meta
+            except Exception as e:
+                log(f'OMDb error: {e}')
+    tmdb = get_tmdb_key()
+    if tmdb:
+        for variant in _meta_title_variants(title):
+            try:
+                url = f'https://api.themoviedb.org/3/search/movie?api_key={tmdb}&query={urllib.parse.quote(variant)}&language=es&include_adult=true'
+                req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
+                resp = json.loads(urllib.request.urlopen(req, timeout=15).read())
+                results = resp.get('results') or []
+                if results:
+                    m = next((r for r in results if r.get('overview') or r.get('vote_count', 0) > 0), results[0])
+                    meta = {
+                        'plot': m.get('overview') or '',
+                        'rating': m.get('vote_average') or 0,
+                        'year': (m.get('release_date') or '')[:4],
+                        'genre': '',
+                        'director': '',
+                        'type': 'movie',
+                        'source': 'tmdb',
+                    }
+                    if meta.get('plot') or meta.get('rating'):
+                        return meta
+            except Exception as e:
+                log(f'TMDB error: {e}')
+    return None
+
+
+def format_meta(meta):
+    """Convierte un dict meta en texto legible para el diálogo."""
+    lines = []
+    if meta.get('type') == 'series':
+        lines.append('[B]Serie[/B]')
+    elif meta.get('type') == 'movie':
+        lines.append('[B]Película[/B]')
+    if meta.get('year'):
+        lines.append(f'Año: {meta["year"]}')
+    if meta.get('genre'):
+        lines.append(f'Género: {meta["genre"]}')
+    if meta.get('director'):
+        lines.append(f'Director: {meta["director"]}')
+    if meta.get('rating'):
+        lines.append(f'⭐ Rating: {meta["rating"]}/10')
+    return '\n'.join(lines)
+
+
+def group_info_action(param, meta_source='json'):
+    """Muestra la ficha de un grupo (sinopsis + rating), buscando en vivo si no hay meta."""
+    title = param.rsplit('/', 1)[-1] if param else 'Info'
+    meta = None
+    # Intentar sacar el meta del JSON (necesita cargarlo, así que mejor desde la URL ya codificada)
+    try:
+        url = build_url('group_info', param)
+        qs = dict(urllib.parse.parse_qsl(url.split('?', 1)[1]))
+        # no hay meta en qs; cargamos del JSON solo si meta_source == 'json' fallo
+    except Exception:
+        pass
+
+    if meta_source != 'live':
+        # Buscar en el JSON si hay meta (cargamos el índice si hace falta)
+        data = get_json()
+        if data:
+            for g in data.get('groups', []):
+                if g.get('name') == param and g.get('meta'):
+                    meta = g['meta']
+                    break
+    if not meta:
+        meta = fetch_meta_live(title)
+    show_info_dialog(title, meta)
+
+
+def show_info_dialog(title, meta):
+    """Muestra la sinopsis en un diálogo de Kodi."""
+    if not meta:
+        xbmcgui.Dialog().ok('Info', f'No hay sinopsis disponible para "{title}".')
+        return
+    header = title
+    body = format_meta(meta)
+    plot = (meta.get('plot') or '').strip()
+    if plot:
+        body = (body + '\n\n' + plot) if body else plot
+    else:
+        body = body or 'Sin sinopsis.'
+    xbmcgui.Dialog().textviewer(header, body)
+
+
+FAVORITES_FILE = os.path.join(os.path.dirname(CACHE_FILE), 'favorites.json')
+
+
+def _load_favorites():
+    try:
+        with open(FAVORITES_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _save_favorites(fav):
+    try:
+        os.makedirs(os.path.dirname(FAVORITES_FILE), exist_ok=True)
+        with open(FAVORITES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(fav, f, ensure_ascii=False, indent=1)
+    except Exception as e:
+        log(f'Error guardando favoritos: {e}')
+
+
+def favorite_key(label):
+    return label.strip()
+
+
+def toggle_favorite(label):
+    """Añade o quita un elemento de favoritos. Devuelve True si quedó añadido."""
+    fav = _load_favorites()
+    key = favorite_key(label)
+    if key in fav:
+        del fav[key]
+        _save_favorites(fav)
+        xbmcgui.Dialog().notification('VanSirius', f'Quitado de favoritos: {label}', xbmcgui.NOTIFICATION_INFO)
+        return False
+    fav[key] = {'name': label, 'ts': time.time()}
+    _save_favorites(fav)
+    xbmcgui.Dialog().notification('VanSirius', f'Añadido a favoritos: {label}', xbmcgui.NOTIFICATION_INFO)
+    return True
+
+
+def is_favorite(label):
+    return favorite_key(label) in _load_favorites()
+
+
+def add_fav_context_menu(li, label):
+    """Añade el menú contextual de favoritos a un ListItem."""
+    if is_favorite(label):
+        li.addContextMenuItems([('Quitar de favoritos', f'RunPlugin({build_url("toggle_fav", label)})')])
+    else:
+        li.addContextMenuItems([('Añadir a favoritos', f'RunPlugin({build_url("toggle_fav", label)})')])
+
+
+def list_favorites(data):
+    """Lista los favoritos guardados como carpetas enlazadas."""
+    fav = _load_favorites()
+    if not fav:
+        xbmcgui.Dialog().ok('Favoritos', 'No tienes favoritos todavía.\n\n'
+                             'Pulsa el menú contextual en un elemento\n'
+                             '(tecla C) y elige "Añadir a favoritos".')
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+    for key in sorted(fav.keys(), key=lambda k: fav[k].get('ts', 0), reverse=True):
+        name = fav[key].get('name', key)
+        add_listitem(name, build_url('folder', name), ICON, isFolder=True)
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def toggle_fav_action(label):
+    toggle_favorite(label)
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+WATCHED_FILE = os.path.join(os.path.dirname(CACHE_FILE), 'watched.json')
+
+
+def _load_watched():
+    try:
+        with open(WATCHED_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def list_continue_watching(data):
+    """Lista los capítulos con reproducción a medias (continuar viendo)."""
+    watched = _load_watched()
+    in_progress = {k: v for k, v in watched.items() if v.get('watched') is not True}
+    if not in_progress:
+        xbmcgui.Dialog().ok('Continuar viendo', 'No hay reproducciones a medias.\n\n'
+                             'Cuando detengas un capítulo antes del final\n'
+                             'aparecerá aquí para continuar desde donde lo dejaste.')
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+
+    # Construir árbol para resolver los paths a carpetas
+    tree = build_tree(data)
+
+    def find_group(path):
+        parts = [p.strip() for p in path.split('/') if p.strip()]
+        node = tree
+        for part in parts[:-1]:
+            node = node.get(part, {})
+        if not isinstance(node, dict):
+            return None
+        for g in node.get('_groups', []):
+            for s in g.get('stations', []):
+                if s.get('path') == path:
+                    return g, s
+        return None
+
+    for path in sorted(in_progress.keys(), key=lambda p: in_progress[p].get('ts', 0), reverse=True):
+        info = in_progress[path]
+        name = info.get('name', path.split('/')[-1])
+        pos = int(info.get('pos', 0))
+        total = int(info.get('total', 0))
+        res = find_group(path)
+        icon = ICON
+        label = name
+        if res:
+            g, s = res
+            icon = s.get('image') or g.get('image') or ICON
+        if total > 0:
+            label = f'{name}  ⏱ {pos // 60}:{pos % 60:02d} / {total // 60}:{total % 60:02d}'
+        url = build_url('play', path)
+        li = xbmcgui.ListItem(label)
+        li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
+        li.setProperty('IsPlayable', 'true')
+        li.setInfo('video', {'title': name})
+        xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
+    xbmcplugin.endOfDirectory(HANDLE)
 
 
 def trigger_workflow(data):
@@ -661,6 +973,16 @@ def router(paramstring):
         log(f'Play resuelto en {time.time()-t0:.2f}s (tiempo del addon)', xbmc.LOGINFO)
         return
 
+    if action == 'group_info':
+        meta_source = params.get('meta_source', 'json')
+        group_info_action(path, meta_source)
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+
+    if action == 'toggle_fav':
+        toggle_fav_action(path)
+        return
+
     data = get_json(force_download=force)
     if not data:
         log('No hay datos, saliendo', xbmc.LOGERROR)
@@ -673,6 +995,10 @@ def router(paramstring):
         list_root(data)
     elif action == 'folder':
         list_folder(data, path)
+    elif action == 'favorites':
+        list_favorites(data)
+    elif action == 'continue_watching':
+        list_continue_watching(data)
     elif action == 'search':
         list_search(data)
         return

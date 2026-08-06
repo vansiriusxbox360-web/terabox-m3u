@@ -3,6 +3,8 @@
   <setting id="json_url" type="text" label="URL personalizada del JSON" default="https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/lista.m3u" />
   <setting id="enable_menu_sounds" type="bool" label="Sonidos de menú (Big Red Racing)" default="true" />
   <setting id="ndus_token" type="text" label="Token ndus de Terabox (para refrescar enlaces)" default="" visible="true" />
+  <setting id="omdb_key" type="text" label="API key de OMDb (sinopsis y rating)" default="" visible="true" />
+  <setting id="tmdb_key" type="text" label="API key de TMDB (alternativa a OMDb)" default="" visible="true" />
   <setting id="refresh" type="action" label="Forzar recarga de datos" default="true" option="close" />
   <setting id="thumb_cache" type="action" label="Mostrar ruta de cache de miniaturas" default="true" option="close" />
 </settings>

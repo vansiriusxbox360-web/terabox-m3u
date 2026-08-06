@@ -828,6 +828,38 @@ function omdbSearchSingle(title, apiKey) {
   });
 }
 
+function omdbMetaSingle(title, apiKey) {
+  return new Promise((resolve) => {
+    const url = `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&plot=full&apikey=${apiKey}`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (/limit/i.test(json.Error || '')) {
+            resolve(RATE_LIMIT);
+          } else if (json.Response === 'True') {
+            resolve({
+              plot: json.Plot && json.Plot !== 'N/A' ? json.Plot : '',
+              rating: json.imdbRating && json.imdbRating !== 'N/A' ? parseFloat(json.imdbRating) : 0,
+              year: json.Year && json.Year !== 'N/A' ? String(json.Year) : '',
+              genre: json.Genre && json.Genre !== 'N/A' ? json.Genre : '',
+              director: json.Director && json.Director !== 'N/A' ? json.Director : '',
+              type: json.Type === 'series' ? 'series' : json.Type === 'movie' ? 'movie' : '',
+              source: 'omdb',
+            });
+          } else {
+            resolve(null);
+          }
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).on('error', () => resolve(null));
+  });
+}
+
 async function omdbSearchSingleWithRetry(title, apiKey) {
   for (let attempt = 0; attempt <= OMD_MAX_RETRIES; attempt++) {
     const poster = await omdbSearchSingle(title, apiKey);
@@ -1098,6 +1130,76 @@ async function tmdbSearch(title, apiKey) {
     await sleep(OMD_DELAY_MS);
   }
   return null;
+}
+
+function tmdbMetaSingle(title, apiKey) {
+  return new Promise((resolve) => {
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=es&include_adult=true`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          if (res.statusCode === 429) {
+            resolve(RATE_LIMIT);
+            return;
+          }
+          const json = JSON.parse(data);
+          if (json.results && json.results.length > 0) {
+            const movie = json.results.find(r => r.overview || r.vote_count > 0) || json.results[0];
+            if (movie) {
+              resolve({
+                plot: movie.overview || '',
+                rating: movie.vote_average ? movie.vote_average : 0,
+                year: movie.release_date ? String(movie.release_date).substring(0, 4) : '',
+                genre: '',
+                director: '',
+                type: movie.media_type === 'tv' ? 'series' : 'movie',
+                source: 'tmdb',
+              });
+              return;
+            }
+          }
+          resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).on('error', () => resolve(null));
+  });
+}
+
+async function tmdbMetaSearch(title, apiKey) {
+  const variants = generateSearchVariants(title);
+  for (const variant of variants) {
+    const meta = await tmdbMetaSingle(variant, apiKey);
+    if (meta === RATE_LIMIT) return RATE_LIMIT;
+    if (meta) return meta;
+    await sleep(OMD_DELAY_MS);
+  }
+  return null;
+}
+
+async function omdbMetaSearch(title, apiKey) {
+  const variants = generateSearchVariants(title);
+  for (const variant of variants) {
+    const meta = await omdbMetaSingleWithRetry(variant, apiKey);
+    if (meta === RATE_LIMIT) return RATE_LIMIT;
+    if (meta) return meta;
+    await sleep(OMD_DELAY_MS);
+  }
+  return null;
+}
+
+async function omdbMetaSingleWithRetry(title, apiKey) {
+  for (let attempt = 0; attempt <= OMD_MAX_RETRIES; attempt++) {
+    const meta = await omdbMetaSingle(title, apiKey);
+    if (meta !== RATE_LIMIT) return meta;
+    if (attempt < OMD_MAX_RETRIES) {
+      await sleep(OMD_RETRY_WAIT_MS);
+    }
+  }
+  return RATE_LIMIT;
 }
 
 async function searchWithFallback(title, omdbKey, tmdbKey) {
@@ -1459,6 +1561,90 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
   return posters;
 }
 
+const META_CACHE_FILE = path.join(__dirname, 'meta-cache.json');
+
+function loadMetaCache() {
+  try {
+    return JSON.parse(fs.readFileSync(META_CACHE_FILE, 'utf-8'));
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveMetaCache(cache) {
+  try {
+    fs.writeFileSync(META_CACHE_FILE, JSON.stringify(cache, null, 1));
+  } catch (e) {
+    console.warn(`No se pudo guardar meta-cache: ${e.message}`);
+  }
+}
+
+const META_FAILED = '__META_FAILED__';
+
+async function fetchMeta(groups, omdbKey, tmdbKey) {
+  const cache = loadMetaCache();
+  const metas = {};
+  let fetched = 0;
+  let cached = 0;
+  let missed = 0;
+  let omdbDown = false;
+
+  const toFetch = [];
+  for (const group of groups) {
+    if (Object.prototype.hasOwnProperty.call(cache, group)) {
+      const v = cache[group];
+      if (v === META_FAILED) {
+        missed++;
+      } else if (v && (v.plot || v.rating)) {
+        metas[group] = v;
+        cached++;
+      } else {
+        toFetch.push(group);
+      }
+      continue;
+    }
+    toFetch.push(group);
+  }
+
+  for (const group of toFetch) {
+    let meta = null;
+    if (omdbDown) {
+      meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
+    } else if (omdbKey) {
+      meta = await omdbMetaSearch(group, omdbKey);
+      if (meta === RATE_LIMIT) {
+        omdbDown = true;
+        console.log('  Cuota OMDb agotada para metadatos, usando TMDB...');
+        meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
+      }
+    } else if (tmdbKey) {
+      meta = await tmdbMetaSearch(group, tmdbKey);
+    }
+    await sleep(OMD_DELAY_MS);
+
+    if (meta === RATE_LIMIT) {
+      if (omdbDown && !tmdbKey) break;
+      meta = null;
+    }
+
+    if (meta && (meta.plot || meta.rating)) {
+      metas[group] = meta;
+      cache[group] = meta;
+      fetched++;
+      if ((fetched + cached) % 10 === 0) {
+        console.log(`  Metadatos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached})`);
+      }
+    } else {
+      cache[group] = META_FAILED;
+      missed++;
+    }
+  }
+
+  saveMetaCache(cache);
+  console.log(`  Metadatos obtenidos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached}, sin resultado: ${missed})`);
+  return metas;
+}
+
 async function listDirectory(tb, dirPath, page = 1) {
   const MAX_LIST_RETRIES = 3;
   for (let attempt = 1; attempt <= MAX_LIST_RETRIES; attempt++) {
@@ -1701,7 +1887,7 @@ function getGroupFromPath(filePath, rootFolder) {
   return { group, searchName, fallbackName };
 }
 
-function generateJSON(files, rootFolder, posters, filePosters) {
+function generateJSON(files, rootFolder, posters, filePosters, metas) {
   const now = new Date();
   const day = String(now.getUTCDate()).padStart(2, '0');
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
@@ -1736,7 +1922,7 @@ function generateJSON(files, rootFolder, posters, filePosters) {
           break;
         }
       }
-      groupsMap[group] = { name: group, image: groupImg, info: '', stations: [] };
+      groupsMap[group] = { name: group, image: groupImg, info: '', meta: (metas && metas[searchName]) || (metas && fallbackName && metas[fallbackName]) || null, stations: [] };
     }
     let poster = posters && posters[searchName] ? posters[searchName] : null;
     if (!poster && fallbackName) poster = posters && posters[fallbackName] ? posters[fallbackName] : null;
@@ -1913,6 +2099,15 @@ async function main() {
 
   console.log(`Posters personalizados aplicados: ${Object.keys(posters).filter(k => CUSTOM_POSTERS[k]).length}`);
 
+  console.log('\nBuscando metadatos (sinopsis/rating) por grupo...');
+  let metas = {};
+  if (omdbKey || tmdbKey) {
+    metas = await fetchMeta(uniqueGroups, omdbKey, tmdbKey);
+    console.log('');
+  } else {
+    console.log('  Sin API keys, no se buscan metadatos.');
+  }
+
   console.log('Buscando portadas por archivo para grupos sin portada...');
   const filesNeedingFilePoster = filesWithLinks.filter(f => {
     const { searchName, fallbackName } = getGroupFromPath(f.path, rootFolder);
@@ -1933,7 +2128,7 @@ async function main() {
   }
 
   console.log('Generando lista JSON...');
-  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters, filePosters);
+  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters, filePosters, metas);
   
   const outputPath = process.env.GITHUB_ACTIONS 
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
