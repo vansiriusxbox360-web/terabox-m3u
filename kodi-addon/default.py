@@ -262,33 +262,42 @@ def add_listitem(label, url, icon=None, isFolder=True):
     return xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=isFolder)
 
 
-RANDOM_IMAGES = [os.path.join(ADDON_PATH, 'resources', 'random', f)
-                 for f in (os.listdir(os.path.join(ADDON_PATH, 'resources', 'random'))
-                           if os.path.isdir(os.path.join(ADDON_PATH, 'resources', 'random')) else [])
-                 if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+ALL_DOORS = [os.path.join(ADDON_PATH, 'resources', 'random', f)
+             for f in (os.listdir(os.path.join(ADDON_PATH, 'resources', 'random'))
+                       if os.path.isdir(os.path.join(ADDON_PATH, 'resources', 'random')) else [])
+             if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
 
 # Puertas fijas por sufijo de ruta (mapeo del usuario)
 DOOR_MAIN = os.path.join(ADDON_PATH, 'resources', 'random', 'maindoor.gif')
 DOOR_2 = os.path.join(ADDON_PATH, 'resources', 'random', 'door2.gif')
 FIXED_DOORS = {
-    'hoven padawan': DOOR_MAIN,
+    'las que te ponian comiendo': DOOR_MAIN,
     'Que se divide eeeennn': DOOR_MAIN,
+    'hoven padawan': DOOR_2,
     'Pelos': DOOR_2,
     'Seriales': DOOR_2,
 }
 
+# Pool de puertas aleatorias (excluye las fijas)
+RANDOM_IMAGES = [d for d in ALL_DOORS
+                 if os.path.basename(d).lower() not in ('maindoor.gif', 'door2.gif')]
+
+_last_random = None
+
 
 def folder_icon(current_path=''):
-    """Puerta fija si la carpeta esta en el mapa; si no, random estable. None si no hay imagenes."""
-    if not RANDOM_IMAGES:
+    """Puerta fija si la carpeta esta en el mapa; si no, random (sin repetir la ultima)."""
+    if not ALL_DOORS:
         return None
     leaf = current_path.rsplit('/', 1)[-1] if current_path else ''
     if leaf in FIXED_DOORS and os.path.exists(FIXED_DOORS[leaf]):
         return FIXED_DOORS[leaf]
-    seed = 0
-    for ch in current_path:
-        seed = (seed * 31 + ord(ch)) & 0xFFFFFFFF
-    return RANDOM_IMAGES[seed % len(RANDOM_IMAGES)]
+    if not RANDOM_IMAGES:
+        return ALL_DOORS[0]
+    global _last_random
+    pool = [d for d in RANDOM_IMAGES if d != _last_random] or RANDOM_IMAGES
+    _last_random = random.choice(pool)
+    return _last_random
 
 
 def list_root(data):
