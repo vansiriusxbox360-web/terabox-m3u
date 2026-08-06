@@ -545,7 +545,7 @@ def refresh_link(path, fs_id=None, force=False):
     cache = _load_link_cache()
     cached = cache.get(path)
     if not force and cached and cached.get('ts', 0) > time.time() - LINK_CACHE_TTL and cached.get('url', '').startswith('http'):
-        log('Refresh: usando enlace en caché')
+        log('Refresh: usando enlace en caché', xbmc.LOGINFO)
         return cached['url']
 
     ndus = get_ndus()
@@ -553,12 +553,14 @@ def refresh_link(path, fs_id=None, force=False):
         log('Refresh: falta ndus')
         return None
     cookie = 'lang=en; ndus=' + ndus
+    t0 = time.time()
     try:
         res = _terabox_post(TERABOX_WHOST + '/api/filemetas', {
             'dlink': 1,
             'origin': 'dlna',
             'target': json.dumps([path]),
         }, cookie)
+        log(f'Refresh: filemetas tardó {time.time()-t0:.2f}s', xbmc.LOGINFO)
         if res.get('errno') == 0 and isinstance(res.get('info'), list):
             for item in res['info']:
                 if isinstance(item, dict) and item.get('dlink'):
@@ -654,7 +656,9 @@ def router(paramstring):
 
     # play no necesita el índice completo: solo resuelve el enlace con el path que ya viene en la URL
     if action == 'play':
+        t0 = time.time()
         play_video(path)
+        log(f'Play resuelto en {time.time()-t0:.2f}s (tiempo del addon)', xbmc.LOGINFO)
         return
 
     data = get_json(force_download=force)
@@ -763,7 +767,9 @@ def router(paramstring):
 
 if __name__ == '__main__':
     try:
+        t_start = time.time()
         paramstring = sys.argv[2] if len(sys.argv) > 2 else ''
         router(paramstring)
+        log(f'Addon total: {time.time()-t_start:.2f}s', xbmc.LOGINFO)
     except Exception as e:
-        log('Error fatal: ' + str(e) + ' ' + traceback.format_exc(), xbmc.LOGERROR)
+        log(f'Error: {e}\n{traceback.format_exc()}', xbmc.LOGERROR)
