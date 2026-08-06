@@ -209,7 +209,7 @@ def resolve_icon(node, current_path=''):
         icon = node.get('_icon')
         if icon and icon != ICON:
             return icon
-        rnd = random_folder_icon(current_path)
+        rnd = folder_icon(current_path)
         return rnd if rnd else DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     if child_keys:
@@ -232,7 +232,7 @@ def resolve_icon(node, current_path=''):
                 if top_count > 1:
                     return top_icon
                 return inherited[0]
-            rnd = random_folder_icon(current_path)
+            rnd = folder_icon(current_path)
             return rnd if rnd else ICON
         all_alb = all(
             isinstance(node[k], dict) and node[k].get('_groups')
@@ -246,9 +246,9 @@ def resolve_icon(node, current_path=''):
                     posters.add(icon)
             if len(posters) == 1:
                 return posters.pop()
-        rnd = random_folder_icon(current_path)
+        rnd = folder_icon(current_path)
         return rnd if rnd else ICON
-    rnd = random_folder_icon(current_path)
+    rnd = folder_icon(current_path)
     return rnd if rnd else DETECTIVE
 
 
@@ -265,13 +265,26 @@ def add_listitem(label, url, icon=None, isFolder=True):
 RANDOM_IMAGES = [os.path.join(ADDON_PATH, 'resources', 'random', f)
                  for f in (os.listdir(os.path.join(ADDON_PATH, 'resources', 'random'))
                            if os.path.isdir(os.path.join(ADDON_PATH, 'resources', 'random')) else [])
-                 if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                 if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+
+# Puertas fijas por sufijo de ruta (mapeo del usuario)
+DOOR_MAIN = os.path.join(ADDON_PATH, 'resources', 'random', 'maindoor.gif')
+DOOR_2 = os.path.join(ADDON_PATH, 'resources', 'random', 'door2.gif')
+FIXED_DOORS = {
+    'hoven padawan': DOOR_MAIN,
+    'Que se divide eeeennn': DOOR_MAIN,
+    'Pelos': DOOR_2,
+    'Seriales': DOOR_2,
+}
 
 
-def random_folder_icon(current_path=''):
-    """Imagen random estable por carpeta (hash del path). Si no hay imagenes random, None."""
+def folder_icon(current_path=''):
+    """Puerta fija si la carpeta esta en el mapa; si no, random estable. None si no hay imagenes."""
     if not RANDOM_IMAGES:
         return None
+    leaf = current_path.rsplit('/', 1)[-1] if current_path else ''
+    if leaf in FIXED_DOORS and os.path.exists(FIXED_DOORS[leaf]):
+        return FIXED_DOORS[leaf]
     seed = 0
     for ch in current_path:
         seed = (seed * 31 + ord(ch)) & 0xFFFFFFFF
