@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.vansirius" name="La Colección de VanSirius" version="1.0.34" provider-name="VanSirius">
+<addon id="plugin.video.vansirius" name="La Colección de VanSirius" version="1.0.35" provider-name="VanSirius">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
@@ -11,7 +11,7 @@
     <description>Accede a la colección completa de VanSirius con anidación original de carpetas</description>
     <language>es</language>
     <assets>
-      <icon>icon.png</icon>
+      <icon>resources/rincon.png</icon>
       <fanart>vaporwave_fine_grid.png</fanart>
     </assets>
   </extension>

@@ -209,7 +209,8 @@ def resolve_icon(node, current_path=''):
         icon = node.get('_icon')
         if icon and icon != ICON:
             return icon
-        return DETECTIVE
+        rnd = random_folder_icon(current_path)
+        return rnd if rnd else DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     if child_keys:
         if leaf in INHERIT_CHILD_ICONS:
@@ -231,7 +232,8 @@ def resolve_icon(node, current_path=''):
                 if top_count > 1:
                     return top_icon
                 return inherited[0]
-            return ICON
+            rnd = random_folder_icon(current_path)
+            return rnd if rnd else ICON
         all_alb = all(
             isinstance(node[k], dict) and node[k].get('_groups')
             for k in child_keys
@@ -244,8 +246,10 @@ def resolve_icon(node, current_path=''):
                     posters.add(icon)
             if len(posters) == 1:
                 return posters.pop()
-        return ICON
-    return DETECTIVE
+        rnd = random_folder_icon(current_path)
+        return rnd if rnd else ICON
+    rnd = random_folder_icon(current_path)
+    return rnd if rnd else DETECTIVE
 
 
 def add_listitem(label, url, icon=None, isFolder=True):
@@ -256,6 +260,22 @@ def add_listitem(label, url, icon=None, isFolder=True):
         li.setProperty('IsPlayable', 'true')
         li.setInfo('video', {'title': label})
     return xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=isFolder)
+
+
+RANDOM_IMAGES = [os.path.join(ADDON_PATH, 'resources', 'random', f)
+                 for f in (os.listdir(os.path.join(ADDON_PATH, 'resources', 'random'))
+                           if os.path.isdir(os.path.join(ADDON_PATH, 'resources', 'random')) else [])
+                 if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+
+def random_folder_icon(current_path=''):
+    """Imagen random estable por carpeta (hash del path). Si no hay imagenes random, None."""
+    if not RANDOM_IMAGES:
+        return None
+    seed = 0
+    for ch in current_path:
+        seed = (seed * 31 + ord(ch)) & 0xFFFFFFFF
+    return RANDOM_IMAGES[seed % len(RANDOM_IMAGES)]
 
 
 def list_root(data):
