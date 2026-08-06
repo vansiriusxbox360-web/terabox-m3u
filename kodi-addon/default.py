@@ -651,6 +651,12 @@ def router(paramstring):
         return
 
     force = action == 'root'
+
+    # play no necesita el índice completo: solo resuelve el enlace con el path que ya viene en la URL
+    if action == 'play':
+        play_video(path)
+        return
+
     data = get_json(force_download=force)
     if not data:
         log('No hay datos, saliendo', xbmc.LOGERROR)
@@ -750,9 +756,6 @@ def router(paramstring):
             xbmcplugin.endOfDirectory(HANDLE)
             return
         xbmcplugin.endOfDirectory(HANDLE)
-        return
-    elif action == 'play':
-        play_video(path)
         return
 
     xbmcplugin.endOfDirectory(HANDLE)
