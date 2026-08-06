@@ -44,6 +44,11 @@ FOLDER_ICON_URLS = {
     'chorris': ICON,
     'no chorris': ICON,
     'Martes y Trece': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
+    'Gantz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/gantz.jpg',
+    'High Score Girl': 'https://takamakiokerar.wordpress.com/wp-content/uploads/2018/12/tumblr_mfeera8z4r1qbfiiuo1_1280.jpg',
+    'Itou Junji Collection': 'https://image.tmdb.org/t/p/original/umIn2MeNsJAvzb8ztRrv2nhfJ28.jpg',
+    'Overlord': 'https://m.media-amazon.com/images/M/MV5BYjNjNDBmZjAtMGZiMS00ODBkLWFjYWItZWQ1ZjEwOGNmZDBjXkEyXkFqcGc@._V1_.jpg',
+    'Steins;Gate': 'https://image.tmdb.org/t/p/w500/6lAKKvmyLDAMXPZ0uvCdT9UioVr.jpg',
 }
 
 FOLDER_ICON_BY_PATH_SUFFIX = {

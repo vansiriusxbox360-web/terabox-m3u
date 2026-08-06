@@ -466,6 +466,16 @@ const PATH_POSTER_SUFFIXES = {
   'El Zapatero y la Princesa (El Ladrón de Bagdad)': 'https://image.tmdb.org/t/p/w500/3OKtFuTxahr7hokPB9aO38qgOfc.jpg',
   'The Thief and the Cobbler Recobbled Cut Mark 4 WIP 19⁄09⁄13': 'https://image.tmdb.org/t/p/w500/3OKtFuTxahr7hokPB9aO38qgOfc.jpg',
   'The Thief and the Cobbler Recobbled Cut Mark 5 WIP 06⁄20⁄23': 'https://image.tmdb.org/t/p/w500/3OKtFuTxahr7hokPB9aO38qgOfc.jpg',
+  'Gyakuten Saiban - Ace Attorney': 'https://m.media-amazon.com/images/I/71rWSoCx8fL._AC_UF894,1000_QL80_.jpg',
+  'Gyakuten Saiban - Ace Attorney/s1': 'https://m.media-amazon.com/images/I/71rWSoCx8fL._AC_UF894,1000_QL80_.jpg',
+  'Gyakuten Saiban - Ace Attorney/s2': 'https://m.media-amazon.com/images/I/71rWSoCx8fL._AC_UF894,1000_QL80_.jpg',
+  'Monster': 'https://m.media-amazon.com/images/M/MV5BYzU2MWQ5NGQtYmNlMC00ZjJkLWJmODItZDM5MDM3YmUyMWJkXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
+  'Overlord/s1': 'https://m.media-amazon.com/images/M/MV5BYjNjNDBmZjAtMGZiMS00ODBkLWFjYWItZWQ1ZjEwOGNmZDBjXkEyXkFqcGc@._V1_.jpg',
+  'Overlord/s2': 'https://m.media-amazon.com/images/M/MV5BYjNjNDBmZjAtMGZiMS00ODBkLWFjYWItZWQ1ZjEwOGNmZDBjXkEyXkFqcGc@._V1_.jpg',
+  'Overlord/s3': 'https://m.media-amazon.com/images/M/MV5BYjNjNDBmZjAtMGZiMS00ODBkLWFjYWItZWQ1ZjEwOGNmZDBjXkEyXkFqcGc@._V1_.jpg',
+  'Overlord/s4': 'https://m.media-amazon.com/images/M/MV5BYjNjNDBmZjAtMGZiMS00ODBkLWFjYWItZWQ1ZjEwOGNmZDBjXkEyXkFqcGc@._V1_.jpg',
+  'Overlord/Ovas + special/Ovelord Ovas + special': 'https://m.media-amazon.com/images/M/MV5BYjNjNDBmZjAtMGZiMS00ODBkLWFjYWItZWQ1ZjEwOGNmZDBjXkEyXkFqcGc@._V1_.jpg',
+  'Steins;Gate Movie Fuka Ryouiki no Déjà vu': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sgmovie.jpg',
 };
 
 const FILE_TITLE_ALIASES = {
@@ -708,6 +718,7 @@ const FILE_POSTER_URLS = {
   'Our War Game (2000) - WEBDL-1080p Proper': 'https://m.media-amazon.com/images/M/MV5BNWNmOTY5Y2YtNGNiNi00M2IxLTlhYjktNDIwMzcyYzE0MDdkXkEyXkFqcGc@._V1_.jpg',
   'Street Fighter II Animated Movie': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sf2_animated_movie.jpg',
   'Super Mario Bros (La Pelicula) (1993)': 'https://es.web.img3.acsta.net/medias/nmedia/18/86/19/98/20435979.jpg',
+  'Phoenix Wright Ace Attorney (2012) (dual cast+jap)': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_YDLiurUy9YbiRUbgnDId6bf5D9zWHkbkqPtfJ0Z22Q&s=10',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
