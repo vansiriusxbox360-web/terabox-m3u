@@ -214,22 +214,35 @@ def run():
 
 
 _last_playback_log = 0
+_tracking_started = 0  # momento en que empezó a registrarse la reproducción actual
 
 
 def _track_playback():
     """Registra el progreso de reproducción del addon principal en watched.json."""
-    global _last_playback_log
+    global _last_playback_log, _tracking_started
     try:
         player = xbmc.Player()
         if not player.isPlaying():
+            # Reproducción terminada: olvidar el seguimiento
+            _tracking_started = 0
             _last_playback_log = 0
             return
 
         now_playing = load_json(NOW_PLAYING_FILE)
         path = now_playing.get('path', '')
-        # Solo seguir si es reciente (<60s) para no registrar reproducciones de otros addons
-        if not path or (time.time() - now_playing.get('ts', 0) > 60):
+        if not path:
             return
+
+        # El addon escribe now_playing al resolver el play. Solo lo seguimos si:
+        # - aún no hemos empezado a seguir, y el now_playing es reciente (<90s), o
+        # - ya estamos siguiendo esta reproducción (misma path)
+        if _tracking_started == 0:
+            if time.time() - now_playing.get('ts', 0) > 90:
+                return
+            _tracking_started = time.time()
+        elif now_playing.get('ts', 0) > _tracking_started + 5:
+            # now_playing se reescribió (nueva reproducción del addon): reiniciar
+            _tracking_started = time.time()
 
         total = player.getTotalTime()
         pos = player.getTime()
