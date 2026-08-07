@@ -280,6 +280,12 @@ def resolve_icon(node, current_path='', sibling_idx=0):
         if current_path == suffix or current_path.endswith('/' + suffix):
             return url
     leaf = current_path.rsplit('/', 1)[-1] if current_path else ''
+    # Puertas forzadas por sufijo de ruta (antes de la imagen heredada)
+    if leaf in DOOR_BY_PATH_SUFFIX and os.path.exists(DOOR_BY_PATH_SUFFIX[leaf]):
+        return DOOR_BY_PATH_SUFFIX[leaf]
+    if leaf in RANDOM_DOOR_BY_PATH_SUFFIX:
+        rnd = folder_icon(current_path, sibling_idx)
+        return rnd if rnd else ICON
     folder_img = get_folder_image(leaf)
     if folder_img:
         return folder_img
@@ -357,6 +363,21 @@ FIXED_DOORS = {
     'hoven padawan': DOOR_2,
     'Pelos': DOOR_2,
     'Seriales': DOOR_2,
+}
+
+# Puertas forzadas por sufijo de ruta (se aplican ANTES de la imagen heredada)
+DOOR_BY_PATH_SUFFIX = {
+    'Cortos': DOOR_2,
+    'adultos': DOOR_2,
+    'no adultos': DOOR_2,
+    'chorris': DOOR_2,
+    'no chorris': DOOR_2,
+}
+
+# Carpetas que fuerzan puerta aleatoria (ignoran la imagen heredada)
+RANDOM_DOOR_BY_PATH_SUFFIX = {
+    'Dibus',
+    'No dibus',
 }
 
 # Pool de puertas aleatorias (excluye las fijas)
