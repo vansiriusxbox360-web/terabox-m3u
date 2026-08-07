@@ -67,6 +67,9 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'BeyBlade/4.BeyBlade Burst': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
     'BeyBlade/5.BeyBlade Burst Evolution': 'https://i.pinimg.com/originals/27/c0/f7/27c0f7a97c259031bb741d055d2bd16a.jpg',
     'BeyBlade/6.BeyBlade Burst Turbo': 'https://i.pinimg.com/1200x/85/c8/b0/85c8b0809648bda7ade0ba41d510a453.jpg',
+    # Subcarpetas de Martes y Trece heredan la imagen de la madre
+    'Martes y Trece/chou y ehpesiale': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
+    'Martes y Trece/Pelis': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
@@ -83,9 +86,9 @@ INHERIT_CHILD_ICONS = {
 
 # Pósters individuales forzados por fragmento del nombre del capítulo
 STATION_POSTER_OVERRIDES = {
-    'Esto es un Atraco': 'https://m.media-amazon.com/images/M/MV5BMTM4MTc2MzMtMGNkMC00NzY3LWFjOTQtMWM0YjQwZmRkZjI2XkEyXkFqcGdeQXVyMTM2Mzg4MA@@._V1_SX300.jpg',
-    'La Corte del Faraon': 'https://m.media-amazon.com/images/M/MV5BZjBmODc0NDUtM2Q2OS00NDRlLTgxYjEtMjg5N2I3YTMwZmRhXkEyXkFqcGdeQXVyMTY5MDE5NA@@._V1_SX300.jpg',
-    'Ni Te Cases Ni Te Embarques': 'https://m.media-amazon.com/images/M/MV5BNzk5MDdlMDAtMmFhZC00MzZhLWI4Y2YtZmFkNzgwNGJhNjgzXkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
+    'Esto es un Atraco': 'https://image.tmdb.org/t/p/w500/gvAJfhqbZqAoaN4hzA9htk8QWq3.jpg',
+    'La Corte del Faraon': 'https://image.tmdb.org/t/p/w500/7RPzwXMcYR0HzdEcd0VUIxdEwc2.jpg',
+    'Ni Te Cases Ni Te Embarques': 'https://image.tmdb.org/t/p/w500/29tc1Mkv1f2gUmBYre6ZJhePJbl.jpg',
     'La Loca Historia de los Tres Mosqueteros': 'https://image.tmdb.org/t/p/w500/fBEeNB5Znt8N2fjjYBgNNvl9xC5.jpg',
     'Aqui Huele a Muerto': 'https://m.media-amazon.com/images/M/MV5BNGY0NmZiODctYTkzNC00YjI4LTliYTQtOTNmZTc0NjQ2ZTQ4XkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
     'El Robobo de la Jojoya': 'https://m.media-amazon.com/images/M/MV5BMjcxNTE2NGEtOGVlNy00MWJjLTljYmItM2VjOGI0M2NiNzc1XkEyXkFqcGc@._V1_SX300.jpg',
