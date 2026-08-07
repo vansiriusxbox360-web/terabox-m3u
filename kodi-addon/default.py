@@ -128,6 +128,13 @@ def _all_stations_same_image(stations):
     return len(set(imgs)) == 1
 
 
+def looks_like_movie(name):
+    """True si el nombre parece película (tiene año y no es patrón de episodio)."""
+    if re.search(r'\b(?:19|20)\d{2}\b', name) and not re.search(r'\b[Ss]\d{1,2}[Ee]\d{1,3}\b|\b[Ee]\d{2,3}\b|\b1x\d{2}\b|\b2x\d{2}\b', name):
+        return True
+    return False
+
+
 def _find_series_icon(tree, group_name):
     """Busca el icono de la serie anfitriona (ancestro en INHERIT_CHILD_ICONS) para el group_name."""
     parts = [p.strip() for p in group_name.split('/') if p.strip()]
@@ -525,6 +532,23 @@ def list_folder(data, path):
             add_fav_context_menu(li, name)
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
 
+            # Sinopsis por video para películas sueltas (carpetas de colección)
+            if looks_like_movie(name) and len(stations) > 1:
+                info_li = xbmcgui.ListItem(f'[ Info: {name[:40]} ]')
+                if icon:
+                    info_li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
+                info_li.setInfo('video', {
+                    'title': name,
+                    'plot': (group_meta.get('plot') or '')[:1000],
+                    'rating': float(group_meta.get('rating') or 0),
+                })
+                xbmcplugin.addDirectoryItem(
+                    handle=HANDLE,
+                    url=build_url('group_info', station.get('path', '') or name, meta_source='station'),
+                    listitem=info_li,
+                    isFolder=False
+                )
+
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     child_keys.sort(key=natural_sort_key)
     for idx, key in enumerate(child_keys):
@@ -755,54 +779,110 @@ def _meta_title_variants(title):
 
 
 def fetch_meta_live(title):
-    """Busca sinopsis/rating en vivo (OMDb, luego TMDB). Devuelve dict o None."""
+    """Busca sinopsis/rating en vivo. Prioriza TMDB (español), luego Wikipedia (español), y OMDb (inglés)."""
     title = title.strip()
     if not title:
         return None
-    omdb = get_omdb_key()
-    if omdb:
-        for variant in _meta_title_variants(title):
-            try:
-                url = f'https://www.omdbapi.com/?t={urllib.parse.quote(variant)}&plot=full&apikey={omdb}'
-                req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
-                resp = json.loads(urllib.request.urlopen(req, timeout=15).read())
-                if resp.get('Response') == 'True':
-                    meta = {
-                        'plot': resp.get('Plot') if resp.get('Plot') != 'N/A' else '',
-                        'rating': float(resp.get('imdbRating') or 0) if resp.get('imdbRating') not in (None, 'N/A') else 0,
-                        'year': resp.get('Year') if resp.get('Year') != 'N/A' else '',
-                        'genre': resp.get('Genre') if resp.get('Genre') != 'N/A' else '',
-                        'director': resp.get('Director') if resp.get('Director') != 'N/A' else '',
-                        'type': resp.get('Type', ''),
-                        'source': 'omdb',
-                    }
-                    if meta.get('plot') or meta.get('rating'):
-                        return meta
-            except Exception as e:
-                log(f'OMDb error: {e}')
     tmdb = get_tmdb_key()
     if tmdb:
-        for variant in _meta_title_variants(title):
-            try:
-                url = f'https://api.themoviedb.org/3/search/movie?api_key={tmdb}&query={urllib.parse.quote(variant)}&language=es&include_adult=true'
-                req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
-                resp = json.loads(urllib.request.urlopen(req, timeout=15).read())
-                results = resp.get('results') or []
-                if results:
-                    m = next((r for r in results if r.get('overview') or r.get('vote_count', 0) > 0), results[0])
+        meta = _tmdb_lookup(title, tmdb)
+        if meta:
+            return meta
+    wiki = _wikipedia_lookup(title)
+    if wiki:
+        return wiki
+    omdb = get_omdb_key()
+    if omdb:
+        meta = _omdb_lookup(title, omdb)
+        if meta:
+            return meta
+    return None
+
+
+def _wikipedia_lookup(title):
+    """Busca la sinopsis en la Wikipedia en español (sin límites de API)."""
+    year_match = re.search(r'\b(19|20)\d{2}\b', title)
+    year = year_match.group(0) if year_match else ''
+    base = re.sub(r'\s*\(\s*(?:19|20)\d{2}\s*\)\s*$', '', title).strip()
+    base = re.sub(r'\s*[-–—].*$', '', base).strip()
+
+    candidates = [base]
+    if year:
+        candidates.insert(0, f'{base} (película de {year})')
+    candidates.append(f'{base} (película)')
+
+    for cand in candidates:
+        try:
+            url = ('https://es.wikipedia.org/w/api.php?action=query&prop=extracts&exintro'
+                   f'&explaintext&format=json&redirects=1&titles={urllib.parse.quote(cand)}')
+            req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
+            resp = json.loads(urllib.request.urlopen(req, timeout=20).read())
+            pages = resp.get('query', {}).get('pages', {})
+            for pid, page in pages.items():
+                if 'extract' in page and page.get('extract', '').strip():
+                    plot = page['extract'].strip()
+                    if len(plot) > 500:
+                        plot = plot[:500].rsplit(' ', 1)[0] + '...'
                     meta = {
-                        'plot': m.get('overview') or '',
-                        'rating': m.get('vote_average') or 0,
-                        'year': (m.get('release_date') or '')[:4],
+                        'plot': plot,
+                        'rating': 0,
+                        'year': year,
                         'genre': '',
                         'director': '',
                         'type': 'movie',
-                        'source': 'tmdb',
+                        'source': 'wikipedia',
                     }
-                    if meta.get('plot') or meta.get('rating'):
-                        return meta
-            except Exception as e:
-                log(f'TMDB error: {e}')
+                    return meta
+        except Exception as e:
+            log(f'Wikipedia error: {e}')
+    return None
+
+
+def _tmdb_lookup(title, tmdb):
+    for variant in _meta_title_variants(title):
+        try:
+            url = f'https://api.themoviedb.org/3/search/movie?api_key={tmdb}&query={urllib.parse.quote(variant)}&language=es&include_adult=true'
+            req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
+            resp = json.loads(urllib.request.urlopen(req, timeout=15).read())
+            results = resp.get('results') or []
+            if results:
+                m = next((r for r in results if r.get('overview') or r.get('vote_count', 0) > 0), results[0])
+                meta = {
+                    'plot': m.get('overview') or '',
+                    'rating': m.get('vote_average') or 0,
+                    'year': (m.get('release_date') or '')[:4],
+                    'genre': '',
+                    'director': '',
+                    'type': 'movie',
+                    'source': 'tmdb',
+                }
+                if meta.get('plot') or meta.get('rating'):
+                    return meta
+        except Exception as e:
+            log(f'TMDB error: {e}')
+    return None
+
+
+def _omdb_lookup(title, omdb):
+    for variant in _meta_title_variants(title):
+        try:
+            url = f'https://www.omdbapi.com/?t={urllib.parse.quote(variant)}&plot=full&apikey={omdb}'
+            req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
+            resp = json.loads(urllib.request.urlopen(req, timeout=15).read())
+            if resp.get('Response') == 'True':
+                meta = {
+                    'plot': resp.get('Plot') if resp.get('Plot') != 'N/A' else '',
+                    'rating': float(resp.get('imdbRating') or 0) if resp.get('imdbRating') not in (None, 'N/A') else 0,
+                    'year': resp.get('Year') if resp.get('Year') != 'N/A' else '',
+                    'genre': resp.get('Genre') if resp.get('Genre') != 'N/A' else '',
+                    'director': resp.get('Director') if resp.get('Director') != 'N/A' else '',
+                    'type': resp.get('Type', ''),
+                    'source': 'omdb',
+                }
+                if meta.get('plot') or meta.get('rating'):
+                    return meta
+        except Exception as e:
+            log(f'OMDb error: {e}')
     return None
 
 
@@ -825,19 +905,25 @@ def format_meta(meta):
 
 
 def group_info_action(param, meta_source='json'):
-    """Muestra la ficha de un grupo (sinopsis + rating), buscando en vivo si no hay meta."""
+    """Muestra la ficha (sinopsis + rating). Si es un station, busca por el nombre del video."""
     title = param.rsplit('/', 1)[-1] if param else 'Info'
     meta = None
-    # Intentar sacar el meta del JSON (necesita cargarlo, así que mejor desde la URL ya codificada)
-    try:
-        url = build_url('group_info', param)
-        qs = dict(urllib.parse.parse_qsl(url.split('?', 1)[1]))
-        # no hay meta en qs; cargamos del JSON solo si meta_source == 'json' fallo
-    except Exception:
-        pass
 
-    if meta_source != 'live':
-        # Buscar en el JSON si hay meta (cargamos el índice si hace falta)
+    if meta_source == 'station':
+        # Película suelta: buscar por el nombre del archivo (video), no por la carpeta
+        data = get_json()
+        if data:
+            for g in data.get('groups', []):
+                for s in g.get('stations', []):
+                    if s.get('path') == param and s.get('meta'):
+                        meta = s['meta']
+                        break
+                if meta:
+                    break
+        if not meta:
+            title = _clean_movie_title(param.rsplit('/', 1)[-1] if param else title)
+            meta = fetch_meta_live(title)
+    elif meta_source != 'live':
         data = get_json()
         if data:
             for g in data.get('groups', []):
@@ -847,6 +933,30 @@ def group_info_action(param, meta_source='json'):
     if not meta:
         meta = fetch_meta_live(title)
     show_info_dialog(title, meta)
+
+
+def _clean_movie_title(name):
+    """Limpia el nombre del archivo para buscar la película (quita año, tags, calidad, etc.)."""
+    t = name
+    t = re.sub(r'\.(?:mkv|mp4|avi|wmv|flv|mov|m4v|mpg|mpeg|3gp|webm)$', '', t, flags=re.I)
+    t = re.sub(r'[._]+', ' ', t)
+    # Quitar bloques entre corchetes (p.ej. [(Stephen King) m1080p])
+    t = re.sub(r'\[[^\]]*\]', ' ', t)
+    # Quitar corchetes abiertos residuales (nombres truncados)
+    t = t.replace('[', ' ').replace(']', ' ')
+    # Quitar paréntesis que no contengan un año (ruido)
+    def paren_filter(m):
+        inner = m.group(1).strip()
+        if re.search(r'\b(?:19|20)\d{2}\b', inner):
+            return m.group(0)
+        return ' '
+    t = re.sub(r'\(([^)]*)\)', paren_filter, t)
+    # Quitar año final
+    t = re.sub(r'\s*\(\s*(?:19|20)\d{2}\s*\)\s*$', '', t)
+    # Quitar tags de calidad/idioma residuales
+    t = re.sub(r'\b(?:m1080p|1080p|720p|2160p|4k|8k|bluray|web|webrip|hdtv|x264|x265|hevc|ac3|aac|dts|dual|vose|v.o.s.e|v.o|castellano|spanish|english|sub|subs|subtitulad\w*|espa\w*)\b', ' ', t, flags=re.I)
+    t = re.sub(r'\s+', ' ', t).strip()
+    return t or name
 
 
 def show_info_dialog(title, meta):
