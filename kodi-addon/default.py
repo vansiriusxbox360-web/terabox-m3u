@@ -67,6 +67,16 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     # Subcarpetas de Martes y Trece heredan la imagen de la madre
     'Martes y Trece/chou y ehpesiale': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
     'Martes y Trece/Pelis': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
+    # Carátulas definitivas por carpeta
+    'Asterix': 'https://postersonline.co.za/wp-content/uploads/2026/05/GPE5727.jpg',
+    'Beavis & Butt-Head': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4GaNJRLkGk6O_n-zP09b5k6hfvVoKmgWPcpCQPZ4zL_RCyA4RskSQ87PR&s=10',
+    'Beavis & Butt-Head/eplis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis2.png',
+    'Devil May Cry': 'https://m.media-amazon.com/images/M/MV5BMWZiMTVmMjEtYjQ4MS00YzE4LThmMGYtYTE3ZjhhZmQ2NmMwXkEyXkFqcGc@._V1_.jpg',
+    'High Score Girl/s1': 'https://takamakiokerar.wordpress.com/wp-content/uploads/2018/12/tumblr_mfeera8z4r1qbfiiuo1_1280.jpg',
+    'High Score Girl/s2': 'https://takamakiokerar.wordpress.com/wp-content/uploads/2018/12/tumblr_mfeera8z4r1qbfiiuo1_1280.jpg',
+    'Mononoke Karakasa & Shou - Hinezumi (Netflix)': 'https://static.wikia.nocookie.net/wiki-doblaje-espana/images/3/3d/Mononoke_-_El_Fantasma_Bajo_La_Lluvia_-_Poster.jpg/revision/latest?cb=20241116234056&path-prefix=es',
+    'Tenshi no Tamago': 'https://static.wikia.nocookie.net/wiki-doblaje-espana/images/3/3d/Mononoke_-_El_Fantasma_Bajo_La_Lluvia_-_Poster.jpg/revision/latest?cb=20241116234056&path-prefix=es',
+    'Urotsukidoji - La leyenda del se\u00f1or del mal': 'https://m.media-amazon.com/images/I/61SNyC4jnmL._AC_UF894,1000_QL80_.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
@@ -91,7 +101,7 @@ STATION_POSTER_OVERRIDES = {
     'El Robobo de la Jojoya': 'https://m.media-amazon.com/images/M/MV5BMjcxNTE2NGEtOGVlNy00MWJjLTljYmItM2VjOGI0M2NiNzc1XkEyXkFqcGc@._V1_SX300.jpg',
     'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
     'Christine': 'https://images.justwatch.com/poster/9621681/s718/christine.jpg',
-    'Maleficio': 'https://m.media-amazon.com/images/I/71D20zueVYL._AC_UF350,350_QL50_.jpg',
+    'Maleficio': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/maleficio.png',
     'Tenk\u016b no Shiro Laputa': 'https://i.pinimg.com/736x/62/a4/5e/62a45e0d133af9fded1b20796f881f86.jpg',
 }
 
