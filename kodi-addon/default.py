@@ -128,13 +128,6 @@ def _all_stations_same_image(stations):
     return len(set(imgs)) == 1
 
 
-def looks_like_movie(name):
-    """True si el nombre parece película (tiene año y no es patrón de episodio)."""
-    if re.search(r'\b(?:19|20)\d{2}\b', name) and not re.search(r'\b[Ss]\d{1,2}[Ee]\d{1,3}\b|\b[Ee]\d{2,3}\b|\b1x\d{2}\b|\b2x\d{2}\b', name):
-        return True
-    return False
-
-
 def _find_series_icon(tree, group_name):
     """Busca el icono de la serie anfitriona (ancestro en INHERIT_CHILD_ICONS) para el group_name."""
     parts = [p.strip() for p in group_name.split('/') if p.strip()]
@@ -532,23 +525,6 @@ def list_folder(data, path):
             add_fav_context_menu(li, name)
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
 
-            # Sinopsis por video para películas sueltas (carpetas de colección)
-            if looks_like_movie(name) and len(stations) > 1:
-                info_li = xbmcgui.ListItem(f'[ Info: {name[:40]} ]')
-                if icon:
-                    info_li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
-                info_li.setInfo('video', {
-                    'title': name,
-                    'plot': (group_meta.get('plot') or '')[:1000],
-                    'rating': float(group_meta.get('rating') or 0),
-                })
-                xbmcplugin.addDirectoryItem(
-                    handle=HANDLE,
-                    url=build_url('group_info', station.get('path', '') or name, meta_source='station'),
-                    listitem=info_li,
-                    isFolder=False
-                )
-
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     child_keys.sort(key=natural_sort_key)
     for idx, key in enumerate(child_keys):
@@ -905,25 +881,10 @@ def format_meta(meta):
 
 
 def group_info_action(param, meta_source='json'):
-    """Muestra la ficha (sinopsis + rating). Si es un station, busca por el nombre del video."""
+    """Muestra la ficha (sinopsis + rating) de un grupo."""
     title = param.rsplit('/', 1)[-1] if param else 'Info'
     meta = None
-
-    if meta_source == 'station':
-        # Película suelta: buscar por el nombre del archivo (video), no por la carpeta
-        data = get_json()
-        if data:
-            for g in data.get('groups', []):
-                for s in g.get('stations', []):
-                    if s.get('path') == param and s.get('meta'):
-                        meta = s['meta']
-                        break
-                if meta:
-                    break
-        if not meta:
-            title = _clean_movie_title(param.rsplit('/', 1)[-1] if param else title)
-            meta = fetch_meta_live(title)
-    elif meta_source != 'live':
+    if meta_source != 'live':
         data = get_json()
         if data:
             for g in data.get('groups', []):
@@ -933,30 +894,6 @@ def group_info_action(param, meta_source='json'):
     if not meta:
         meta = fetch_meta_live(title)
     show_info_dialog(title, meta)
-
-
-def _clean_movie_title(name):
-    """Limpia el nombre del archivo para buscar la película (quita año, tags, calidad, etc.)."""
-    t = name
-    t = re.sub(r'\.(?:mkv|mp4|avi|wmv|flv|mov|m4v|mpg|mpeg|3gp|webm)$', '', t, flags=re.I)
-    t = re.sub(r'[._]+', ' ', t)
-    # Quitar bloques entre corchetes (p.ej. [(Stephen King) m1080p])
-    t = re.sub(r'\[[^\]]*\]', ' ', t)
-    # Quitar corchetes abiertos residuales (nombres truncados)
-    t = t.replace('[', ' ').replace(']', ' ')
-    # Quitar paréntesis que no contengan un año (ruido)
-    def paren_filter(m):
-        inner = m.group(1).strip()
-        if re.search(r'\b(?:19|20)\d{2}\b', inner):
-            return m.group(0)
-        return ' '
-    t = re.sub(r'\(([^)]*)\)', paren_filter, t)
-    # Quitar año final
-    t = re.sub(r'\s*\(\s*(?:19|20)\d{2}\s*\)\s*$', '', t)
-    # Quitar tags de calidad/idioma residuales
-    t = re.sub(r'\b(?:m1080p|1080p|720p|2160p|4k|8k|bluray|web|webrip|hdtv|x264|x265|hevc|ac3|aac|dts|dual|vose|v.o.s.e|v.o|castellano|spanish|english|sub|subs|subtitulad\w*|espa\w*)\b', ' ', t, flags=re.I)
-    t = re.sub(r'\s+', ' ', t).strip()
-    return t or name
 
 
 def show_info_dialog(title, meta):
