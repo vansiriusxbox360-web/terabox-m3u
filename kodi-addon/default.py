@@ -61,6 +61,12 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Disney/Cortos': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
     'Disney': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
     'BeyBlade': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
+    'BeyBlade/1.BeyBlade 2000': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
+    'BeyBlade/2.BeyBalde V-Force': 'https://i.pinimg.com/originals/27/c0/f7/27c0f7a97c259031bb741d055d2bd16a.jpg',
+    'BeyBlade/3.BeyBlade G-Revolution': 'https://i.pinimg.com/1200x/85/c8/b0/85c8b0809648bda7ade0ba41d510a453.jpg',
+    'BeyBlade/4.BeyBlade Burst': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
+    'BeyBlade/5.BeyBlade Burst Evolution': 'https://i.pinimg.com/originals/27/c0/f7/27c0f7a97c259031bb741d055d2bd16a.jpg',
+    'BeyBlade/6.BeyBlade Burst Turbo': 'https://i.pinimg.com/1200x/85/c8/b0/85c8b0809648bda7ade0ba41d510a453.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
@@ -70,6 +76,19 @@ INHERIT_CHILD_ICONS = {
     'Bumpy',
     'Rick y Morty',
     'Una Navidad con Mickey',
+    'Ed, Edd y Eddy',
+    'Ed Edd y Eddy',
+    'BeyBlade',
+}
+
+# Pósters individuales forzados por fragmento del nombre del capítulo
+STATION_POSTER_OVERRIDES = {
+    'Esto es un Atraco': 'https://m.media-amazon.com/images/M/MV5BMTM4MTc2MzMtMGNkMC00NzY3LWFjOTQtMWM0YjQwZmRkZjI2XkEyXkFqcGdeQXVyMTM2Mzg4MA@@._V1_SX300.jpg',
+    'La Corte del Faraon': 'https://m.media-amazon.com/images/M/MV5BZjBmODc0NDUtM2Q2OS00NDRlLTgxYjEtMjg5N2I3YTMwZmRhXkEyXkFqcGdeQXVyMTY5MDE5NA@@._V1_SX300.jpg',
+    'Ni Te Cases Ni Te Embarques': 'https://m.media-amazon.com/images/M/MV5BNzk5MDdlMDAtMmFhZC00MzZhLWI4Y2YtZmFkNzgwNGJhNjgzXkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
+    'La Loca Historia de los Tres Mosqueteros': 'https://image.tmdb.org/t/p/w500/fBEeNB5Znt8N2fjjYBgNNvl9xC5.jpg',
+    'Aqui Huele a Muerto': 'https://m.media-amazon.com/images/M/MV5BNGY0NmZiODctYTkzNC00YjI4LTliYTQtOTNmZTc0NjQ2ZTQ4XkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
+    'El Robobo de la Jojoya': 'https://m.media-amazon.com/images/M/MV5BMjcxNTE2NGEtOGVlNy00MWJjLTljYmItM2VjOGI0M2NiNzc1XkEyXkFqcGc@._V1_SX300.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
@@ -99,6 +118,28 @@ def station_inherits_group_icon(group_name):
         if region in group_name:
             return True
     return False
+
+
+def _all_stations_same_image(stations):
+    """True si todos los stations con imagen comparten la misma (póster genérico erróneo)."""
+    imgs = [s.get('image') for s in stations if s.get('image')]
+    if not imgs or len(imgs) < 2:
+        return False
+    return len(set(imgs)) == 1
+
+
+def _find_series_icon(tree, group_name):
+    """Busca el icono de la serie anfitriona (ancestro en INHERIT_CHILD_ICONS) para el group_name."""
+    parts = [p.strip() for p in group_name.split('/') if p.strip()]
+    node = tree
+    for i, part in enumerate(parts):
+        node = node.get(part, {})
+        if not isinstance(node, dict):
+            return None
+        if part in INHERIT_CHILD_ICONS:
+            # Resolver el icono de la serie desde sus hijos (subcarpetas/stations)
+            return resolve_icon(node, '/'.join(parts[:i + 1]), 0)
+    return None
 
 
 def log(msg, level=xbmc.LOGDEBUG):
@@ -408,6 +449,21 @@ def list_folder(data, path):
     for group in node.get('_groups', []):
         group_icon = group.get('image')
         group_name = group.get('name', '')
+        # Imagen de álbum por sufijo de ruta (p.ej. temporadas de BeyBlade) con prioridad
+        for suffix, url in FOLDER_ICON_BY_PATH_SUFFIX.items():
+            if group_name == suffix or group_name.endswith('/' + suffix):
+                group_icon = url
+                break
+        # Si el grupo no tiene imagen, usar la de la carpeta (heredada en el árbol)
+        if not group_icon:
+            group_icon = node.get('_icon')
+            if group_icon == ICON or group_icon in (FOLDER_IMAGES.get('Dibus que no son \u00aanime'), FOLDER_IMAGES.get('\u00aanime')):
+                # Imagen genérica de contenedor: buscar la de la serie anfitriona
+                series_icon = _find_series_icon(tree, group_name)
+                if series_icon:
+                    group_icon = series_icon
+            if group_icon == ICON:
+                group_icon = None
         group_meta = group.get('meta') or {}
         stations = group.get('stations', [])
 
@@ -433,11 +489,19 @@ def list_folder(data, path):
             name = station.get('name', 'Sin nombre')
             raw_url = station.get('url', '')
             fs_id = station.get('fs_id')
-            if station_inherits_group_icon(group_name):
-                # Los capítulos de esta carpeta muestran la imagen de su carpeta (no la individual)
+            icon = station.get('image', group_icon)
+            # Póster individual forzado por fragmento del nombre
+            for frag, poster_url in STATION_POSTER_OVERRIDES.items():
+                if frag in name:
+                    icon = poster_url
+                    break
+            # Regla del álbum: si todos los capítulos comparten la misma imagen individual,
+            # es un póster genérico (erróneo) y heredan la imagen de su carpeta.
+            if group_icon and _all_stations_same_image(stations):
                 icon = group_icon
-            else:
-                icon = station.get('image', group_icon)
+            # Pokémon (regiones/series sueltas): los capítulos heredan la imagen de su carpeta
+            if station_inherits_group_icon(group_name):
+                icon = group_icon
             # Si tenemos fs_id, pasamos por el addon para refrescar el enlace
             if fs_id:
                 s_path = station.get('path', '')

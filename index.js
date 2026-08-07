@@ -448,6 +448,13 @@ const PATH_POSTER_SUFFIXES = {
   'BeyBlade/BeyBlade Burst': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
   'BeyBlade/BeyBlade Burst Evolution': 'https://i.pinimg.com/originals/27/c0/f7/27c0f7a97c259031bb741d055d2bd16a.jpg',
   'BeyBlade/BeyBlade Burst Turbo': 'https://i.pinimg.com/1200x/85/c8/b0/85c8b0809648bda7ade0ba41d510a453.jpg',
+  // Temporadas de BeyBlade renumeradas (1. .. 6.)
+  'BeyBlade/1.BeyBlade 2000': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
+  'BeyBlade/2.BeyBalde V-Force': 'https://i.pinimg.com/originals/27/c0/f7/27c0f7a97c259031bb741d055d2bd16a.jpg',
+  'BeyBlade/3.BeyBlade G-Revolution': 'https://i.pinimg.com/1200x/85/c8/b0/85c8b0809648bda7ade0ba41d510a453.jpg',
+  'BeyBlade/4.BeyBlade Burst': 'https://i.pinimg.com/1200x/79/ba/15/79ba1560a8ab6945e38447b0c762179e.jpg',
+  'BeyBlade/5.BeyBlade Burst Evolution': 'https://i.pinimg.com/originals/27/c0/f7/27c0f7a97c259031bb741d055d2bd16a.jpg',
+  'BeyBlade/6.BeyBlade Burst Turbo': 'https://i.pinimg.com/1200x/85/c8/b0/85c8b0809648bda7ade0ba41d510a453.jpg',
   'La brigada de los sepultureros': 'https://static.filmin.es/images/es/media/38022/1/poster_0_3.jpg',
   'La leyenda de Korra': 'https://image.tmdb.org/t/p/original/eMo4uWsN3qceNhBPcuw5T2lFsc5.jpg',
   'Vaca y Pollo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/vaca_y_pollo.jpg',
@@ -719,6 +726,12 @@ const FILE_POSTER_URLS = {
   'Street Fighter II Animated Movie': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sf2_animated_movie.jpg',
   'Super Mario Bros (La Pelicula) (1993)': 'https://es.web.img3.acsta.net/medias/nmedia/18/86/19/98/20435979.jpg',
   'Phoenix Wright Ace Attorney (2012) (dual cast+jap)': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_YDLiurUy9YbiRUbgnDId6bf5D9zWHkbkqPtfJ0Z22Q&s=10',
+  'Esto es un Atraco': 'https://m.media-amazon.com/images/M/MV5BMTM4MTc2MzMtMGNkMC00NzY3LWFjOTQtMWM0YjQwZmRkZjI2XkEyXkFqcGdeQXVyMTM2Mzg4MA@@._V1_SX300.jpg',
+  'La Corte del Faraon': 'https://m.media-amazon.com/images/M/MV5BZjBmODc0NDUtM2Q2OS00NDRlLTgxYjEtMjg5N2I3YTMwZmRhXkEyXkFqcGdeQXVyMTY5MDE5NA@@._V1_SX300.jpg',
+  'Ni Te Cases Ni Te Embarques': 'https://m.media-amazon.com/images/M/MV5BNzk5MDdlMDAtMmFhZC00MzZhLWI4Y2YtZmFkNzgwNGJhNjgzXkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
+  'La Loca Historia de los Tres Mosqueteros': 'https://image.tmdb.org/t/p/w500/fBEeNB5Znt8N2fjjYBgNNvl9xC5.jpg',
+  'Aqui Huele a Muerto': 'https://m.media-amazon.com/images/M/MV5BNGY0NmZiODctYTkzNC00YjI4LTliYTQtOTNmZTc0NjQ2ZTQ4XkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
+  'El Robobo de la Jojoya': 'https://m.media-amazon.com/images/M/MV5BMjcxNTE2NGEtOGVlNy00MWJjLTljYmItM2VjOGI0M2NiNzc1XkEyXkFqcGc@._V1_SX300.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
@@ -1943,6 +1956,15 @@ function generateJSON(files, rootFolder, posters, filePosters, metas) {
     if (!poster && fallbackName) poster = posters && posters[fallbackName] ? posters[fallbackName] : null;
     if (filePosters && filePosters[file.cleanName]) poster = filePosters[file.cleanName];
     if (FILE_POSTER_URLS && FILE_POSTER_URLS[file.cleanName]) poster = FILE_POSTER_URLS[file.cleanName];
+    // Coincidencia por fragmento del nombre (p.ej. pelis de Martes y Trece con actores en el título)
+    if (!poster && FILE_POSTER_URLS) {
+      for (const [frag, url] of Object.entries(FILE_POSTER_URLS)) {
+        if (frag.length > 6 && file.cleanName.includes(frag)) {
+          poster = url;
+          break;
+        }
+      }
+    }
     if (!poster) {
       const cachedFilePoster = posterCache['FILE::' + file.cleanName];
       if (cachedFilePoster && cachedFilePoster !== WIKIDATA_FAILED) poster = cachedFilePoster;
