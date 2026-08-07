@@ -89,7 +89,9 @@ STATION_POSTER_OVERRIDES = {
     'La Loca Historia de los Tres Mosqueteros': 'https://image.tmdb.org/t/p/w500/fBEeNB5Znt8N2fjjYBgNNvl9xC5.jpg',
     'Aqui Huele a Muerto': 'https://m.media-amazon.com/images/M/MV5BNGY0NmZiODctYTkzNC00YjI4LTliYTQtOTNmZTc0NjQ2ZTQ4XkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
     'El Robobo de la Jojoya': 'https://m.media-amazon.com/images/M/MV5BMjcxNTE2NGEtOGVlNy00MWJjLTljYmItM2VjOGI0M2NiNzc1XkEyXkFqcGc@._V1_SX300.jpg',
-    'Los chicos del maiz': 'https://m.media-amazon.com/images/M/MV5BNjFmZjhkNDYtZThjZi00YWY4LWFkYjMtNDM3YjkyODMxZDNmXkEyXkFqcGc@._V1_SX300.jpg',
+    'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
+    'Christine': 'https://images.justwatch.com/poster/9621681/s718/christine.jpg',
+    'Maleficio': 'https://m.media-amazon.com/images/I/71D20zueVYL._AC_UF350,350_QL50_.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta

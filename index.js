@@ -665,13 +665,13 @@ const FILE_POSTER_URLS = {
   'El Resplandor (Version Extendida) (1980) new': 'https://image.tmdb.org/t/p/w500/mm003Mj2e9kJRsrxiVdPn2BSBPh.jpg',
   'La Chaqueta Metálica (1987) - new': 'https://image.tmdb.org/t/p/w500/6CX7BcyD8Xd5AQ7myNs0UE4mu6c.jpg',
   'La.naranja.mecanica.(1971.Stanley.Kubrick).(Spanish.English.Subs).BDrip.1080p.x264.AC3.by.Nostrom0 new': 'https://image.tmdb.org/t/p/w500/p40pYh2EBPoyVyqw6qy2PAZkFVA.jpg',
-  'Christine (1983) (Español)': 'https://m.media-amazon.com/images/M/MV5BYTQxZjlhNzUtMGJkMS00ODMwLWI0NzMtZGZiYzRmODE5ODI2XkEyXkFqcGc@._V1_SX300.jpg',
+  'Christine (1983) (Español)': 'https://images.justwatch.com/poster/9621681/s718/christine.jpg',
   'Cujo de Stephen King (1983) (25 Anniversary Edition) (Spanish English Subs) Bdrip 720p X264-AC3': 'https://image.tmdb.org/t/p/w500/x8PUdXCGSM6iDzzMonLRJukgGci.jpg',
   'El cementerio viviente 2 (Pet Sematary Two) (1993)': 'https://image.tmdb.org/t/p/w500/A1qXTzGHIyCQmJbmEZL47KIqRhL.jpg',
   'El.cementerio.viviente.(Pet.sematary.1989).(Spanish.English.Subs).BDrip.720p.x264-AC3.by.rodosky.(proteinicos.es)': 'https://image.tmdb.org/t/p/w500/rjL6WhvdnaEqwMfM3Crscjs0nNP.jpg',
   'It (Eso) (1990)': 'https://image.tmdb.org/t/p/w500/uuTYA9LIlIRCFMgFlxWb1KznfEx.jpg',
   'La Rebelion De Las Maquinas - Maximum Overdrive - 8 Days Of Terror - 1986 (Stephen King) (Spa-Eng) Emilio Estévez': 'https://image.tmdb.org/t/p/w500/8lROOm3zgANbYZwEKaTqVfHIJsE.jpg',
-  'Maleficio (Thinner Stephen King 1996).720p.BluRay.x264.(Spanish.English)': 'https://image.tmdb.org/t/p/w500/qGj0B5yx9FPTjTKODOUzccjhG5F.jpg',
+  'Maleficio (Thinner Stephen King 1996).720p.BluRay.x264.(Spanish.English)': 'https://m.media-amazon.com/images/I/71D20zueVYL._AC_UF350,350_QL50_.jpg',
   'Proverbio Chino (2006)': 'https://image.tmdb.org/t/p/w500/sAg6tJtLT5zq6oveDqlQ6zRy0YJ.jpg',
   'The Magic Pear Tree (1968) Directed by Charles Swenson- Oscar Nominated Short': 'https://image.tmdb.org/t/p/w500/8OS0ztKcD8qjINACg7Mx3UltABV.jpg',
   'Trapito (Manuel García Ferré, 1975)': 'https://image.tmdb.org/t/p/w500/pFKLGKMIPQVPi6entlTnubx9OPD.jpg',
@@ -729,7 +729,7 @@ const FILE_POSTER_URLS = {
   'La Loca Historia de los Tres Mosqueteros': 'https://image.tmdb.org/t/p/w500/fBEeNB5Znt8N2fjjYBgNNvl9xC5.jpg',
   'Aqui Huele a Muerto': 'https://m.media-amazon.com/images/M/MV5BNGY0NmZiODctYTkzNC00YjI4LTliYTQtOTNmZTc0NjQ2ZTQ4XkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
   'El Robobo de la Jojoya': 'https://m.media-amazon.com/images/M/MV5BMjcxNTE2NGEtOGVlNy00MWJjLTljYmItM2VjOGI0M2NiNzc1XkEyXkFqcGc@._V1_SX300.jpg',
-  'Los chicos del maiz': 'https://m.media-amazon.com/images/M/MV5BNjFmZjhkNDYtZThjZi00YWY4LWFkYjMtNDM3YjkyODMxZDNmXkEyXkFqcGc@._V1_SX300.jpg',
+  'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
