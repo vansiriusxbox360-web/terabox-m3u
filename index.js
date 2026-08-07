@@ -2074,10 +2074,16 @@ async function main() {
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
     : path.join(__dirname, 'lista.m3u');
   let prevStationCount = 0;
+  let prevStationNames = new Set();
   try {
     if (fs.existsSync(prevListPath)) {
       const prev = JSON.parse(fs.readFileSync(prevListPath, 'utf-8'));
       prevStationCount = (prev.groups || []).reduce((sum, g) => sum + (g.stations || []).length, 0);
+      for (const g of (prev.groups || [])) {
+        for (const s of (g.stations || [])) {
+          if (s.name) prevStationNames.add(s.name);
+        }
+      }
     }
   } catch (e) {
     console.warn(`No se pudo leer la lista previa: ${e.message}`);
@@ -2143,17 +2149,19 @@ async function main() {
     console.log('  Sin API keys, no se buscan metadatos.');
   }
 
-  console.log('Buscando portadas por archivo para grupos sin portada...');
+  console.log('Buscando portadas por archivo (grupos sin portada + archivos nuevos)...');
   const filesNeedingFilePoster = filesWithLinks.filter(f => {
     const { searchName, fallbackName } = getGroupFromPath(f.path, rootFolder);
     const g = posters && posters[searchName] ? posters[searchName] : null;
     const fb = !g && fallbackName ? posters && posters[fallbackName] : null;
-    if (g || fb) return false;
+    const isNew = !prevStationNames.has(f.cleanName);
+    // Si el grupo tiene portada pero el archivo es NUEVO, intentar su portada individual
+    if ((g || fb) && !isNew) return false;
     if (!/\b(?:19|20)\d{2}\b/.test(f.cleanName)) return false;
     if (/S\d+E\d+|E\d{2,3}\b/i.test(f.cleanName)) return false;
     return true;
   });
-  console.log(`Archivos en grupos sin portada que parecen películas: ${filesNeedingFilePoster.length}`);
+  console.log(`Archivos que parecen películas y buscan portada individual: ${filesNeedingFilePoster.length}`);
 
   let filePosters = {};
   if ((omdbKey || tmdbKey) && filesNeedingFilePoster.length > 0) {
