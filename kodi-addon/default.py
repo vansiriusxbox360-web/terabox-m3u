@@ -72,6 +72,34 @@ INHERIT_CHILD_ICONS = {
     'Una Navidad con Mickey',
 }
 
+# Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
+POKEMON_ICON_REGIONS = (
+    '1. Kanto',
+    '2. Johto',
+    '3. Hoenn',
+    '4. Sinnoh',
+    '5. Teselia',
+    '6. Kalos',
+    '7. Alola',
+    '8. Galar (Viajes Pok\u00e9mon)',
+    '9. Paldea (Pok\u00e9mon Horizontes)',
+    'Cr\u00f3nicas Pok\u00e9mon',
+    'La conserje Pok\u00e9mon',
+    'Pok\u00e9mon Generations',
+    'Pok\u00e9mon Megaevoluci\u00f3n',
+    'Pok\u00e9mon Origin',
+)
+
+
+def station_inherits_group_icon(group_name):
+    """True si los capítulos de este grupo deben usar la imagen de su carpeta (Pokémon)."""
+    if 'Pok\u00e9mon' not in group_name:
+        return False
+    for region in POKEMON_ICON_REGIONS:
+        if region in group_name:
+            return True
+    return False
+
 
 def log(msg, level=xbmc.LOGDEBUG):
     xbmc.log(f'[VanSirius] {msg}', level)
@@ -405,7 +433,11 @@ def list_folder(data, path):
             name = station.get('name', 'Sin nombre')
             raw_url = station.get('url', '')
             fs_id = station.get('fs_id')
-            icon = station.get('image', group_icon)
+            if station_inherits_group_icon(group_name):
+                # Los capítulos de esta carpeta muestran la imagen de su carpeta (no la individual)
+                icon = group_icon
+            else:
+                icon = station.get('image', group_icon)
             # Si tenemos fs_id, pasamos por el addon para refrescar el enlace
             if fs_id:
                 s_path = station.get('path', '')

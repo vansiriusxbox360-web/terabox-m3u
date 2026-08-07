@@ -730,6 +730,21 @@ const CHILD_INHERIT_GROUP_ICON = new Set([
   'Dragon Ball Z - Selecta Vision/5.Saga del Otro Mundo (195-199)',
   'Dragon Ball Z - Selecta Vision/6.Saga Buu (200-291)',
   'Tres amigos y Jerry',
+  // Pokémon: los capítulos de cada región heredan la imagen de su carpeta
+  'Pokémon/1. Kanto',
+  'Pokémon/2. Johto',
+  'Pokémon/3. Hoenn',
+  'Pokémon/4. Sinnoh',
+  'Pokémon/5. Teselia',
+  'Pokémon/6. Kalos',
+  'Pokémon/7. Alola',
+  'Pokémon/8. Galar (Viajes Pokémon)',
+  'Pokémon/9. Paldea (Pokémon Horizontes)',
+  'Pokémon/Crónicas Pokémon',
+  'Pokémon/La conserje Pokémon',
+  'Pokémon/Pokémon Generations',
+  'Pokémon/Pokémon Megaevolución',
+  'Pokémon/Pokémon Origin',
 ]);
 
 function groupInheritsChildIcon(group) {
