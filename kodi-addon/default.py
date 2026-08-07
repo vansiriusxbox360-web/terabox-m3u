@@ -92,6 +92,7 @@ STATION_POSTER_OVERRIDES = {
     'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
     'Christine': 'https://images.justwatch.com/poster/9621681/s718/christine.jpg',
     'Maleficio': 'https://m.media-amazon.com/images/I/71D20zueVYL._AC_UF350,350_QL50_.jpg',
+    'Tenk\u016b no Shiro Laputa': 'https://i.pinimg.com/736x/62/a4/5e/62a45e0d133af9fded1b20796f881f86.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta

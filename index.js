@@ -730,6 +730,7 @@ const FILE_POSTER_URLS = {
   'Aqui Huele a Muerto': 'https://m.media-amazon.com/images/M/MV5BNGY0NmZiODctYTkzNC00YjI4LTliYTQtOTNmZTc0NjQ2ZTQ4XkEyXkFqcGdeQXVyODI2MDA4NQ@@._V1_SX300.jpg',
   'El Robobo de la Jojoya': 'https://m.media-amazon.com/images/M/MV5BMjcxNTE2NGEtOGVlNy00MWJjLTljYmItM2VjOGI0M2NiNzc1XkEyXkFqcGc@._V1_SX300.jpg',
   'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
+  'El Castillo en el cielo - Tenk\u016b no Shiro Laputa': 'https://i.pinimg.com/736x/62/a4/5e/62a45e0d133af9fded1b20796f881f86.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
