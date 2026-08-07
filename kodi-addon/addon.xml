@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.vansirius" name="El Rincón Dharmatico de Vishnu" version="1.2.2" provider-name="VanSirius">
+<addon id="plugin.video.vansirius" name="El Rincón Dharmatico de Vishnu" version="1.3.0" provider-name="VanSirius">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
     <provides>video</provides>
   </extension>
+  <extension point="xbmc.service" library="service.py" start="startup"/>
   <extension point="xbmc.addon.metadata">
     <summary>Colección de anime y dibus desde Terabox</summary>
     <description>Accede a la colección completa de VanSirius con anidación original de carpetas</description>
