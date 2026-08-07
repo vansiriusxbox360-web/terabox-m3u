@@ -715,7 +715,7 @@ def refresh_link(path, fs_id=None, force=False):
     return None
 
 
-def play_video(param):
+def play_video(param, start=None):
     """Reproduce refrescando el enlace con el path, o directo si es URL."""
     url = param
     if param and not param.startswith('http'):
@@ -727,12 +727,23 @@ def play_video(param):
     # Avisar al servicio de seguimiento del path que se va a reproducir
     try:
         now_playing = os.path.join(os.path.dirname(CACHE_FILE), 'now_playing.json')
+        name = param.rsplit('/', 1)[-1] if param else ''
+        name = re.sub(r'\.(mkv|mp4|avi|wmv|flv|mov|m4v|mpg|mpeg|3gp|webm)$', '', name, flags=re.I)
         with open(now_playing, 'w', encoding='utf-8') as f:
-            json.dump({'path': param if param and not param.startswith('http') else '', 'name': '', 'ts': time.time()}, f)
+            json.dump({'path': param if param and not param.startswith('http') else '', 'name': name, 'ts': time.time()}, f)
     except Exception as e:
         log(f'Error now_playing: {e}')
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
+    # Reanudar desde donde se quedó (continuar viendo)
+    if start:
+        try:
+            start_sec = int(float(start))
+            if start_sec > 0:
+                li.setProperty('ResumeTime', str(start_sec))
+                li.setProperty('resume', 'true')
+        except Exception:
+            pass
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
@@ -858,7 +869,7 @@ def list_continue_watching(data):
             icon = s.get('image') or g.get('image') or ICON
         if total > 0:
             label = f'{name}  ⏱ {pos // 60}:{pos % 60:02d} / {total // 60}:{total % 60:02d}'
-        url = build_url('play', path)
+        url = build_url('play', path, start=str(int(pos)))
         li = xbmcgui.ListItem(label)
         li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
         li.setProperty('IsPlayable', 'true')
@@ -937,7 +948,8 @@ def router(paramstring):
     # play no necesita el índice completo: solo resuelve el enlace con el path que ya viene en la URL
     if action == 'play':
         t0 = time.time()
-        play_video(path)
+        start = params.get('start')
+        play_video(path, start=start)
         log(f'Play resuelto en {time.time()-t0:.2f}s (tiempo del addon)', xbmc.LOGINFO)
         return
 
