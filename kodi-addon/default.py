@@ -46,6 +46,7 @@ FOLDER_ICON_URLS = {
     'chorris': ICON,
     'no chorris': ICON,
     'Martes y Trece': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
+    'vicio': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/vicio.jpg',
     'Gantz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/gantz.jpg',
     'High Score Girl': 'https://takamakiokerar.wordpress.com/wp-content/uploads/2018/12/tumblr_mfeera8z4r1qbfiiuo1_1280.jpg',
     'Itou Junji Collection': 'https://image.tmdb.org/t/p/original/umIn2MeNsJAvzb8ztRrv2nhfJ28.jpg',
@@ -519,12 +520,13 @@ def list_folder(data, path):
             if station_inherits_group_icon(group_name):
                 icon = group_icon
             # Si tenemos fs_id, pasamos por el addon para refrescar el enlace
+            is_game = bool(station.get('isGame'))
             if fs_id:
                 s_path = station.get('path', '')
                 if s_path:
-                    url = build_url('play', s_path, fs_id=str(fs_id))
+                    url = build_url('play', s_path, fs_id=str(fs_id), game='1' if is_game else '')
                 else:
-                    url = build_url('play', str(fs_id))
+                    url = build_url('play', str(fs_id), game='1' if is_game else '')
             else:
                 url = raw_url
             if not url:
@@ -715,7 +717,7 @@ def refresh_link(path, fs_id=None, force=False):
     return None
 
 
-def play_video(param, start=None):
+def play_video(param, start=None, is_game=False):
     """Reproduce refrescando el enlace con el path, o directo si es URL."""
     url = param
     if param and not param.startswith('http'):
@@ -724,19 +726,22 @@ def play_video(param, start=None):
             url = fresh
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo refrescar el enlace', xbmcgui.NOTIFICATION_ERROR)
-    # Avisar al servicio de seguimiento del path que se va a reproducir
-    try:
-        now_playing = os.path.join(os.path.dirname(CACHE_FILE), 'now_playing.json')
-        name = param.rsplit('/', 1)[-1] if param else ''
-        name = re.sub(r'\.(mkv|mp4|avi|wmv|flv|mov|m4v|mpg|mpeg|3gp|webm)$', '', name, flags=re.I)
-        with open(now_playing, 'w', encoding='utf-8') as f:
-            json.dump({'path': param if param and not param.startswith('http') else '', 'name': name, 'ts': time.time()}, f)
-    except Exception as e:
-        log(f'Error now_playing: {e}')
+    if not is_game:
+        # Avisar al servicio de seguimiento del path que se va a reproducir (solo videos)
+        try:
+            now_playing = os.path.join(os.path.dirname(CACHE_FILE), 'now_playing.json')
+            name = param.rsplit('/', 1)[-1] if param else ''
+            name = re.sub(r'\.(mkv|mp4|avi|wmv|flv|mov|m4v|mpg|mpeg|3gp|webm)$', '', name, flags=re.I)
+            with open(now_playing, 'w', encoding='utf-8') as f:
+                json.dump({'path': param if param and not param.startswith('http') else '', 'name': name, 'ts': time.time()}, f)
+        except Exception as e:
+            log(f'Error now_playing: {e}')
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
+    if is_game:
+        li.setProperty('GamePath', url)
     # Reanudar desde donde se quedó (continuar viendo)
-    if start:
+    if start and not is_game:
         try:
             start_sec = int(float(start))
             if start_sec > 0:
@@ -949,7 +954,8 @@ def router(paramstring):
     if action == 'play':
         t0 = time.time()
         start = params.get('start')
-        play_video(path, start=start)
+        is_game = params.get('game') == '1'
+        play_video(path, start=start, is_game=is_game)
         log(f'Play resuelto en {time.time()-t0:.2f}s (tiempo del addon)', xbmc.LOGINFO)
         return
 

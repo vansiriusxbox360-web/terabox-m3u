@@ -96,6 +96,15 @@ function isVideoFile(filename) {
   return VIDEO_EXTENSIONS.includes(ext);
 }
 
+// Extensiones de juegos de MS-DOS (carpeta "vicio") que RetroPlayer/DOSBox puede abrir
+const GAME_EXTENSIONS = ['.zip', '.dosz', '.exe', '.com'];
+const GAME_ROOT_FOLDER = 'vicio';
+
+function isGameFile(filename) {
+  const ext = path.extname(filename).toLowerCase();
+  return GAME_EXTENSIONS.includes(ext);
+}
+
 function cleanName(name) {
   return name.replace(/\[[^\]]*\]\s*/g, '').replace(/\.[^/.]+$/, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -1717,10 +1726,11 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
 
     const folders = [];
     const files = [];
+    const inVicio = ('/' + dirPath).toLowerCase().includes('/' + GAME_ROOT_FOLDER + '/') || dirPath.toLowerCase().endsWith('/' + GAME_ROOT_FOLDER);
     for (const item of result.list) {
       if (item.isdir === '1' || item.isdir === 1) {
         folders.push(item);
-      } else if (isVideoFile(item.server_filename)) {
+      } else if (isVideoFile(item.server_filename) || (inVicio && isGameFile(item.server_filename))) {
         files.push(item);
       }
     }
@@ -1753,7 +1763,8 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
         name: item.server_filename,
         cleanName: cleanName(item.server_filename),
         size: item.size,
-        fsId: item.fs_id
+        fsId: item.fs_id,
+        isGame: inVicio && isGameFile(item.server_filename)
       });
     }
 
@@ -1978,6 +1989,7 @@ function generateJSON(files, rootFolder, posters, filePosters, metas) {
     }
     if (groupInheritsChildIcon(group)) poster = groupsMap[group].image || null;
     const station = { name: file.cleanName, url: file.dlink, fs_id: file.fsId, path: file.path };
+    if (file.isGame) station.isGame = true;
     if (poster && poster !== groupsMap[group].image) station.image = poster;
     groupsMap[group].stations.push(station);
   }
