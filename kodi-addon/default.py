@@ -833,11 +833,43 @@ def play_video(param, start=None, is_game=False):
             url = local
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
+    if is_game:
+        # Abrir como juego con RetroPlayer (Player.Open + gameclient) para forzar DOSBox
+        try:
+            payload = json.dumps({
+                'jsonrpc': '2.0',
+                'id': 1,
+                'method': 'Player.Open',
+                'params': {
+                    'item': {
+                        'file': url,
+                        'gameclient': 'game.libretro.dosbox',
+                    }
+                }
+            })
+            xbmc.executeJSONRPC(payload)
+            log(f'Juego lanzado con DOSBox: {url}')
+            xbmcplugin.endOfDirectory(HANDLE)
+            return
+        except Exception as e:
+            log(f'Error abriendo juego con JSON-RPC: {e}')
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
     if is_game:
         li.setProperty('GamePath', url)
-        li.setInfo('game', {'title': (param.rsplit('/', 1)[-1] if param else 'Juego')})
+        # Marcar como juego con la API moderna (InfoTagGame)
+        try:
+            game = li.getGameInfoTag()
+            game.setTitle(param.rsplit('/', 1)[-1] if param else 'Juego')
+            game.setPlatform('DOS')
+            game.setGenres(['MS-DOS'])
+        except Exception as e:
+            log(f'InfoTagGame error: {e}')
+            # fallback a la API antigua
+            try:
+                li.setInfo('game', {'title': (param.rsplit('/', 1)[-1] if param else 'Juego')})
+            except Exception:
+                pass
     # Reanudar desde donde se quedó (continuar viendo)
     if start and not is_game:
         try:
