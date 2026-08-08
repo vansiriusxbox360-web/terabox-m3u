@@ -96,6 +96,14 @@ def _ensure_dosbox():
             xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue","params":{"setting":"games.enable","value":true}}')
         except Exception:
             pass
+        # Desinstalar DOSBox Pure si está presente (roto/compite con game.libretro.dosbox)
+        try:
+            xbmcaddon.Addon('game.libretro.dosbox-pure')
+            log('Desinstalando game.libretro.dosbox-pure (roto o conflictivo)...')
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.UninstallAddon","params":{"addonid":"game.libretro.dosbox-pure"}}')
+            xbmc.executebuiltin('UninstallAddon(game.libretro.dosbox-pure)')
+        except Exception:
+            pass
         # Comprobar si DOSBox ya está instalado
         try:
             addon = xbmcaddon.Addon(DOSBOX_ADDON)
