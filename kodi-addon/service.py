@@ -133,10 +133,10 @@ def _show_dosbox_tips():
             'Atajos de DOSBox:\n'
             '  Ctrl+F9  = Cerrar DOSBox / salir del juego\n'
             '  Alt+Enter = Pantalla completa / ventana\n'
-            '  Ctrl+F10 = Capturar / soltar el ratón\n'
-            '  Ctrl+F5  = Guardar captura de pantalla\n\n'
-            'Si un juego va lento, presiona Ctrl+F11 (baja velocidad)\n'
-            'o Ctrl+F12 (súbela).'
+            '  Ctrl+F10 = Capturar / soltar el ratón\n\n'
+            'Velocidad (si un juego va lento o rápido):\n'
+            '  Ctrl+F12 = Subir la velocidad\n'
+            '  Ctrl+F11 = Bajarla'
         )
     except Exception as e:
         log(f'Error mostrando tips DOSBox: {e}')
