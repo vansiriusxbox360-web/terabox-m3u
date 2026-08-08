@@ -777,9 +777,10 @@ def _download_game(url, filename):
     zip_path = os.path.join(games_dir, base + '.zip')
     extract_to = os.path.join(games_dir, base)
 
-    # si ya hay un .exe extraído, reutilizar
+    # si ya hay un .exe extraído, reutilizar (y asegurar el .sav precargado)
     exe = _find_game_exe(extract_to)
     if exe:
+        _download_game_save(base, extract_to)
         return exe
 
     progress = xbmcgui.DialogProgress()
@@ -845,8 +846,11 @@ def _find_game_exe(extract_to):
     return exes[0] if exes else None
 
 
+GAME_SAVES_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/game-saves'
+
+
 def _extract_game(zip_path, extract_to):
-    """Extrae el zip (subiendo una unica carpeta raiz) y devuelve la ruta del .exe."""
+    """Extrae el zip (subiendo una unica carpeta raiz), coloca el .sav precargado si existe, y devuelve el .exe."""
     import zipfile as _zf
     try:
         with _zf.ZipFile(zip_path) as z:
@@ -861,10 +865,33 @@ def _extract_game(zip_path, extract_to):
                 for f in os.listdir(inner):
                     shutil.move(os.path.join(inner, f), os.path.join(extract_to, f))
                 os.rmdir(inner)
+        # precargar el .sav de configuracion desde el repo (evita el setup al usuario)
+        base = os.path.basename(os.path.normpath(extract_to))
+        _download_game_save(base, extract_to)
         return _find_game_exe(extract_to)
     except Exception as e:
         log(f'_extract_game error: {e}')
         return None
+
+
+def _download_game_save(base, game_dir):
+    """Descarga el .sav de configuracion del juego desde el repo y lo coloca en la carpeta (si existe)."""
+    if not base or not os.path.isdir(game_dir):
+        return
+    sav_url = f'{GAME_SAVES_URL}/{urllib.parse.quote(base)}.sav'
+    try:
+        req = urllib.request.Request(sav_url, headers={'User-Agent': 'Kodi-Addon/1.0'})
+        resp = urllib.request.urlopen(req, timeout=15)
+        data = resp.read()
+        if data:
+            sav_path = os.path.join(game_dir, f'{base}.sav')
+            with open(sav_path, 'wb') as f:
+                f.write(data)
+            log(f'Save precargado: {base}.sav')
+    except urllib.error.HTTPError:
+        pass  # no hay .sav para este juego
+    except Exception as e:
+        log(f'Error descargando save: {e}')
 
 
 DOSBOX_EXE_CANDIDATES = [
@@ -904,13 +931,8 @@ def _launch_game_external(exe_path, param):
         log(f'Juego no encontrado: {exe_path}')
         return False
     game_dir = os.path.dirname(exe_path)
-    # Si el juego requiere setup (hay SETUP.EXE y no existe ningun .sav), ejecutar SETUP la primera vez
+    # el .sav de configuracion ya se precarga al extraer, asi que se ejecuta el juego directamente
     to_run = os.path.basename(exe_path)
-    setup_path = os.path.join(game_dir, 'SETUP.EXE')
-    has_sav = any(f.lower().endswith('.sav') for f in os.listdir(game_dir)) if os.path.isdir(game_dir) else False
-    if os.path.exists(setup_path) and not has_sav:
-        to_run = 'SETUP.EXE'
-        log(f'Primera ejecucion: se lanza SETUP.EXE (configuracion)')
     # .conf temporal para DOSBox.exe (montar la carpeta y ejecutar)
     conf_path = game_dir + '.conf'
     try:
