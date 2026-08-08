@@ -877,7 +877,7 @@ def play_video(param, start=None, is_game=False):
         except Exception as e:
             log(f'Error now_playing: {e}')
     else:
-        # Juego: descargar a local para que RetroPlayer lo reconozca por la extensión
+        # Juego: descargar/extraer a local y abrir con DOSBox explícito
         filename = param.rsplit('/', 1)[-1] if param else 'juego.zip'
         local = _download_game(url, filename)
         if local:
@@ -885,26 +885,42 @@ def play_video(param, start=None, is_game=False):
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
-        # Forzar content type de juegos para que Kodi elija RetroPlayer al resolver
+        # Abrir con el emulador DOSBox explícitamente (Player.Open + gameclient)
+        try:
+            payload = json.dumps({
+                'jsonrpc': '2.0',
+                'id': 1,
+                'method': 'Player.Open',
+                'params': {
+                    'item': {
+                        'file': url,
+                        'gameclient': 'game.libretro.dosbox',
+                    }
+                }
+            })
+            result = xbmc.executeJSONRPC(payload)
+            log(f'Juego abierto con DOSBox: {url} -> {result}')
+        except Exception as e:
+            log(f'Error abriendo juego: {e}')
+        # Resolver igualmente para que Kodi complete la invocación del plugin
         xbmcplugin.setContent(HANDLE, 'games')
-    li = xbmcgui.ListItem(path=url)
-    li.setProperty('IsPlayable', 'true')
-    if is_game:
+        li = xbmcgui.ListItem(path=url)
+        li.setProperty('IsPlayable', 'true')
         li.setProperty('GamePath', url)
-        li.setProperty('Extension', '.zip' if url.lower().endswith('.zip') else '')
-        # Marcar como juego con la API moderna (InfoTagGame)
         try:
             game = li.getGameInfoTag()
             game.setTitle(param.rsplit('/', 1)[-1] if param else 'Juego')
             game.setPlatform('DOS')
             game.setGenres(['MS-DOS'])
-        except Exception as e:
-            log(f'InfoTagGame error: {e}')
-            # fallback a la API antigua
+        except Exception:
             try:
                 li.setInfo('game', {'title': (param.rsplit('/', 1)[-1] if param else 'Juego')})
             except Exception:
                 pass
+        xbmcplugin.setResolvedUrl(HANDLE, True, li)
+        return
+    li = xbmcgui.ListItem(path=url)
+    li.setProperty('IsPlayable', 'true')
     # Reanudar desde donde se quedó (continuar viendo)
     if start and not is_game:
         try:
