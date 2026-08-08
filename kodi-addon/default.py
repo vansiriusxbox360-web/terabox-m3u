@@ -427,8 +427,20 @@ def folder_icon(current_path='', sibling_idx=0):
 WELCOME_FLAG = os.path.join(xbmcvfs.translatePath('special://masterprofile/addon_data/plugin.video.vansirius'), '.welcome_shown')
 
 
+def _cache_150mb_activa():
+    """True si advancedsettings.xml tiene configurada la caché de 150 MB."""
+    try:
+        advanced_xml = os.path.join(xbmcvfs.translatePath('special://masterprofile/'), 'advancedsettings.xml')
+        if not os.path.exists(advanced_xml):
+            return False
+        with open(advanced_xml, 'r', encoding='utf-8') as f:
+            return '157286400' in f.read()
+    except Exception:
+        return False
+
+
 def show_welcome():
-    """Cuadros de bienvenida y creditos cada vez que se abre el addon."""
+    """Cuadro de bienvenida único y, si hace falta, aviso para reactivar la caché de 150 MB."""
     try:
         os.makedirs(os.path.dirname(WELCOME_FLAG), exist_ok=True)
         frase = ('Ooooohh buenos días... que bueno que vinihte, pasa, pasa...\n'
@@ -437,7 +449,6 @@ def show_welcome():
                  'a ver dónde puñetas la tengo, pero si estaba aquí hace 25 años...\n'
                  'aaaaahhhquiestáaaa. Pera, que lo limpie un poquito...\n'
                  'toma, echa un ojo. Menú del día dos puntos.')
-        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu', frase)
         try:
             version = ADDON.getAddonInfo('version')
         except Exception:
@@ -447,11 +458,33 @@ def show_welcome():
             fecha = time.strftime('%d/%m/%Y', time.localtime(mtime))
         except Exception:
             fecha = 'desconocida'
-        xbmcgui.Dialog().ok('Créditos',
-                            f'Creado por VanSirius\n\n'
-                            f'Versión instalada: {version}\n'
-                            f'Actualización del addon: {fecha}\n\n'
+        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu',
+                            f'{frase}\n\n'
+                            f'Creado por VanSirius · v{version} · {fecha}\n'
                             f'Que lo disfrutes. 🙏')
+        if not _cache_150mb_activa():
+            if xbmcgui.Dialog().yesno(
+                'Caché de streaming',
+                'Al reinstalar el addon/Kodi se pierde la caché de 150 MB,\n'
+                'y las películas se paran mucho.\n\n'
+                '¿Activar la caché de 150 MB ahora?',
+                yeslabel='Sí, activar',
+                nolabel='Ahora no'
+            ):
+                try:
+                    contenido = '''<advancedsettings>
+  <cache>
+    <buffermode>1</buffermode>
+    <memorysize>157286400</memorysize>
+    <cachemembuffersize>157286400</cachemembuffersize>
+    <readfactor>20</readfactor>
+  </cache>
+</advancedsettings>'''
+                    with open(os.path.join(xbmcvfs.translatePath('special://masterprofile/'), 'advancedsettings.xml'), 'w', encoding='utf-8') as f:
+                        f.write(contenido)
+                    xbmcgui.Dialog().ok('Hecho', 'Caché de 150 MB activada.\n\nReinicia Kodi para aplicar.')
+                except Exception as e:
+                    log(f'Error escribiendo caché: {e}')
     except Exception as e:
         log(f'Error en bienvenida: {e}')
 
