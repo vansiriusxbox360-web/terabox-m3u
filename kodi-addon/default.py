@@ -901,7 +901,11 @@ def play_video(param, start=None, is_game=False):
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
-        # Lanzar el juego con PlayMedia: Kodi detecta la extension .exe y usa DOSBox (unico emulador compatible)
+        # Convierte la ruta local a file:// (barras normales) para que Kodi la trate como archivo local
+        # y elija DOSBox (supports_vfs=false requiere archivo local de verdad)
+        if not url.startswith('file://') and not url.startswith('http'):
+            url = 'file:///' + url.replace('\\', '/')
+        # Lanzar el juego con PlayMedia
         try:
             xbmc.executebuiltin(f'PlayMedia("{url}")')
             log(f'Juego lanzado con PlayMedia: {url}')
