@@ -966,9 +966,11 @@ def _launch_game_external(exe_path, param):
         log(f'Juego no encontrado: {exe_path}')
         return False
     game_dir = os.path.dirname(exe_path)
-    # Fallout: montar la carpeta padre como C: y cd fallout1 (el CFG espera C:\fallout1\)
-    is_fallout = os.path.exists(os.path.join(game_dir, 'cd', 'fallout.cue'))
+    # Detectar Fallout: tiene FALLOUT.CFG y su propio dosbox.conf (config de memoria EMS necesaria)
+    game_conf = os.path.join(game_dir, 'dosbox.conf')
+    is_fallout = os.path.exists(os.path.join(game_dir, 'FALLOUT.CFG')) and os.path.exists(game_conf)
     if is_fallout:
+        # Fallout: montar la carpeta padre como C: y cd fallout1 (el CFG espera C:\fallout1\)
         mount_root = os.path.dirname(game_dir)
         mount_name = os.path.basename(game_dir)
     else:
@@ -982,20 +984,29 @@ def _launch_game_external(exe_path, param):
         fall_bat = next((f for f in bat_candidates if 'fall' in f.lower() or 'play' in f.lower() or 'run' in f.lower()), bat_candidates[0])
         to_run = 'call ' + fall_bat
         log(f'Juego con lanzador .BAT: {fall_bat}')
-    # .conf temporal para DOSBox.exe (montar la carpeta y ejecutar)
+    # .conf: si el juego trae su propio dosbox.conf (p.ej. Fallout con EMS), usarlo como base
     conf_path = game_dir + '.conf'
     try:
-        conf_lines = ['[sdl]', 'fullscreen=false', '',
-                      '[autoexec]', f'mount c {mount_root.replace(chr(92), "/")}', 'c:']
-        if mount_name:
-            conf_lines.append(f'cd {mount_name}')
-        # Fallout y similares: montar el CD si hay fallout.cue
-        cue = os.path.join(game_dir, 'cd', 'fallout.cue')
-        if is_fallout:
-            cue_path = cue.replace(chr(92), '/')
-            conf_lines.append(f'imgmount d {cue_path} -t cdrom')
-        conf_lines.append(to_run)
-        conf_text = '\n'.join(conf_lines) + '\n'
+        if is_fallout and os.path.exists(game_conf):
+            conf_text = open(game_conf, encoding='utf-8', errors='replace').read()
+            # reemplazar el autoexec con el mount correcto
+            autoexec = ('[autoexec]\n'
+                        f'mount c {mount_root.replace(chr(92), "/")}\n'
+                        'c:\n')
+            if mount_name:
+                autoexec += f'cd {mount_name}\n'
+            autoexec += to_run + '\n'
+            if re.search(r'(?m)^\[autoexec\]', conf_text):
+                conf_text = re.sub(r'(?ms)\[autoexec\].*$', autoexec, conf_text)
+            else:
+                conf_text += '\n' + autoexec
+        else:
+            conf_lines = ['[sdl]', 'fullscreen=false', '',
+                          '[autoexec]', f'mount c {mount_root.replace(chr(92), "/")}', 'c:']
+            if mount_name:
+                conf_lines.append(f'cd {mount_name}')
+            conf_lines.append(to_run)
+            conf_text = '\n'.join(conf_lines) + '\n'
         with open(conf_path, 'w', encoding='utf-8') as f:
             f.write(conf_text)
         _sp.Popen([dosbox, '-conf', conf_path],
