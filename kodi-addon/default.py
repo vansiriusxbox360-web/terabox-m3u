@@ -763,7 +763,7 @@ def ensure_dosbox():
 
 
 def _download_game(url, filename):
-    """Descarga un juego (zip) a local y devuelve la ruta, para que RetroPlayer lo reconozca."""
+    """Descarga un juego (zip), lo extrae y devuelve la ruta del .exe (formato que DOSBox reconoce)."""
     if not url:
         return None
     games_dir = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'games')
@@ -771,14 +771,16 @@ def _download_game(url, filename):
         os.makedirs(games_dir, exist_ok=True)
     except Exception:
         pass
-    # nombre de archivo seguro
+    # nombre base seguro
     safe = re.sub(r'[^\w.\-]+', '_', filename or 'juego.zip')
-    if not safe.lower().endswith(('.zip', '.dosz', '.exe', '.com')):
-        safe += '.zip'
-    dest = os.path.join(games_dir, safe)
-    # si ya existe, reutilizar
-    if os.path.exists(dest) and os.path.getsize(dest) > 0:
-        return dest
+    base = os.path.splitext(safe)[0]
+    zip_path = os.path.join(games_dir, base + '.zip')
+
+    # buscar .exe ya extraído
+    exe_found = _find_game_exe(games_dir, base)
+    if exe_found:
+        return exe_found
+
     progress = xbmcgui.DialogProgress()
     progress.create('VanSirius', f'Descargando {filename}...')
     try:
@@ -802,66 +804,56 @@ def _download_game(url, filename):
                 progress.close()
                 return None
         progress.close()
-        if data:
-            with open(dest, 'wb') as f:
-                f.write(data)
-            # Si es un zip, convertirlo a .dosz (formato DOSBox de Kodi) con un dosbox.conf
-            if dest.lower().endswith('.zip'):
+        if not data:
+            return None
+        with open(zip_path, 'wb') as f:
+            f.write(data)
+        # extraer y devolver el .exe
+        try:
+            exe = _extract_game(zip_path, games_dir, base)
+            if exe:
                 try:
-                    dosz = _make_dosz(dest)
-                    if dosz:
-                        os.remove(dest)
-                        return dosz
-                except Exception as e:
-                    log(f'Error convirtiendo a dosz: {e}')
-            return dest
+                    os.remove(zip_path)
+                except Exception:
+                    pass
+                return exe
+        except Exception as e:
+            log(f'Error extrayendo juego: {e}')
+        return zip_path
     except Exception as e:
         log(f'Error descargando juego: {e}')
     progress.close()
     return None
 
 
-def _make_dosz(zip_path):
-    """Convierte un zip de juego DOS a .dosz añadiendo un dosbox.conf que ejecuta el .exe."""
+def _find_game_exe(games_dir, base):
+    """Busca un .exe de juego ya extraído para la carpeta del juego."""
+    folder = os.path.join(games_dir, base)
+    if not os.path.isdir(folder):
+        return None
+    for root, dirs, files in os.walk(folder):
+        for f in files:
+            if f.lower().endswith('.exe') and _is_game_exe(f):
+                return os.path.join(root, f)
+    return None
+
+
+def _is_game_exe(filename):
+    """True si el .exe parece el del juego (no setup/install/help/etc.)."""
+    base = filename.lower()
+    return not any(k in base for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme'))
+
+
+def _extract_game(zip_path, games_dir, base):
+    """Extrae el zip y devuelve la ruta del .exe del juego."""
     import zipfile as _zf
+    extract_to = os.path.join(games_dir, base)
     try:
         with _zf.ZipFile(zip_path) as z:
-            names = z.namelist()
-            contents = {n: z.read(n) for n in names}
-        # buscar un .exe ejecutable (preferir el juego, evitar setup/install/help)
-        candidates = [n for n in names if n.lower().endswith('.exe')]
-        def exe_rank(n):
-            base = n.lower().rsplit('/', 1)[-1]
-            if any(k in base for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license')):
-                return 2
-            return 0
-        candidates.sort(key=exe_rank)
-        if not candidates:
-            return None
-        exe = candidates[0]
-        # montar c a la carpeta del exe (si está en subcarpeta) para que ejecute el exe directamente
-        if '/' in exe:
-            folder = exe.rsplit('/', 1)[0]
-            exe_path = exe.rsplit('/', 1)[1]
-            mount_cmd = f'mount c {folder}\n'
-        else:
-            folder = '.'
-            exe_path = exe
-            mount_cmd = 'mount c .\n'
-        conf = ('[sdl]\nfullscreen=false\n\n'
-                '[autoexec]\n'
-                + mount_cmd +
-                'c:\n'
-                f'{exe_path}\n'
-                'exit\n')
-        dosz_path = zip_path[:-4] + '.dosz'
-        with _zf.ZipFile(dosz_path, 'w', _zf.ZIP_DEFLATED) as dz:
-            for n in names:
-                dz.writestr(n, contents[n])
-            dz.writestr('dosbox.conf', conf)
-        return dosz_path
+            z.extractall(extract_to)
+        return _find_game_exe(games_dir, base)
     except Exception as e:
-        log(f'_make_dosz error: {e}')
+        log(f'_extract_game error: {e}')
         return None
 
 
