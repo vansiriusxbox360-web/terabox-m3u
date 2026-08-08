@@ -936,6 +936,12 @@ DOSBOX_EXE_CANDIDATES = [
     os.path.expandvars(r'%LOCALAPPDATA%\DOSBox\DOSBox.exe'),
 ]
 
+# Ciclos de CPU por juego (por fragmento del nombre) para los que van lentos
+GAME_CYCLES = {
+    'realms of chaos': 30000,
+    'oscar': 30000,
+}
+
 
 def _find_dosbox_exe():
     """Busca DOSBox.exe en el sistema."""
@@ -975,8 +981,13 @@ def _launch_game_external(exe_path, param):
         log(f'Juego con lanzador .BAT: {run_bat}')
     conf_path = game_dir + '.conf'
     try:
-        conf_lines = ['[sdl]', 'fullscreen=false', '',
-                      '[autoexec]', f'mount c {mount_root.replace(chr(92), "/")}', 'c:']
+        game_name = (param or '') + ' ' + os.path.basename(game_dir)
+        game_name = game_name.lower()
+        cycles = next((c for frag, c in GAME_CYCLES.items() if frag in game_name), None)
+        conf_lines = ['[sdl]', 'fullscreen=false', '']
+        if cycles:
+            conf_lines += ['[cpu]', f'cycles={cycles}', '']
+        conf_lines += ['[autoexec]', f'mount c {mount_root.replace(chr(92), "/")}', 'c:']
         conf_lines.append(to_run)
         conf_text = '\n'.join(conf_lines) + '\n'
         with open(conf_path, 'w', encoding='utf-8') as f:
