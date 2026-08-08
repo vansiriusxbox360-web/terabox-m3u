@@ -6,10 +6,6 @@ import os
 import json
 import time
 
-# Emulador MS-DOS necesario para los juegos de la carpeta "vicio"
-DOSBOX_ADDON = 'game.libretro.dosbox'
-REPOSITORY = 'repository.xbmc.org'
-
 # Datos compartidos con el addon principal
 MAIN_ADDON_ID = 'plugin.video.vansirius'
 MAIN_PROFILE = os.path.join(xbmcvfs.translatePath('special://masterprofile'), 'addon_data', MAIN_ADDON_ID)
@@ -89,39 +85,55 @@ def _track_playback():
         log(f'Error en seguimiento: {e}')
 
 
-def _ensure_dosbox():
-    """Comprueba e instala el emulador DOSBox si falta (para los juegos de 'vicio')."""
+DOSBOX_EXE_CANDIDATES = [
+    r'C:\Program Files\GR-lida\DOSBox\DOSBox.exe',
+    r'C:\Program Files (x86)\D-Fend Reloaded\DOSBox\DOSBox.exe',
+    r'C:\Program Files (x86)\DOSBox\DOSBox.exe',
+    r'C:\Program Files\DOSBox\DOSBox.exe',
+    r'C:\DOSBox\DOSBox.exe',
+    os.path.expandvars(r'%LOCALAPPDATA%\DOSBox\DOSBox.exe'),
+]
+
+
+def _find_dosbox_exe():
+    """Busca el DOSBox.exe externo de Windows (con el que se lanzan los juegos)."""
+    for c in DOSBOX_EXE_CANDIDATES:
+        if os.path.exists(c):
+            return c
+    import shutil
     try:
-        # Habilitar el sistema de juegos de Kodi (RetroPlayer)
-        try:
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue","params":{"setting":"games.enable","value":true}}')
-        except Exception:
-            pass
-        # Desinstalar DOSBox Pure si está presente (roto/compite con game.libretro.dosbox)
-        try:
-            xbmcaddon.Addon('game.libretro.dosbox-pure')
-            log('Desinstalando game.libretro.dosbox-pure (roto o conflictivo)...')
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.UninstallAddon","params":{"addonid":"game.libretro.dosbox-pure"}}')
-            xbmc.executebuiltin('UninstallAddon(game.libretro.dosbox-pure)')
-        except Exception:
-            pass
-        # Comprobar si DOSBox ya está instalado
-        try:
-            addon = xbmcaddon.Addon(DOSBOX_ADDON)
-            log(f'DOSBox ya instalado (v{addon.getAddonInfo("version")})')
-            return
-        except Exception:
-            pass
-        # Asegurar que el repositorio oficial está presente
-        try:
-            xbmcaddon.Addon(REPOSITORY)
-        except Exception:
-            log('Repositorio oficial no encontrado. Se intentará instalar DOSBox igualmente.')
-        log('Instalando DOSBox (game.libretro.dosbox)...')
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.InstallAddon","params":{"addonid":"' + DOSBOX_ADDON + '"}}')
-        xbmc.executebuiltin('InstallAddon(' + DOSBOX_ADDON + ')')
+        p = shutil.which('dosbox') or shutil.which('DOSBox')
+        if p:
+            return p
+    except Exception:
+        pass
+    return None
+
+
+def _ensure_dosbox():
+    """Comprueba el DOSBox.exe externo necesario para los juegos de 'vicio'.
+
+    Los juegos se lanzan con DOSBox.exe de Windows (ventana nativa), no con el
+    core libretro, así que aquí NO se instala ningún addon en caliente (eso
+    crasheaba Kodi). Solo se avisa si falta el ejecutable.
+    """
+    try:
+        if _find_dosbox_exe():
+            log('DOSBox.exe externo encontrado')
+            return True
+        log('DOSBox.exe externo NO encontrado en el sistema')
+        xbmcgui.Dialog().ok(
+            'Juegos (DOSBox)',
+            'No se ha encontrado DOSBox en el sistema.\n\n'
+            'Los juegos se abren con DOSBox de Windows (ventana nativa).\n'
+            'Instala uno (p.ej. D-Fend Reloaded o DOSBox 0.74) y vuelve\n'
+            'a intentarlo.\n\n'
+            'Rutas buscadas:\n' + '\n'.join(DOSBOX_EXE_CANDIDATES)
+        )
+        return False
     except Exception as e:
         log(f'Error asegurando DOSBox: {e}')
+        return False
 
 
 def _show_dosbox_tips():

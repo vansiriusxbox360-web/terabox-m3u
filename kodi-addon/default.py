@@ -794,36 +794,22 @@ def refresh_link(path, fs_id=None, force=False):
 
 
 def is_dosbox_installed():
-    """True si el emulador DOSBox está instalado en Kodi."""
+    """True si existe el DOSBox.exe externo de Windows (con el que se lanzan los juegos)."""
     try:
-        import xbmcaddon as _xa
-        _xa.Addon('game.libretro.dosbox')
-        return True
+        return bool(_find_dosbox_exe())
     except Exception:
         return False
 
 
 def ensure_dosbox():
-    """Instala DOSBox si falta y avisa al usuario."""
+    """Comprueba el DOSBox.exe externo y avisa si falta (no instala addons en caliente)."""
     if is_dosbox_installed():
         return True
-    try:
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.InstallAddon","params":{"addonid":"game.libretro.dosbox"}}')
-        xbmc.executebuiltin('InstallAddon(game.libretro.dosbox)')
-        xbmcgui.Dialog().ok('DOSBox',
-                            'El emulador DOSBox se está instalando.\n\n'
-                            'Es necesario para los juegos de MS-DOS.\n'
-                            'Cuando termine, vuelve a entrar en el juego.\n\n'
-                            'Si no se instala solo, instala el repositorio\n'
-                            'oficial de Kodi y prueba de nuevo.')
-        return False
-    except Exception as e:
-        log(f'Error instalando DOSBox: {e}')
-        xbmcgui.Dialog().ok('DOSBox',
-                            'No se pudo instalar DOSBox automáticamente.\n\n'
-                            'Instálalo a mano: Ajustes > Addons > Buscar >\n'
-                            '"game.libretro.dosbox"')
-        return False
+    xbmcgui.Dialog().ok('DOSBox',
+                        'No se ha encontrado DOSBox en el sistema.\n\n'
+                        'Los juegos se abren con DOSBox de Windows (ventana nativa).\n'
+                        'Instala uno (p.ej. D-Fend Reloaded o DOSBox 0.74).')
+    return False
 
 
 def _download_game(url, filename):
