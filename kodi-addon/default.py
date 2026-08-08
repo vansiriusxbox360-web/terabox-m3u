@@ -426,21 +426,24 @@ def folder_icon(current_path='', sibling_idx=0):
 
 WELCOME_FLAG = os.path.join(xbmcvfs.translatePath('special://masterprofile/addon_data/plugin.video.vansirius'), '.welcome_shown')
 
+# Tamaño de la caché de streaming en bytes (256 MB)
+CACHE_SIZE_BYTES = 268435456
 
-def _cache_150mb_activa():
-    """True si advancedsettings.xml tiene configurada la caché de 150 MB."""
+
+def _cache_activa():
+    """True si advancedsettings.xml tiene configurada la caché de streaming."""
     try:
         advanced_xml = os.path.join(xbmcvfs.translatePath('special://masterprofile/'), 'advancedsettings.xml')
         if not os.path.exists(advanced_xml):
             return False
         with open(advanced_xml, 'r', encoding='utf-8') as f:
-            return '157286400' in f.read()
+            return str(CACHE_SIZE_BYTES) in f.read()
     except Exception:
         return False
 
 
 def show_welcome():
-    """Cuadro de bienvenida único y, si hace falta, aviso para reactivar la caché de 150 MB."""
+    """Cuadro de bienvenida único y, si hace falta, aviso para reactivar la caché de 256 MB."""
     try:
         os.makedirs(os.path.dirname(WELCOME_FLAG), exist_ok=True)
         frase = ('Ooooohh buenos días... que bueno que vinihte, pasa, pasa...\n'
@@ -462,27 +465,27 @@ def show_welcome():
                             f'{frase}\n\n'
                             f'Creado por VanSirius · v{version} · {fecha}\n'
                             f'Que lo disfrutes. 🙏')
-        if not _cache_150mb_activa():
+        if not _cache_activa():
             if xbmcgui.Dialog().yesno(
                 'Caché de streaming',
-                'Al reinstalar el addon/Kodi se pierde la caché de 150 MB,\n'
+                'Al reinstalar el addon/Kodi se pierde la caché de 256 MB,\n'
                 'y las películas se paran mucho.\n\n'
-                '¿Activar la caché de 150 MB ahora?',
+                '¿Activar la caché de 256 MB ahora?',
                 yeslabel='Sí, activar',
                 nolabel='Ahora no'
             ):
                 try:
-                    contenido = '''<advancedsettings>
+                    contenido = f'''<advancedsettings>
   <cache>
     <buffermode>1</buffermode>
-    <memorysize>157286400</memorysize>
-    <cachemembuffersize>157286400</cachemembuffersize>
+    <memorysize>{CACHE_SIZE_BYTES}</memorysize>
+    <cachemembuffersize>{CACHE_SIZE_BYTES}</cachemembuffersize>
     <readfactor>20</readfactor>
   </cache>
 </advancedsettings>'''
                     with open(os.path.join(xbmcvfs.translatePath('special://masterprofile/'), 'advancedsettings.xml'), 'w', encoding='utf-8') as f:
                         f.write(contenido)
-                    xbmcgui.Dialog().ok('Hecho', 'Caché de 150 MB activada.\n\nReinicia Kodi para aplicar.')
+                    xbmcgui.Dialog().ok('Hecho', 'Caché de 256 MB activada.\n\nReinicia Kodi para aplicar.')
                 except Exception as e:
                     log(f'Error escribiendo caché: {e}')
     except Exception as e:
@@ -1393,24 +1396,24 @@ def router(paramstring):
         else:
             if xbmcgui.Dialog().yesno(
                 'Caché optimizado',
-                '¿Activar caché de 150 MB para\nmejorar el streaming?\n\n'
+                '¿Activar caché de 256 MB para\nmejorar el streaming?\n\n'
                 'Reduce cortes y buffering.\nSe creará advancedsettings.xml.\n\n'
                 '¿Continuar?',
                 yeslabel='Sí, activar',
                 nolabel='No'
             ):
-                contenido = '''<advancedsettings>
+                contenido = f'''<advancedsettings>
   <cache>
     <buffermode>1</buffermode>
-    <memorysize>157286400</memorysize>
-    <cachemembuffersize>157286400</cachemembuffersize>
+    <memorysize>{CACHE_SIZE_BYTES}</memorysize>
+    <cachemembuffersize>{CACHE_SIZE_BYTES}</cachemembuffersize>
     <readfactor>20</readfactor>
   </cache>
 </advancedsettings>'''
                 try:
                     with open(advanced_xml, 'w', encoding='utf-8') as f:
                         f.write(contenido)
-                    xbmcgui.Dialog().ok('Hecho', 'advancedsettings.xml creado con\ncaché de 150 MB optimizado.\n\nReinicia Kodi para aplicar.')
+                    xbmcgui.Dialog().ok('Hecho', 'advancedsettings.xml creado con\ncaché de 256 MB optimizado.\n\nReinicia Kodi para aplicar.')
                 except Exception as e:
                     xbmcgui.Dialog().ok('Error', f'No se pudo escribir:\n{e}')
             xbmcplugin.endOfDirectory(HANDLE)
