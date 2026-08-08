@@ -456,6 +456,8 @@ def show_welcome():
                 'Caché de streaming',
                 'Para una mejor experiencia, se recomienda activar\n'
                 'la caché de 256 MB (evita cortes y buffering).\n\n'
+                'También tienes juegos MS-DOS disponibles:\n'
+                'actívalos en Ajustes > "Juegos (DOSBox)".\n\n'
                 '¿Activar la caché de 256 MB ahora?',
                 yeslabel='Sí, activar',
                 nolabel='Ahora no'

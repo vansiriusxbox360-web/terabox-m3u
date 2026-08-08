@@ -124,6 +124,24 @@ def _ensure_dosbox():
         log(f'Error asegurando DOSBox: {e}')
 
 
+def _show_dosbox_tips():
+    """Instrucciones útiles de DOSBox tras activarlo."""
+    try:
+        xbmcgui.Dialog().ok(
+            'Juegos (DOSBox)',
+            'DOSBox activado. Los juegos están en la sección Vicio.\n\n'
+            'Atajos de DOSBox:\n'
+            '  Ctrl+F9  = Cerrar DOSBox / salir del juego\n'
+            '  Alt+Enter = Pantalla completa / ventana\n'
+            '  Ctrl+F10 = Capturar / soltar el ratón\n'
+            '  Ctrl+F5  = Guardar captura de pantalla\n\n'
+            'Si un juego va lento, presiona Ctrl+F11 (baja velocidad)\n'
+            'o Ctrl+F12 (súbela).'
+        )
+    except Exception as e:
+        log(f'Error mostrando tips DOSBox: {e}')
+
+
 def _confirm_games_enable():
     """Pide confirmación al activar el switch de juegos; si se acepta, instala DOSBox."""
     try:
@@ -140,6 +158,7 @@ def _confirm_games_enable():
             xbmcgui.Dialog().ok('Juegos', 'Juegos desactivados.\nPuedes activarlos de nuevo desde Ajustes.')
             return
         _ensure_dosbox()
+        _show_dosbox_tips()
     except Exception as e:
         log(f'Error confirmando juegos: {e}')
 
