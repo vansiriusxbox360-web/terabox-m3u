@@ -901,12 +901,23 @@ def play_video(param, start=None, is_game=False):
         # y elija DOSBox (supports_vfs=false requiere archivo local de verdad)
         if not url.startswith('file://') and not url.startswith('http'):
             url = 'file:///' + url.replace('\\', '/')
-        # Lanzar el juego con PlayMedia
+        # Abrir con el emulador DOSBox explícito (Player.Open + gameclient)
         try:
-            xbmc.executebuiltin(f'PlayMedia("{url}")')
-            log(f'Juego lanzado con PlayMedia: {url}')
+            payload = json.dumps({
+                'jsonrpc': '2.0',
+                'id': 1,
+                'method': 'Player.Open',
+                'params': {'item': {'file': url, 'gameclient': 'game.libretro.dosbox'}}
+            })
+            result = xbmc.executeJSONRPC(payload)
+            log(f'Juego abierto con DOSBox (Player.Open): {result}')
         except Exception as e:
-            log(f'Error PlayMedia: {e}')
+            log(f'Error Player.Open juego: {e}')
+            # fallback: PlayMedia
+            try:
+                xbmc.executebuiltin(f'PlayMedia("{url}")')
+            except Exception as e2:
+                log(f'Error PlayMedia fallback: {e2}')
         # Resolver igualmente para completar la invocación del plugin
         xbmcplugin.setContent(HANDLE, 'games')
         li = xbmcgui.ListItem(path=url)
