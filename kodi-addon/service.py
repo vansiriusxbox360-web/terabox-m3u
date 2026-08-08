@@ -1,8 +1,13 @@
 import xbmc
+import xbmcaddon
 import xbmcvfs
 import os
 import json
 import time
+
+# Emulador MS-DOS necesario para los juegos de la carpeta "vicio"
+DOSBOX_ADDON = 'game.libretro.dosbox'
+REPOSITORY = 'repository.xbmc.org'
 
 # Datos compartidos con el addon principal
 MAIN_ADDON_ID = 'plugin.video.vansirius'
@@ -83,9 +88,37 @@ def _track_playback():
         log(f'Error en seguimiento: {e}')
 
 
+def _ensure_dosbox():
+    """Comprueba e instala el emulador DOSBox si falta (para los juegos de 'vicio')."""
+    try:
+        # Habilitar el sistema de juegos de Kodi (RetroPlayer)
+        try:
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Settings.SetSettingValue","params":{"setting":"games.enable","value":true}}')
+        except Exception:
+            pass
+        # Comprobar si DOSBox ya está instalado
+        try:
+            addon = xbmcaddon.Addon(DOSBOX_ADDON)
+            log(f'DOSBox ya instalado (v{addon.getAddonInfo("version")})')
+            return
+        except Exception:
+            pass
+        # Asegurar que el repositorio oficial está presente
+        try:
+            xbmcaddon.Addon(REPOSITORY)
+        except Exception:
+            log('Repositorio oficial no encontrado. Se intentará instalar DOSBox igualmente.')
+        log('Instalando DOSBox (game.libretro.dosbox)...')
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.InstallAddon","params":{"addonid":"' + DOSBOX_ADDON + '"}}')
+        xbmc.executebuiltin('InstallAddon(' + DOSBOX_ADDON + ')')
+    except Exception as e:
+        log(f'Error asegurando DOSBox: {e}')
+
+
 def run():
     log('Servicio tracker iniciado')
     monitor = xbmc.Monitor()
+    _ensure_dosbox()
     try:
         while not monitor.abortRequested():
             if monitor.waitForAbort(0.15):

@@ -482,6 +482,12 @@ def list_folder(data, path):
     for part in parts:
         node = node.get(part, {})
 
+    # En la sección de juegos (vicio), asegurar que DOSBox está instalado
+    if parts and parts[0].lower() == 'vicio' and any(
+        s.get('isGame') for g in node.get('_groups', []) for s in g.get('stations', [])
+    ):
+        ensure_dosbox()
+
     for group in node.get('_groups', []):
         group_icon = group.get('image')
         group_name = group.get('name', '')
@@ -715,6 +721,39 @@ def refresh_link(path, fs_id=None, force=False):
     except Exception as e:
         log(f'Refresh error: {e}')
     return None
+
+
+def is_dosbox_installed():
+    """True si el emulador DOSBox está instalado en Kodi."""
+    try:
+        import xbmcaddon as _xa
+        _xa.Addon('game.libretro.dosbox')
+        return True
+    except Exception:
+        return False
+
+
+def ensure_dosbox():
+    """Instala DOSBox si falta y avisa al usuario."""
+    if is_dosbox_installed():
+        return True
+    try:
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.InstallAddon","params":{"addonid":"game.libretro.dosbox"}}')
+        xbmc.executebuiltin('InstallAddon(game.libretro.dosbox)')
+        xbmcgui.Dialog().ok('DOSBox',
+                            'El emulador DOSBox se está instalando.\n\n'
+                            'Es necesario para los juegos de MS-DOS.\n'
+                            'Cuando termine, vuelve a entrar en el juego.\n\n'
+                            'Si no se instala solo, instala el repositorio\n'
+                            'oficial de Kodi y prueba de nuevo.')
+        return False
+    except Exception as e:
+        log(f'Error instalando DOSBox: {e}')
+        xbmcgui.Dialog().ok('DOSBox',
+                            'No se pudo instalar DOSBox automáticamente.\n\n'
+                            'Instálalo a mano: Ajustes > Addons > Buscar >\n'
+                            '"game.libretro.dosbox"')
+        return False
 
 
 def play_video(param, start=None, is_game=False):
