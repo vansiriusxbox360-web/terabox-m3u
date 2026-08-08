@@ -749,6 +749,15 @@ const FILE_POSTER_URLS = {
   'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
   'Fallout': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/fallout1.jpg',
   'Hocus': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hocus_pocus.jpg',
+  'Bio Menace': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bio_menace.jpg',
+  'Death Rally': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/death_rally.png',
+  'Duke Nukem II': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/duke_nukem2.jpg',
+  'Jazz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jazz.jpg',
+  'Monster Bash': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/monster_bash.jpg',
+  'Oscar': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/oscar.jpg',
+  'Realms of Chaos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/realms_of_chaos.jpg',
+  'Secret Agent': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/secret_agent.png',
+  'Trivia Whiz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/trivia_whiz.webp',
   'El Castillo en el cielo - Tenk\u016b no Shiro Laputa': 'https://i.pinimg.com/736x/62/a4/5e/62a45e0d133af9fded1b20796f881f86.jpg',
 };
 
