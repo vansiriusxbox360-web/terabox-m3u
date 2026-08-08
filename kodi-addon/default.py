@@ -867,6 +867,65 @@ def _extract_game(zip_path, extract_to):
         return None
 
 
+DOSBOX_EXE_CANDIDATES = [
+    r'C:\Program Files\GR-lida\DOSBox\DOSBox.exe',
+    r'C:\Program Files (x86)\D-Fend Reloaded\DOSBox\DOSBox.exe',
+    r'C:\Program Files (x86)\DOSBox\DOSBox.exe',
+    r'C:\Program Files\DOSBox\DOSBox.exe',
+    r'C:\DOSBox\DOSBox.exe',
+    os.path.expandvars(r'%LOCALAPPDATA%\DOSBox\DOSBox.exe'),
+]
+
+
+def _find_dosbox_exe():
+    """Busca DOSBox.exe en el sistema."""
+    for c in DOSBOX_EXE_CANDIDATES:
+        if os.path.exists(c):
+            return c
+    # búsqueda por ruta
+    try:
+        import shutil
+        p = shutil.which('dosbox') or shutil.which('DOSBox')
+        if p:
+            return p
+    except Exception:
+        pass
+    return None
+
+
+def _launch_game_external(exe_path, param):
+    """Lanza DOSBox.exe externo con un .conf que monta y ejecuta el juego. Devuelve True si se lanzó."""
+    import subprocess as _sp
+    dosbox = _find_dosbox_exe()
+    if not dosbox:
+        log('DOSBox.exe no encontrado en el sistema')
+        return False
+    if not exe_path or not os.path.exists(exe_path):
+        log(f'Juego no encontrado: {exe_path}')
+        return False
+    game_dir = os.path.dirname(exe_path)
+    exe_name = os.path.basename(exe_path)
+    # .conf temporal para DOSBox.exe (montar la carpeta y ejecutar)
+    conf_path = game_dir + '.conf'
+    try:
+        conf_text = ('[sdl]\nfullscreen=false\n\n'
+                     '[autoexec]\n'
+                     f'mount c {game_dir.replace(chr(92), "/")}\n'
+                     'c:\n'
+                     f'{exe_name}\n'
+                     'exit\n')
+        with open(conf_path, 'w', encoding='utf-8') as f:
+            f.write(conf_text)
+        _sp.Popen([dosbox, conf_path],
+                  stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
+                  creationflags=0x08000000)
+        log(f'DOSBox externo lanzado: {exe_name}')
+        return True
+    except Exception as e:
+        log(f'Error lanzando DOSBox: {e}')
+        return False
+
+
 def play_video(param, start=None, is_game=False):
     """Reproduce refrescando el enlace con el path, o directo si es URL. Los juegos se descargan a local."""
     url = param
@@ -895,27 +954,13 @@ def play_video(param, start=None, is_game=False):
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
-        # Convierte la ruta local a file:// (barras normales) para que Kodi la trate como archivo local
-        if not url.startswith('file://') and not url.startswith('http'):
-            url = 'file:///' + url.replace('\\', '/')
-        # Resolver el item como juego con el gameclient DOSBox en el InfoTagGame
-        xbmcplugin.setContent(HANDLE, 'games')
+        # Lanzar el juego con DOSBox externo de Windows (ventana nativa)
+        launched = _launch_game_external(url, param)
+        if not launched:
+            xbmcgui.Dialog().notification('VanSirius', 'No se pudo lanzar DOSBox', xbmcgui.NOTIFICATION_ERROR)
+        # Resolver igualmente para salir del spinner de Kodi
         li = xbmcgui.ListItem(path=url)
         li.setProperty('IsPlayable', 'true')
-        try:
-            game = li.getGameInfoTag()
-            game.setTitle(param.rsplit('/', 1)[-1] if param else 'Juego')
-            game.setPlatform('DOS')
-            game.setGenres(['MS-DOS'])
-            game.setGameClient('game.libretro.dosbox')
-            log('InfoTagGame configurado con gameclient=dosbox')
-        except Exception as e:
-            log(f'InfoTagGame error: {e}')
-            # fallback: setInfo game (antigua API)
-            try:
-                li.setInfo('game', {'title': (param.rsplit('/', 1)[-1] if param else 'Juego'), 'gameclient': 'game.libretro.dosbox'})
-            except Exception:
-                pass
         xbmcplugin.setResolvedUrl(HANDLE, True, li)
         return
     li = xbmcgui.ListItem(path=url)
