@@ -756,8 +756,58 @@ def ensure_dosbox():
         return False
 
 
+def _download_game(url, filename):
+    """Descarga un juego (zip) a local y devuelve la ruta, para que RetroPlayer lo reconozca."""
+    if not url:
+        return None
+    games_dir = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'games')
+    try:
+        os.makedirs(games_dir, exist_ok=True)
+    except Exception:
+        pass
+    # nombre de archivo seguro
+    safe = re.sub(r'[^\w.\-]+', '_', filename or 'juego.zip')
+    if not safe.lower().endswith(('.zip', '.dosz', '.exe', '.com')):
+        safe += '.zip'
+    dest = os.path.join(games_dir, safe)
+    # si ya existe, reutilizar
+    if os.path.exists(dest) and os.path.getsize(dest) > 0:
+        return dest
+    progress = xbmcgui.DialogProgress()
+    progress.create('VanSirius', f'Descargando {filename}...')
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
+        resp = urllib.request.urlopen(req, timeout=300)
+        total = int(resp.headers.get('Content-Length', 0))
+        data = b''
+        read = 0
+        while True:
+            chunk = resp.read(65536)
+            if not chunk:
+                break
+            data += chunk
+            read += len(chunk)
+            if total > 0:
+                pct = int(read * 100 / total)
+                progress.update(pct, f'{read // 1024}KB / {total // 1024}KB')
+            else:
+                progress.update(0, f'{read // 1024}KB')
+            if progress.iscanceled():
+                progress.close()
+                return None
+        progress.close()
+        if data:
+            with open(dest, 'wb') as f:
+                f.write(data)
+            return dest
+    except Exception as e:
+        log(f'Error descargando juego: {e}')
+    progress.close()
+    return None
+
+
 def play_video(param, start=None, is_game=False):
-    """Reproduce refrescando el enlace con el path, o directo si es URL."""
+    """Reproduce refrescando el enlace con el path, o directo si es URL. Los juegos se descargan a local."""
     url = param
     if param and not param.startswith('http'):
         fresh = refresh_link(param)
@@ -775,10 +825,19 @@ def play_video(param, start=None, is_game=False):
                 json.dump({'path': param if param and not param.startswith('http') else '', 'name': name, 'ts': time.time()}, f)
         except Exception as e:
             log(f'Error now_playing: {e}')
+    else:
+        # Juego: descargar a local para que RetroPlayer lo reconozca por la extensión
+        filename = param.rsplit('/', 1)[-1] if param else 'juego.zip'
+        local = _download_game(url, filename)
+        if local:
+            url = local
+        else:
+            xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
     if is_game:
         li.setProperty('GamePath', url)
+        li.setInfo('game', {'title': (param.rsplit('/', 1)[-1] if param else 'Juego')})
     # Reanudar desde donde se quedó (continuar viendo)
     if start and not is_game:
         try:
@@ -1008,7 +1067,11 @@ def router(paramstring):
         return
 
     log(f'Action: {action}, Path: "{path}"')
-    xbmcplugin.setContent(HANDLE, 'tvshows')
+    # La sección de juegos (vicio) usa content type 'games' para que Kodi lo abra con RetroPlayer
+    if action == 'folder' and path.strip().lower().split('/')[0] == 'vicio':
+        xbmcplugin.setContent(HANDLE, 'games')
+    else:
+        xbmcplugin.setContent(HANDLE, 'tvshows')
 
     if action == 'root':
         list_root(data)
