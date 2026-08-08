@@ -96,8 +96,8 @@ function isVideoFile(filename) {
   return VIDEO_EXTENSIONS.includes(ext);
 }
 
-// Extensiones de juegos de MS-DOS (carpeta "vicio") que RetroPlayer/DOSBox puede abrir
-const GAME_EXTENSIONS = ['.zip', '.dosz', '.exe', '.com'];
+// Extensiones de juegos de MS-DOS (carpeta "vicio") que DOSBox externo puede abrir
+const GAME_EXTENSIONS = ['.zip', '.dosz', '.exe', '.com', '.7z'];
 const GAME_ROOT_FOLDER = 'vicio';
 
 function isGameFile(filename) {

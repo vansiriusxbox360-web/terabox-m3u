@@ -782,10 +782,13 @@ def _download_game(url, filename):
         os.makedirs(games_dir, exist_ok=True)
     except Exception:
         pass
-    # nombre base seguro
+    # nombre base seguro y extensión real
     safe = re.sub(r'[^\w.\-]+', '_', filename or 'juego.zip')
+    ext_real = os.path.splitext(filename)[1].lower() if filename else '.zip'
+    if ext_real not in ('.zip', '.7z', '.dosz', '.exe', '.com'):
+        ext_real = '.zip'
     base = os.path.splitext(safe)[0]
-    zip_path = os.path.join(games_dir, base + '.zip')
+    file_path = os.path.join(games_dir, base + ext_real)
     extract_to = os.path.join(games_dir, base)
 
     # si ya hay un .exe extraído, reutilizar (y asegurar el .sav precargado)
@@ -819,20 +822,20 @@ def _download_game(url, filename):
         progress.close()
         if not data:
             return None
-        with open(zip_path, 'wb') as f:
+        with open(file_path, 'wb') as f:
             f.write(data)
         # extraer y devolver el exe
         try:
-            exe = _extract_game(zip_path, extract_to)
+            exe = _extract_game(file_path, extract_to)
             if exe:
                 try:
-                    os.remove(zip_path)
+                    os.remove(file_path)
                 except Exception:
                     pass
                 return exe
         except Exception as e:
             log(f'Error extrayendo juego: {e}')
-        return zip_path
+        return file_path
     except Exception as e:
         log(f'Error descargando juego: {e}')
     progress.close()
@@ -860,19 +863,40 @@ def _find_game_exe(extract_to):
 GAME_SAVES_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/game-saves'
 
 
-def _extract_game(zip_path, extract_to):
-    """Extrae el zip (subiendo una unica carpeta raiz), coloca el .sav precargado si existe, y devuelve el .exe."""
+def _extract_game(file_path, extract_to):
+    """Extrae el juego (zip o 7z), sube una unica carpeta raiz, precarga el .sav, y devuelve el .exe."""
     import zipfile as _zf
+    import shutil
     try:
-        with _zf.ZipFile(zip_path) as z:
-            names = z.namelist()
-            z.extractall(extract_to)
+        if file_path.lower().endswith('.7z'):
+            # usar 7-Zip del sistema
+            sevenzip = None
+            for cand in [r'C:\Program Files\7-Zip\7z.exe', r'C:\Program Files (x86)\7-Zip\7z.exe']:
+                if os.path.exists(cand):
+                    sevenzip = cand
+                    break
+            if not sevenzip:
+                log('7-Zip no encontrado para extraer .7z')
+                return None
+            import subprocess as _sp
+            r = _sp.run([sevenzip, 'x', file_path, f'-o{extract_to}', '-y'],
+                        capture_output=True, text=True, creationflags=0x08000000)
+            if r.returncode != 0:
+                log(f'7z error: {r.stderr[:100]}')
+                return None
+            root_dirs = set()
+            for root, dirs, files in os.walk(extract_to):
+                root_dirs.add(os.path.relpath(root, extract_to).split(os.sep)[0])
+                break
+        else:
+            with _zf.ZipFile(file_path) as z:
+                names = z.namelist()
+                z.extractall(extract_to)
+            root_dirs = set(n.split('/')[0] for n in names if '/' in n)
         # si hay una unica carpeta raiz, subir su contenido
-        root_dirs = set(n.split('/')[0] for n in names if '/' in n)
         if len(root_dirs) == 1 and os.path.isdir(os.path.join(extract_to, next(iter(root_dirs)))):
             inner = os.path.join(extract_to, next(iter(root_dirs)))
             if os.listdir(extract_to) == [next(iter(root_dirs))]:
-                import shutil
                 for f in os.listdir(inner):
                     shutil.move(os.path.join(inner, f), os.path.join(extract_to, f))
                 os.rmdir(inner)
