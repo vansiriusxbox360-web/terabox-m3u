@@ -541,7 +541,13 @@ def list_folder(data, path):
             if icon:
                 li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
             li.setProperty('IsPlayable', 'true')
-            li.setInfo('video', {'title': name})
+            if is_game:
+                try:
+                    li.setInfo('game', {'title': name, 'platform': 'DOS'})
+                except Exception:
+                    li.setInfo('video', {'title': name})
+            else:
+                li.setInfo('video', {'title': name})
             add_fav_context_menu(li, name)
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
 
@@ -799,11 +805,64 @@ def _download_game(url, filename):
         if data:
             with open(dest, 'wb') as f:
                 f.write(data)
+            # Si es un zip, convertirlo a .dosz (formato DOSBox de Kodi) con un dosbox.conf
+            if dest.lower().endswith('.zip'):
+                try:
+                    dosz = _make_dosz(dest)
+                    if dosz:
+                        os.remove(dest)
+                        return dosz
+                except Exception as e:
+                    log(f'Error convirtiendo a dosz: {e}')
             return dest
     except Exception as e:
         log(f'Error descargando juego: {e}')
     progress.close()
     return None
+
+
+def _make_dosz(zip_path):
+    """Convierte un zip de juego DOS a .dosz añadiendo un dosbox.conf que ejecuta el .exe."""
+    import zipfile as _zf
+    try:
+        with _zf.ZipFile(zip_path) as z:
+            names = z.namelist()
+            contents = {n: z.read(n) for n in names}
+        # buscar un .exe ejecutable (preferir el juego, evitar setup/install/help)
+        candidates = [n for n in names if n.lower().endswith('.exe')]
+        def exe_rank(n):
+            base = n.lower().rsplit('/', 1)[-1]
+            if any(k in base for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license')):
+                return 2
+            return 0
+        candidates.sort(key=exe_rank)
+        if not candidates:
+            return None
+        exe = candidates[0]
+        # montar c a la carpeta del exe (si está en subcarpeta) para que ejecute el exe directamente
+        if '/' in exe:
+            folder = exe.rsplit('/', 1)[0]
+            exe_path = exe.rsplit('/', 1)[1]
+            mount_cmd = f'mount c {folder}\n'
+        else:
+            folder = '.'
+            exe_path = exe
+            mount_cmd = 'mount c .\n'
+        conf = ('[sdl]\nfullscreen=false\n\n'
+                '[autoexec]\n'
+                + mount_cmd +
+                'c:\n'
+                f'{exe_path}\n'
+                'exit\n')
+        dosz_path = zip_path[:-4] + '.dosz'
+        with _zf.ZipFile(dosz_path, 'w', _zf.ZIP_DEFLATED) as dz:
+            for n in names:
+                dz.writestr(n, contents[n])
+            dz.writestr('dosbox.conf', conf)
+        return dosz_path
+    except Exception as e:
+        log(f'_make_dosz error: {e}')
+        return None
 
 
 def play_video(param, start=None, is_game=False):
