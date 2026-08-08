@@ -763,7 +763,7 @@ def ensure_dosbox():
 
 
 def _download_game(url, filename):
-    """Descarga un juego (zip), lo extrae y crea un .conf que DOSBox (game.libretro.dosbox) abre."""
+    """Descarga un juego (zip), lo extrae y devuelve la ruta del .exe (DOSBox standalone lo monta)."""
     if not url:
         return None
     games_dir = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'games')
@@ -775,11 +775,12 @@ def _download_game(url, filename):
     safe = re.sub(r'[^\w.\-]+', '_', filename or 'juego.zip')
     base = os.path.splitext(safe)[0]
     zip_path = os.path.join(games_dir, base + '.zip')
-    conf_path = os.path.join(games_dir, base + '.conf')
+    extract_to = os.path.join(games_dir, base)
 
-    # si ya existe el .conf, reutilizar
-    if os.path.exists(conf_path) and os.path.getsize(conf_path) > 0:
-        return conf_path
+    # si ya hay un .exe extraído, reutilizar
+    exe = _find_game_exe(extract_to)
+    if exe:
+        return exe
 
     progress = xbmcgui.DialogProgress()
     progress.create('VanSirius', f'Descargando {filename}...')
@@ -808,17 +809,17 @@ def _download_game(url, filename):
             return None
         with open(zip_path, 'wb') as f:
             f.write(data)
-        # extraer y crear el .conf
+        # extraer y devolver el exe
         try:
-            conf = _make_game_conf(zip_path, games_dir, base, conf_path)
-            if conf:
+            exe = _extract_game(zip_path, extract_to)
+            if exe:
                 try:
                     os.remove(zip_path)
                 except Exception:
                     pass
-                return conf
+                return exe
         except Exception as e:
-            log(f'Error creando conf del juego: {e}')
+            log(f'Error extrayendo juego: {e}')
         return zip_path
     except Exception as e:
         log(f'Error descargando juego: {e}')
@@ -826,10 +827,27 @@ def _download_game(url, filename):
     return None
 
 
-def _make_game_conf(zip_path, games_dir, base, conf_path):
-    """Extrae el juego a games/<base>/ y crea un .conf que DOSBox monta y ejecuta."""
+def _find_game_exe(extract_to):
+    """Busca el .exe del juego en la carpeta extraída (evitando setup/install/etc.)."""
+    if not os.path.isdir(extract_to):
+        return None
+    exes = []
+    for root, dirs, files in os.walk(extract_to):
+        for f in files:
+            if f.lower().endswith('.exe'):
+                exes.append(os.path.join(root, f))
+    def exe_rank(p):
+        base_n = os.path.basename(p).lower()
+        if any(k in base_n for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme', '__hpgrvs')):
+            return 2
+        return 0
+    exes.sort(key=exe_rank)
+    return exes[0] if exes else None
+
+
+def _extract_game(zip_path, extract_to):
+    """Extrae el zip (subiendo una unica carpeta raiz) y devuelve la ruta del .exe."""
     import zipfile as _zf
-    extract_to = os.path.join(games_dir, base)
     try:
         with _zf.ZipFile(zip_path) as z:
             names = z.namelist()
@@ -843,37 +861,9 @@ def _make_game_conf(zip_path, games_dir, base, conf_path):
                 for f in os.listdir(inner):
                     shutil.move(os.path.join(inner, f), os.path.join(extract_to, f))
                 os.rmdir(inner)
-        # elegir el .exe del juego
-        exes = []
-        for root, dirs, files in os.walk(extract_to):
-            for f in files:
-                if f.lower().endswith('.exe'):
-                    exes.append(os.path.join(root, f))
-        def exe_rank(p):
-            base_n = os.path.basename(p).lower()
-            if any(k in base_n for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme', '__hpgrvs')):
-                return 2
-            return 0
-        exes.sort(key=exe_rank)
-        if not exes:
-            return None
-        exe = exes[0]
-        game_dir = os.path.dirname(exe)
-        exe_name = os.path.basename(exe)
-        # .conf de DOSBox: montar la carpeta del juego y ejecutar
-        mount_target = game_dir.replace('\\', '/')
-        conf_text = ('[sdl]\nfullscreen=false\n\n'
-                     '[autoexec]\n'
-                     f'mount c {mount_target}\n'
-                     'c:\n'
-                     f'{exe_name}\n'
-                     'exit\n')
-        with open(conf_path, 'w', encoding='utf-8') as f:
-            f.write(conf_text)
-        log(f'conf creado: {conf_path}')
-        return conf_path
+        return _find_game_exe(extract_to)
     except Exception as e:
-        log(f'_make_game_conf error: {e}')
+        log(f'_extract_game error: {e}')
         return None
 
 
