@@ -169,7 +169,10 @@ def _confirm_games_enable():
 def run():
     log('Servicio tracker iniciado')
     monitor = xbmc.Monitor()
-    last_games_setting = None
+    try:
+        last_games_setting = xbmcaddon.Addon(MAIN_ADDON_ID).getSetting('enable_games')
+    except Exception:
+        last_games_setting = 'false'
     try:
         while not monitor.abortRequested():
             if monitor.waitForAbort(0.25):
