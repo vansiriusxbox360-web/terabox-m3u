@@ -443,33 +443,19 @@ def _cache_activa():
 
 
 def show_welcome():
-    """Cuadro de bienvenida único y, si hace falta, aviso para reactivar la caché de 256 MB."""
+    """Bienvenida, aviso de caché y créditos cada vez que se abre el addon."""
     try:
         os.makedirs(os.path.dirname(WELCOME_FLAG), exist_ok=True)
-        frase = ('Ooooohh buenos días... que bueno que vinihte, pasa, pasa...\n'
-                 'aaahhh, los zapatos en la puerta. La que está cayendo por aquí,\n'
-                 'te ofrecería un vasito de agua, pero está chungo...\n'
-                 'a ver dónde puñetas la tengo, pero si estaba aquí hace 25 años...\n'
-                 'aaaaahhhquiestáaaa. Pera, que lo limpie un poquito...\n'
-                 'toma, echa un ojo. Menú del día dos puntos.')
-        try:
-            version = ADDON.getAddonInfo('version')
-        except Exception:
-            version = '?'
-        try:
-            mtime = os.path.getmtime(os.path.join(ADDON_PATH, 'addon.xml'))
-            fecha = time.strftime('%d/%m/%Y', time.localtime(mtime))
-        except Exception:
-            fecha = 'desconocida'
-        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu',
-                            f'{frase}\n\n'
-                            f'Creado por VanSirius · v{version} · {fecha}\n'
-                            f'Que lo disfrutes. 🙏')
+        frase = ('Ooohh buenas, mira quien anda por aquí!\n'
+                 'Te ofrecería un vasito de agua, pero está chunga la cosa.\n'
+                 'Toma, echa un ojo a la carta...\n'
+                 '* Menú del día dos puntos *')
+        xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu', frase)
         if not _cache_activa():
             if xbmcgui.Dialog().yesno(
                 'Caché de streaming',
-                'Al reinstalar el addon/Kodi se pierde la caché de 256 MB,\n'
-                'y las películas se paran mucho.\n\n'
+                'Para una mejor experiencia, se recomienda activar\n'
+                'la caché de 256 MB (evita cortes y buffering).\n\n'
                 '¿Activar la caché de 256 MB ahora?',
                 yeslabel='Sí, activar',
                 nolabel='Ahora no'
@@ -488,6 +474,20 @@ def show_welcome():
                     xbmcgui.Dialog().ok('Hecho', 'Caché de 256 MB activada.\n\nReinicia Kodi para aplicar.')
                 except Exception as e:
                     log(f'Error escribiendo caché: {e}')
+        try:
+            version = ADDON.getAddonInfo('version')
+        except Exception:
+            version = '?'
+        try:
+            mtime = os.path.getmtime(os.path.join(ADDON_PATH, 'addon.xml'))
+            fecha = time.strftime('%d/%m/%Y', time.localtime(mtime))
+        except Exception:
+            fecha = 'desconocida'
+        xbmcgui.Dialog().ok('Créditos',
+                            f'Creado por VanSirius\n\n'
+                            f'Versión instalada: {version}\n'
+                            f'Actualización del addon: {fecha}\n\n'
+                            f'Que lo disfrutes.')
     except Exception as e:
         log(f'Error en bienvenida: {e}')
 
