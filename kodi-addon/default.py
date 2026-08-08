@@ -104,6 +104,8 @@ STATION_POSTER_OVERRIDES = {
     'Christine': 'https://images.justwatch.com/poster/9621681/s718/christine.jpg',
     'Maleficio': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/maleficio.png',
     'Tenk\u016b no Shiro Laputa': 'https://i.pinimg.com/736x/62/a4/5e/62a45e0d133af9fded1b20796f881f86.jpg',
+    'Fallout': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/fallout1.jpg',
+    'Hocus': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hocus_pocus.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
@@ -931,16 +933,36 @@ def _launch_game_external(exe_path, param):
         log(f'Juego no encontrado: {exe_path}')
         return False
     game_dir = os.path.dirname(exe_path)
-    # el .sav de configuracion ya se precarga al extraer, asi que se ejecuta el juego directamente
+    # Fallout: montar la carpeta padre como C: y cd fallout1 (el CFG espera C:\fallout1\)
+    is_fallout = os.path.exists(os.path.join(game_dir, 'cd', 'fallout.cue'))
+    if is_fallout:
+        mount_root = os.path.dirname(game_dir)
+        mount_name = os.path.basename(game_dir)
+    else:
+        mount_root = game_dir
+        mount_name = None
+    # Si hay un .BAT de lanzamiento (p.ej. FALL.BAT de Fallout, que monta CD y protector), usarlo
     to_run = os.path.basename(exe_path)
+    bat_candidates = [f for f in os.listdir(game_dir) if f.lower().endswith('.bat')] if os.path.isdir(game_dir) else []
+    if bat_candidates:
+        # preferir el que tenga nombre similar al juego, si no el primero
+        fall_bat = next((f for f in bat_candidates if 'fall' in f.lower() or 'play' in f.lower() or 'run' in f.lower()), bat_candidates[0])
+        to_run = 'call ' + fall_bat
+        log(f'Juego con lanzador .BAT: {fall_bat}')
     # .conf temporal para DOSBox.exe (montar la carpeta y ejecutar)
     conf_path = game_dir + '.conf'
     try:
-        conf_text = ('[sdl]\nfullscreen=false\n\n'
-                     '[autoexec]\n'
-                     f'mount c {game_dir.replace(chr(92), "/")}\n'
-                     'c:\n'
-                     f'{to_run}\n')
+        conf_lines = ['[sdl]', 'fullscreen=false', '',
+                      '[autoexec]', f'mount c {mount_root.replace(chr(92), "/")}', 'c:']
+        if mount_name:
+            conf_lines.append(f'cd {mount_name}')
+        # Fallout y similares: montar el CD si hay fallout.cue
+        cue = os.path.join(game_dir, 'cd', 'fallout.cue')
+        if is_fallout:
+            cue_path = cue.replace(chr(92), '/')
+            conf_lines.append(f'imgmount d {cue_path} -t cdrom')
+        conf_lines.append(to_run)
+        conf_text = '\n'.join(conf_lines) + '\n'
         with open(conf_path, 'w', encoding='utf-8') as f:
             f.write(conf_text)
         _sp.Popen([dosbox, '-conf', conf_path],
