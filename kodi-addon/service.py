@@ -129,7 +129,10 @@ def _show_dosbox_tips():
     try:
         xbmcgui.Dialog().ok(
             'Juegos (DOSBox)',
-            'DOSBox activado. Los juegos están en la sección Vicio.\n\n'
+            'DOSBox activado. La carpeta Vicio ya aparecerá al volver\n'
+            'a la raíz del addon (sin reiniciar).\n\n'
+            'Si DOSBox acaba de instalarse, reinicia Kodi para que\n'
+            'el emulador quede bien cargado antes de jugar.\n\n'
             'Atajos de DOSBox:\n'
             '  Ctrl+F9  = Cerrar DOSBox / salir del juego\n'
             '  Alt+Enter = Pantalla completa / ventana\n'
