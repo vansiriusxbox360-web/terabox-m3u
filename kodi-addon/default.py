@@ -451,19 +451,26 @@ def show_welcome():
                  'Toma, echa un ojo a la carta...\n'
                  '* Menú del día dos puntos *')
         xbmcgui.Dialog().ok('El Rincón Dharmatico de Vishnu', frase)
-        if not _cache_activa():
-            if xbmcgui.Dialog().yesno(
+        if _cache_activa():
+            xbmcgui.Dialog().ok(
                 'Caché de streaming',
-                'Para una mejor experiencia, se recomienda activar\n'
-                'la caché de 256 MB (evita cortes y buffering).\n\n'
+                'La caché de 256 MB está activada (mejor experiencia,\n'
+                'sin cortes ni buffering).\n\n'
                 'También tienes juegos MS-DOS disponibles:\n'
-                'actívalos en Ajustes > "Juegos (DOSBox)".\n\n'
-                '¿Activar la caché de 256 MB ahora?',
-                yeslabel='Sí, activar',
-                nolabel='Ahora no'
-            ):
-                try:
-                    contenido = f'''<advancedsettings>
+                'actívalos en Ajustes > "Juegos (DOSBox)".'
+            )
+        elif xbmcgui.Dialog().yesno(
+            'Caché de streaming',
+            'Para una mejor experiencia, se recomienda activar\n'
+            'la caché de 256 MB (evita cortes y buffering).\n\n'
+            'También tienes juegos MS-DOS disponibles:\n'
+            'actívalos en Ajustes > "Juegos (DOSBox)".\n\n'
+            '¿Activar la caché de 256 MB ahora?',
+            yeslabel='Sí, activar',
+            nolabel='Ahora no'
+        ):
+            try:
+                contenido = f'''<advancedsettings>
   <cache>
     <buffermode>1</buffermode>
     <memorysize>{CACHE_SIZE_BYTES}</memorysize>
@@ -471,11 +478,11 @@ def show_welcome():
     <readfactor>20</readfactor>
   </cache>
 </advancedsettings>'''
-                    with open(os.path.join(xbmcvfs.translatePath('special://masterprofile/'), 'advancedsettings.xml'), 'w', encoding='utf-8') as f:
-                        f.write(contenido)
-                    xbmcgui.Dialog().ok('Hecho', 'Caché de 256 MB activada.\n\nReinicia Kodi para aplicar.')
-                except Exception as e:
-                    log(f'Error escribiendo caché: {e}')
+                with open(os.path.join(xbmcvfs.translatePath('special://masterprofile/'), 'advancedsettings.xml'), 'w', encoding='utf-8') as f:
+                    f.write(contenido)
+                xbmcgui.Dialog().ok('Hecho', 'Caché de 256 MB activada.\n\nReinicia Kodi para aplicar.')
+            except Exception as e:
+                log(f'Error escribiendo caché: {e}')
         try:
             version = ADDON.getAddonInfo('version')
         except Exception:
