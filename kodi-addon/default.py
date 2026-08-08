@@ -834,29 +834,13 @@ def play_video(param, start=None, is_game=False):
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
-        # Abrir como juego con RetroPlayer (Player.Open + gameclient) para forzar DOSBox
-        try:
-            payload = json.dumps({
-                'jsonrpc': '2.0',
-                'id': 1,
-                'method': 'Player.Open',
-                'params': {
-                    'item': {
-                        'file': url,
-                        'gameclient': 'game.libretro.dosbox',
-                    }
-                }
-            })
-            xbmc.executeJSONRPC(payload)
-            log(f'Juego lanzado con DOSBox: {url}')
-            xbmcplugin.endOfDirectory(HANDLE)
-            return
-        except Exception as e:
-            log(f'Error abriendo juego con JSON-RPC: {e}')
+        # Forzar content type de juegos para que Kodi elija RetroPlayer al resolver
+        xbmcplugin.setContent(HANDLE, 'games')
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
     if is_game:
         li.setProperty('GamePath', url)
+        li.setProperty('Extension', '.zip' if url.lower().endswith('.zip') else '')
         # Marcar como juego con la API moderna (InfoTagGame)
         try:
             game = li.getGameInfoTag()
