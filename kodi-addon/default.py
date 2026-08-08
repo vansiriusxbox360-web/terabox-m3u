@@ -904,7 +904,13 @@ def _launch_game_external(exe_path, param):
         log(f'Juego no encontrado: {exe_path}')
         return False
     game_dir = os.path.dirname(exe_path)
-    exe_name = os.path.basename(exe_path)
+    # Si el juego requiere setup (hay SETUP.EXE y no existe ningun .sav), ejecutar SETUP la primera vez
+    to_run = os.path.basename(exe_path)
+    setup_path = os.path.join(game_dir, 'SETUP.EXE')
+    has_sav = any(f.lower().endswith('.sav') for f in os.listdir(game_dir)) if os.path.isdir(game_dir) else False
+    if os.path.exists(setup_path) and not has_sav:
+        to_run = 'SETUP.EXE'
+        log(f'Primera ejecucion: se lanza SETUP.EXE (configuracion)')
     # .conf temporal para DOSBox.exe (montar la carpeta y ejecutar)
     conf_path = game_dir + '.conf'
     try:
@@ -912,13 +918,13 @@ def _launch_game_external(exe_path, param):
                      '[autoexec]\n'
                      f'mount c {game_dir.replace(chr(92), "/")}\n'
                      'c:\n'
-                     f'{exe_name}\n')
+                     f'{to_run}\n')
         with open(conf_path, 'w', encoding='utf-8') as f:
             f.write(conf_text)
         _sp.Popen([dosbox, '-conf', conf_path],
                   stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
                   creationflags=0x08000000)
-        log(f'DOSBox externo lanzado: {exe_name} con -conf')
+        log(f'DOSBox externo lanzado: {to_run} con -conf')
         # dar foco a DOSBox (que se abra encima, sin minimizar Kodi)
         try:
             import ctypes
@@ -966,14 +972,13 @@ def play_video(param, start=None, is_game=False):
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
-        # Lanzar el juego con DOSBox externo de Windows (ventana nativa)
+        # Lanzar el juego con DOSBox externo de Windows (ventana nativa).
+        # NO usar setResolvedUrl: Kodi intentaría abrir el .exe con RetroPlayer (savestates).
+        # endOfDirectory cierra el spinner sin que Kodi reproduzca nada.
         launched = _launch_game_external(url, param)
         if not launched:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo lanzar DOSBox', xbmcgui.NOTIFICATION_ERROR)
-        # Resolver igualmente para salir del spinner de Kodi
-        li = xbmcgui.ListItem(path=url)
-        li.setProperty('IsPlayable', 'true')
-        xbmcplugin.setResolvedUrl(HANDLE, True, li)
+        xbmcplugin.endOfDirectory(HANDLE)
         return
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
