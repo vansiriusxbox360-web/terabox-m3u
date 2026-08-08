@@ -492,10 +492,20 @@ def show_welcome():
         log(f'Error en bienvenida: {e}')
 
 
+def _games_enabled():
+    """True si el usuario tiene activado el switch de juegos (DOSBox)."""
+    try:
+        return ADDON.getSetting('enable_games') == 'true'
+    except Exception:
+        return False
+
+
 def list_root(data):
     show_welcome()
     tree = build_tree(data)
     top_keys = sorted(tree.keys())
+    if not _games_enabled():
+        top_keys = [k for k in top_keys if k.lower() != 'vicio']
 
     updated = data.get('_last_updated_display') or data.get('_last_updated', '')
     if updated:

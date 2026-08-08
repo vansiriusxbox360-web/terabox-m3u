@@ -1,6 +1,7 @@
 import xbmc
 import xbmcaddon
 import xbmcvfs
+import xbmcgui
 import os
 import json
 import time
@@ -123,15 +124,44 @@ def _ensure_dosbox():
         log(f'Error asegurando DOSBox: {e}')
 
 
+def _confirm_games_enable():
+    """Pide confirmación al activar el switch de juegos; si se acepta, instala DOSBox."""
+    try:
+        if not xbmcgui.Dialog().yesno(
+            'Juegos (DOSBox)',
+            'Has activado los juegos.\n\n'
+            'Esto instalará DOSBox (emulador MS-DOS) para poder jugar\n'
+            'a los juegos de la sección Vicio.\n\n'
+            '¿Quieres activar los juegos ahora?',
+            yeslabel='Sí, activar',
+            nolabel='No'
+        ):
+            xbmcaddon.Addon(MAIN_ADDON_ID).setSetting('enable_games', 'false')
+            xbmcgui.Dialog().ok('Juegos', 'Juegos desactivados.\nPuedes activarlos de nuevo desde Ajustes.')
+            return
+        _ensure_dosbox()
+    except Exception as e:
+        log(f'Error confirmando juegos: {e}')
+
+
 def run():
     log('Servicio tracker iniciado')
     monitor = xbmc.Monitor()
-    _ensure_dosbox()
+    last_games_setting = None
     try:
         while not monitor.abortRequested():
-            if monitor.waitForAbort(0.15):
+            if monitor.waitForAbort(0.25):
                 break
             _track_playback()
+            try:
+                cur = xbmcaddon.Addon(MAIN_ADDON_ID).getSetting('enable_games')
+            except Exception:
+                cur = None
+            if cur != last_games_setting:
+                last_games_setting = cur
+                if cur == 'true':
+                    log('Switch de juegos activado, pidiendo confirmación')
+                    _confirm_games_enable()
     except Exception as e:
         log(f'Error en bucle: {e}')
     log('Servicio tracker detenido')
