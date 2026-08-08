@@ -912,14 +912,26 @@ def _launch_game_external(exe_path, param):
                      '[autoexec]\n'
                      f'mount c {game_dir.replace(chr(92), "/")}\n'
                      'c:\n'
-                     f'{exe_name}\n'
-                     'exit\n')
+                     f'{exe_name}\n')
         with open(conf_path, 'w', encoding='utf-8') as f:
             f.write(conf_text)
-        _sp.Popen([dosbox, conf_path],
+        _sp.Popen([dosbox, '-conf', conf_path],
                   stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
                   creationflags=0x08000000)
-        log(f'DOSBox externo lanzado: {exe_name}')
+        log(f'DOSBox externo lanzado: {exe_name} con -conf')
+        # dar foco a DOSBox (que se abra encima, sin minimizar Kodi)
+        try:
+            import ctypes
+            time.sleep(1.5)
+            hwnd = ctypes.windll.user32.FindWindowW(None, 'DOSBox 0.74, Cpu speed:')
+            if not hwnd:
+                # ventana sin titulo: buscar por clase
+                hwnd = ctypes.windll.user32.FindWindowW(None, 'DOSBox')
+            if hwnd:
+                ctypes.windll.user32.SetForegroundWindow(hwnd)
+                ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+        except Exception as e:
+            log(f'Error foco DOSBox: {e}')
         return True
     except Exception as e:
         log(f'Error lanzando DOSBox: {e}')
