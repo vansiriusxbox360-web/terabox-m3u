@@ -906,27 +906,9 @@ def play_video(param, start=None, is_game=False):
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
         # Convierte la ruta local a file:// (barras normales) para que Kodi la trate como archivo local
-        # y elija DOSBox (supports_vfs=false requiere archivo local de verdad)
         if not url.startswith('file://') and not url.startswith('http'):
             url = 'file:///' + url.replace('\\', '/')
-        # Abrir con el emulador DOSBox explícito (Player.Open + gameclient)
-        try:
-            payload = json.dumps({
-                'jsonrpc': '2.0',
-                'id': 1,
-                'method': 'Player.Open',
-                'params': {'item': {'file': url, 'gameclient': 'game.libretro.dosbox'}}
-            })
-            result = xbmc.executeJSONRPC(payload)
-            log(f'Juego abierto con DOSBox (Player.Open): {result}')
-        except Exception as e:
-            log(f'Error Player.Open juego: {e}')
-            # fallback: PlayMedia
-            try:
-                xbmc.executebuiltin(f'PlayMedia("{url}")')
-            except Exception as e2:
-                log(f'Error PlayMedia fallback: {e2}')
-        # Resolver igualmente para completar la invocación del plugin
+        # Resolver el item como juego con el gameclient DOSBox en el InfoTagGame
         xbmcplugin.setContent(HANDLE, 'games')
         li = xbmcgui.ListItem(path=url)
         li.setProperty('IsPlayable', 'true')
@@ -935,9 +917,13 @@ def play_video(param, start=None, is_game=False):
             game.setTitle(param.rsplit('/', 1)[-1] if param else 'Juego')
             game.setPlatform('DOS')
             game.setGenres(['MS-DOS'])
-        except Exception:
+            game.setGameClient('game.libretro.dosbox')
+            log('InfoTagGame configurado con gameclient=dosbox')
+        except Exception as e:
+            log(f'InfoTagGame error: {e}')
+            # fallback: setInfo game (antigua API)
             try:
-                li.setInfo('game', {'title': (param.rsplit('/', 1)[-1] if param else 'Juego')})
+                li.setInfo('game', {'title': (param.rsplit('/', 1)[-1] if param else 'Juego'), 'gameclient': 'game.libretro.dosbox'})
             except Exception:
                 pass
         xbmcplugin.setResolvedUrl(HANDLE, True, li)
