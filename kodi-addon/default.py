@@ -850,7 +850,23 @@ def _extract_game(zip_path, games_dir, base):
     extract_to = os.path.join(games_dir, base)
     try:
         with _zf.ZipFile(zip_path) as z:
+            names = z.namelist()
+            # si hay una unica carpeta raiz, extraer su contenido directamente
+            root_dirs = set(n.split('/')[0] for n in names if '/' in n)
             z.extractall(extract_to)
+        if len(root_dirs) == 1:
+            inner = os.path.join(extract_to, next(iter(root_dirs)))
+            if os.path.isdir(inner) and os.listdir(extract_to) == [next(iter(root_dirs))]:
+                # mover el contenido del subdirectorio a la raiz
+                for f in os.listdir(inner):
+                    src = os.path.join(inner, f)
+                    dst = os.path.join(extract_to, f)
+                    if os.path.isdir(src):
+                        import shutil
+                        shutil.move(src, dst)
+                    else:
+                        os.replace(src, dst)
+                os.rmdir(inner)
         return _find_game_exe(games_dir, base)
     except Exception as e:
         log(f'_extract_game error: {e}')
@@ -877,7 +893,7 @@ def play_video(param, start=None, is_game=False):
         except Exception as e:
             log(f'Error now_playing: {e}')
     else:
-        # Juego: descargar/extraer a local y abrir con DOSBox explícito
+        # Juego: descargar/extraer a local y abrir con DOSBox
         filename = param.rsplit('/', 1)[-1] if param else 'juego.zip'
         local = _download_game(url, filename)
         if local:
@@ -885,28 +901,16 @@ def play_video(param, start=None, is_game=False):
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
-        # Abrir con el emulador DOSBox explícitamente (Player.Open + gameclient)
+        # Lanzar el juego con PlayMedia: Kodi detecta la extension .exe y usa DOSBox (unico emulador compatible)
         try:
-            payload = json.dumps({
-                'jsonrpc': '2.0',
-                'id': 1,
-                'method': 'Player.Open',
-                'params': {
-                    'item': {
-                        'file': url,
-                        'gameclient': 'game.libretro.dosbox',
-                    }
-                }
-            })
-            result = xbmc.executeJSONRPC(payload)
-            log(f'Juego abierto con DOSBox: {url} -> {result}')
+            xbmc.executebuiltin(f'PlayMedia("{url}")')
+            log(f'Juego lanzado con PlayMedia: {url}')
         except Exception as e:
-            log(f'Error abriendo juego: {e}')
-        # Resolver igualmente para que Kodi complete la invocación del plugin
+            log(f'Error PlayMedia: {e}')
+        # Resolver igualmente para completar la invocación del plugin
         xbmcplugin.setContent(HANDLE, 'games')
         li = xbmcgui.ListItem(path=url)
         li.setProperty('IsPlayable', 'true')
-        li.setProperty('GamePath', url)
         try:
             game = li.getGameInfoTag()
             game.setTitle(param.rsplit('/', 1)[-1] if param else 'Juego')
