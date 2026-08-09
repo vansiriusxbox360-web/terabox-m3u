@@ -46,7 +46,7 @@ FOLDER_ICON_URLS = {
     'chorris': ICON,
     'no chorris': ICON,
     'Martes y Trece': 'https://image.tmdb.org/t/p/w500/hb9cNE0FjxZBZocVNwvMDWXMP5J.jpg',
-    'vicio': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/vicio.jpg',
+    'vicio': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/vicio.png',
     'Gantz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/gantz.jpg',
     'High Score Girl': 'https://takamakiokerar.wordpress.com/wp-content/uploads/2018/12/tumblr_mfeera8z4r1qbfiiuo1_1280.jpg',
     'Itou Junji Collection': 'https://image.tmdb.org/t/p/original/umIn2MeNsJAvzb8ztRrv2nhfJ28.jpg',
@@ -113,6 +113,7 @@ STATION_POSTER_OVERRIDES = {
     'Realms of Chaos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/realms_of_chaos.jpg',
     'Secret Agent': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/secret_agent.png',
     'Trivia Whiz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/trivia_whiz.webp',
+    'Hollywood Trivia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/trivia_whiz.webp',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
@@ -611,13 +612,15 @@ def list_folder(data, path):
             li = xbmcgui.ListItem(name)
             if icon:
                 li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
-            li.setProperty('IsPlayable', 'true')
             if is_game:
+                # Los juegos se lanzan con DOSBox externo: NO marcarlos como
+                # reproducibles o Kodi muestra "no se puede reproducir el contenido".
                 try:
                     li.setInfo('game', {'title': name, 'platform': 'DOS'})
                 except Exception:
                     li.setInfo('video', {'title': name})
             else:
+                li.setProperty('IsPlayable', 'true')
                 li.setInfo('video', {'title': name})
             add_fav_context_menu(li, name)
             xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
@@ -839,7 +842,7 @@ def _download_game(url, filename):
     extract_to = os.path.join(games_dir, base)
 
     # si ya hay un .exe extraído, reutilizar (y asegurar el .sav precargado)
-    exe = _find_game_exe(extract_to)
+    exe = _find_game_exe(extract_to, game_hint=filename)
     if exe:
         _download_game_save(base, extract_to)
         return exe
@@ -889,18 +892,50 @@ def _download_game(url, filename):
     return None
 
 
-def _find_game_exe(extract_to):
-    """Busca el .exe del juego en la carpeta extraída (evitando setup/install/etc.)."""
+# Ejecutable preferido por juego (fragmento de nombre -> nombre del exe). Evita
+# que el ranking genérico coja instaladores/ayudas (DN2HELP, d1.exe, 3DRCAT, etc.)
+GAME_EXE_MAP = {
+    'duke nukem': 'NUKEM2.EXE',
+    'hocus': 'HOCUS.EXE',
+    'jazz': 'FILE0001.EXE',
+    'oscar': 'OSCAR.EXE',
+    'realms of chaos': 'ROC.EXE',
+    'bio menace': 'BMENACE1.EXE',
+    'monster bash': 'BASH1.EXE',
+    'secret agent': 'SAM1.EXE',
+    'trivia': 'HLWD.EXE',
+    'hollywood': 'HLWD.EXE',
+}
+
+
+def _find_game_exe(extract_to, game_hint=''):
+    """Busca el .exe del juego en la carpeta extraída.
+
+    Si se indica el nombre del juego (game_hint), se prefiere el ejecutable
+    de GAME_EXE_MAP; si no se encuentra, se usa el ranking genérico evitando
+    setup/install/ayudas/etc.
+    """
     if not os.path.isdir(extract_to):
         return None
+    hint = (game_hint or '').lower()
+    pref = None
+    if hint:
+        for frag, exe_name in GAME_EXE_MAP.items():
+            if frag in hint:
+                pref = exe_name.lower()
+                break
     exes = []
     for root, dirs, files in os.walk(extract_to):
         for f in files:
             if f.lower().endswith('.exe'):
                 exes.append(os.path.join(root, f))
+    if pref:
+        for p in exes:
+            if os.path.basename(p).lower() == pref:
+                return p
     def exe_rank(p):
         base_n = os.path.basename(p).lower()
-        if any(k in base_n for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme', '__hpgrvs')):
+        if any(k in base_n for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme', '__hpgrvs', 'browse')):
             return 2
         return 0
     exes.sort(key=exe_rank)
@@ -950,7 +985,7 @@ def _extract_game(file_path, extract_to):
         # precargar el .sav de configuracion desde el repo (evita el setup al usuario)
         base = os.path.basename(os.path.normpath(extract_to))
         _download_game_save(base, extract_to)
-        return _find_game_exe(extract_to)
+        return _find_game_exe(extract_to, game_hint=os.path.basename(file_path))
     except Exception as e:
         log(f'_extract_game error: {e}')
         return None
@@ -1023,14 +1058,9 @@ def _launch_game_external(exe_path, param):
         return False
     game_dir = os.path.dirname(exe_path)
     mount_root = game_dir
-    # Si hay un .BAT de lanzamiento (p.ej. el que monta CD y protector), usarlo
+    # Ejecutar directamente el .exe del juego (evitar .BAT con protectores/CD
+    # como HOCUSG.BAT que pedían "please run HOCUS to play")
     to_run = os.path.basename(exe_path)
-    bat_candidates = [f for f in os.listdir(game_dir) if f.lower().endswith('.bat')] if os.path.isdir(game_dir) else []
-    if bat_candidates:
-        # preferir el que tenga nombre similar al juego, si no el primero
-        run_bat = next((f for f in bat_candidates if 'play' in f.lower() or 'run' in f.lower() or 'start' in f.lower()), bat_candidates[0])
-        to_run = 'call ' + run_bat
-        log(f'Juego con lanzador .BAT: {run_bat}')
     conf_path = game_dir + '.conf'
     try:
         game_name = (param or '') + ' ' + os.path.basename(game_dir)
