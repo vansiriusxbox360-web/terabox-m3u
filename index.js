@@ -97,7 +97,7 @@ function isVideoFile(filename) {
 }
 
 // Extensiones de juegos de MS-DOS (carpeta "vicio") que DOSBox externo puede abrir
-const GAME_EXTENSIONS = ['.zip', '.dosz', '.exe', '.com', '.7z'];
+const GAME_EXTENSIONS = ['.zip', '.dosz', '.exe', '.com', '.7z', '.rar'];
 const GAME_ROOT_FOLDER = 'vicio';
 
 function isGameFile(filename) {
@@ -761,6 +761,10 @@ const FILE_POSTER_URLS = {
   'Una carta para Momo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_carta_para_momo.jpg',
   'Los niños lobo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo.jpg',
   'Bubble Bobble': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bubble_bobble.jpg',
+  'Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
+  'Commander Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
+  'Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
+  'Commander Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
   'El Castillo en el cielo - Tenk\u016b no Shiro Laputa': 'https://i.pinimg.com/736x/62/a4/5e/62a45e0d133af9fded1b20796f881f86.jpg',
 };
 

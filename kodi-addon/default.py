@@ -118,6 +118,10 @@ STATION_POSTER_OVERRIDES = {
     'Una carta para Momo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_carta_para_momo.jpg',
     'Los ni\u00f1os lobo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo.jpg',
     'Bubble Bobble': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bubble_bobble.jpg',
+    'Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
+    'Commander Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
+    'Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
+    'Commander Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
@@ -839,7 +843,7 @@ def _download_game(url, filename):
     # nombre base seguro y extensión real
     safe = re.sub(r'[^\w.\-]+', '_', filename or 'juego.zip')
     ext_real = os.path.splitext(filename)[1].lower() if filename else '.zip'
-    if ext_real not in ('.zip', '.7z', '.dosz', '.exe', '.com'):
+    if ext_real not in ('.zip', '.7z', '.rar', '.dosz', '.exe', '.com'):
         ext_real = '.zip'
     base = os.path.splitext(safe)[0]
     file_path = os.path.join(games_dir, base + ext_real)
@@ -911,6 +915,10 @@ GAME_EXE_MAP = {
     'hollywood': 'HLWD.EXE',
     'bubble bobble': 'BUBBLE.EXE',
     'bubble': 'BUBBLE.EXE',
+    'keen dreams': 'KDREAMS.EXE',
+    'commander keen dreams': 'KDREAMS.EXE',
+    'commander keen 4': 'KEEN4E.EXE',
+    'keen 4': 'KEEN4E.EXE',
 }
 
 
@@ -923,7 +931,7 @@ def _find_game_exe(extract_to, game_hint=''):
     """
     if not os.path.isdir(extract_to):
         return None
-    hint = (game_hint or '').lower().replace('_', ' ').replace('.7z', '').replace('.zip', '').strip()
+    hint = (game_hint or '').lower().replace('_', ' ').replace('.7z', '').replace('.zip', '').replace('.rar', '').strip()
     pref = None
     if hint:
         for frag, exe_name in GAME_EXE_MAP.items():
@@ -952,19 +960,20 @@ GAME_SAVES_URL = 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox
 
 
 def _extract_game(file_path, extract_to):
-    """Extrae el juego (zip o 7z), sube una unica carpeta raiz, precarga el .sav, y devuelve el .exe."""
+    """Extrae el juego (zip/7z/rar), sube una unica carpeta raiz, precarga el .sav, y devuelve el .exe."""
     import zipfile as _zf
     import shutil
     try:
-        if file_path.lower().endswith('.7z'):
-            # usar 7-Zip del sistema
+        low = file_path.lower()
+        if low.endswith(('.7z', '.rar')):
+            # usar 7-Zip del sistema (soporta 7z y rar)
             sevenzip = None
             for cand in [r'C:\Program Files\7-Zip\7z.exe', r'C:\Program Files (x86)\7-Zip\7z.exe']:
                 if os.path.exists(cand):
                     sevenzip = cand
                     break
             if not sevenzip:
-                log('7-Zip no encontrado para extraer .7z')
+                log(f'7-Zip no encontrado para extraer {os.path.splitext(file_path)[1]}')
                 return None
             import subprocess as _sp
             r = _sp.run([sevenzip, 'x', file_path, f'-o{extract_to}', '-y'],
