@@ -113,7 +113,7 @@ STATION_POSTER_OVERRIDES = {
     'Realms of Chaos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/realms_of_chaos.jpg',
     'Secret Agent': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/secret_agent.png',
     'Trivia Whiz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/trivia_whiz.webp',
-    'Hollywood Trivia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/trivia_whiz.webp',
+    'Hollywood Trivia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hollywood.png',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
@@ -917,7 +917,7 @@ def _find_game_exe(extract_to, game_hint=''):
     """
     if not os.path.isdir(extract_to):
         return None
-    hint = (game_hint or '').lower()
+    hint = (game_hint or '').lower().replace('_', ' ').replace('.7z', '').replace('.zip', '').strip()
     pref = None
     if hint:
         for frag, exe_name in GAME_EXE_MAP.items():
@@ -935,7 +935,7 @@ def _find_game_exe(extract_to, game_hint=''):
                 return p
     def exe_rank(p):
         base_n = os.path.basename(p).lower()
-        if any(k in base_n for k in ('setup', 'install', 'catalog', 'help', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme', '__hpgrvs', 'browse')):
+        if any(k in base_n for k in ('setup', 'install', 'catalog', 'help', 'hint', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme', '__hpgrvs', 'browse')):
             return 2
         return 0
     exes.sort(key=exe_rank)
