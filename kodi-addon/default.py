@@ -443,8 +443,10 @@ def _cache_activa():
 
 
 def show_welcome():
-    """Bienvenida, aviso de caché y créditos cada vez que se abre el addon."""
+    """Bienvenida, aviso de caché y créditos (una vez por sesión de Kodi)."""
     try:
+        if os.path.exists(WELCOME_FLAG):
+            return
         os.makedirs(os.path.dirname(WELCOME_FLAG), exist_ok=True)
         frase = ('Ooohh buenas, mira quien anda por aquí!\n'
                  'Te ofrecería un vasito de agua, pero está chunga la cosa.\n'
@@ -497,6 +499,11 @@ def show_welcome():
                             f'Versión instalada: {version}\n'
                             f'Actualización del addon: {fecha}\n\n'
                             f'Que lo disfrutes.')
+        try:
+            with open(WELCOME_FLAG, 'w') as f:
+                f.write('1')
+        except Exception:
+            pass
     except Exception as e:
         log(f'Error en bienvenida: {e}')
 

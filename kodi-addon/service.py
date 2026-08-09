@@ -11,6 +11,7 @@ MAIN_ADDON_ID = 'plugin.video.vansirius'
 MAIN_PROFILE = os.path.join(xbmcvfs.translatePath('special://masterprofile'), 'addon_data', MAIN_ADDON_ID)
 WATCHED_FILE = os.path.join(MAIN_PROFILE, 'watched.json')
 NOW_PLAYING_FILE = os.path.join(MAIN_PROFILE, 'now_playing.json')
+WELCOME_FLAG = os.path.join(MAIN_PROFILE, '.welcome_shown')
 
 
 def load_json(path, default=None):
@@ -186,6 +187,12 @@ def _confirm_games_enable():
 
 def run():
     log('Servicio tracker iniciado')
+    # Nueva sesión de Kodi: borrar el flag para que la bienvenida salga de nuevo
+    try:
+        if os.path.exists(WELCOME_FLAG):
+            os.remove(WELCOME_FLAG)
+    except Exception as e:
+        log(f'Error borrando flag de bienvenida: {e}')
     monitor = xbmc.Monitor()
     try:
         last_games_setting = xbmcaddon.Addon(MAIN_ADDON_ID).getSetting('enable_games')
