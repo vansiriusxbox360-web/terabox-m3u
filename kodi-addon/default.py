@@ -114,6 +114,10 @@ STATION_POSTER_OVERRIDES = {
     'Secret Agent': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/secret_agent.png',
     'Trivia Whiz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/trivia_whiz.webp',
     'Hollywood Trivia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hollywood_trivia.jpg',
+    'Navajeros': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/navajeros.jpg',
+    'Una carta para Momo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_carta_para_momo.jpg',
+    'Los ni\u00f1os lobo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo.jpg',
+    'Bubble Bobble': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bubble_bobble.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
@@ -905,6 +909,8 @@ GAME_EXE_MAP = {
     'secret agent': 'SAM1.EXE',
     'trivia': 'HLWD.EXE',
     'hollywood': 'HLWD.EXE',
+    'bubble bobble': 'BUBBLE.EXE',
+    'bubble': 'BUBBLE.EXE',
 }
 
 
