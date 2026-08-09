@@ -794,7 +794,7 @@ def refresh_link(path, fs_id=None, force=False):
 
 
 def is_dosbox_installed():
-    """True si existe el DOSBox.exe externo de Windows (con el que se lanzan los juegos)."""
+    """True si existe DOSBox (portable del addon o externo de Windows)."""
     try:
         return bool(_find_dosbox_exe())
     except Exception:
@@ -802,13 +802,14 @@ def is_dosbox_installed():
 
 
 def ensure_dosbox():
-    """Comprueba el DOSBox.exe externo y avisa si falta (no instala addons en caliente)."""
+    """Comprueba DOSBox (portable incluido o del sistema). Sin instalar nada."""
     if is_dosbox_installed():
         return True
     xbmcgui.Dialog().ok('DOSBox',
-                        'No se ha encontrado DOSBox en el sistema.\n\n'
-                        'Los juegos se abren con DOSBox de Windows (ventana nativa).\n'
-                        'Instala uno (p.ej. D-Fend Reloaded o DOSBox 0.74).')
+                        'No se ha encontrado DOSBox.\n\n'
+                        'El addon debería incluir un DOSBox portable en\n'
+                        'resources/dosbox. Comprueba que el zip esté completo\n'
+                        'o instala DOSBox 0.74 / D-Fend Reloaded en el sistema.')
     return False
 
 
@@ -985,7 +986,10 @@ GAME_CYCLES = {
 
 
 def _find_dosbox_exe():
-    """Busca DOSBox.exe en el sistema."""
+    """Busca DOSBox.exe: primero el portable incluido en el addon, luego el del sistema."""
+    bundled = os.path.join(ADDON_PATH, 'resources', 'dosbox', 'DOSBox.exe')
+    if os.path.exists(bundled):
+        return bundled
     for c in DOSBOX_EXE_CANDIDATES:
         if os.path.exists(c):
             return c

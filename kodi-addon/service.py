@@ -96,7 +96,10 @@ DOSBOX_EXE_CANDIDATES = [
 
 
 def _find_dosbox_exe():
-    """Busca el DOSBox.exe externo de Windows (con el que se lanzan los juegos)."""
+    """Busca DOSBox.exe: primero el portable incluido en el addon, luego el del sistema."""
+    bundled = os.path.join(xbmcaddon.Addon(MAIN_ADDON_ID).getAddonInfo('path'), 'resources', 'dosbox', 'DOSBox.exe')
+    if os.path.exists(bundled):
+        return bundled
     for c in DOSBOX_EXE_CANDIDATES:
         if os.path.exists(c):
             return c
@@ -111,24 +114,22 @@ def _find_dosbox_exe():
 
 
 def _ensure_dosbox():
-    """Comprueba el DOSBox.exe externo necesario para los juegos de 'vicio'.
+    """Comprueba el DOSBox (portable del addon o externo de Windows).
 
-    Los juegos se lanzan con DOSBox.exe de Windows (ventana nativa), no con el
-    core libretro, así que aquí NO se instala ningún addon en caliente (eso
-    crasheaba Kodi). Solo se avisa si falta el ejecutable.
+    Los juegos se lanzan con DOSBox.exe en ventana nativa. El portable va
+    incluido en el addon, así que no hace falta instalar nada ni reiniciar.
     """
     try:
         if _find_dosbox_exe():
-            log('DOSBox.exe externo encontrado')
+            log('DOSBox encontrado (portable del addon o del sistema)')
             return True
-        log('DOSBox.exe externo NO encontrado en el sistema')
+        log('DOSBox.exe NO encontrado')
         xbmcgui.Dialog().ok(
             'Juegos (DOSBox)',
-            'No se ha encontrado DOSBox en el sistema.\n\n'
-            'Los juegos se abren con DOSBox de Windows (ventana nativa).\n'
-            'Instala uno (p.ej. D-Fend Reloaded o DOSBox 0.74) y vuelve\n'
-            'a intentarlo.\n\n'
-            'Rutas buscadas:\n' + '\n'.join(DOSBOX_EXE_CANDIDATES)
+            'No se ha encontrado DOSBox.\n\n'
+            'El addon debería incluir un DOSBox portable en\n'
+            'resources/dosbox. Comprueba que el zip esté completo\n'
+            'o instala DOSBox 0.74 / D-Fend Reloaded en el sistema.'
         )
         return False
     except Exception as e:
@@ -143,8 +144,8 @@ def _show_dosbox_tips():
             'Juegos (DOSBox)',
             'DOSBox activado. La carpeta Vicio ya aparecerá al volver\n'
             'a la raíz del addon (sin reiniciar).\n\n'
-            'Si DOSBox acaba de instalarse, reinicia Kodi para que\n'
-            'el emulador quede bien cargado antes de jugar.\n\n'
+            'El addon incluye DOSBox portable, así que no necesitas\n'
+            'instalar nada.\n\n'
             'Atajos de DOSBox:\n'
             '  Ctrl+F9  = Cerrar DOSBox / salir del juego\n'
             '  Alt+Enter = Pantalla completa / ventana\n'
@@ -163,8 +164,8 @@ def _confirm_games_enable():
         if not xbmcgui.Dialog().yesno(
             'Juegos (DOSBox)',
             'Has activado los juegos.\n\n'
-            'Esto instalará DOSBox (emulador MS-DOS) para poder jugar\n'
-            'a los juegos de la sección Vicio.\n\n'
+            'Esto mostrará la sección Vicio con juegos MS-DOS que se\n'
+            'abren con DOSBox (emulador incluido en el addon).\n\n'
             '¿Quieres activar los juegos ahora?',
             yeslabel='Sí, activar',
             nolabel='No'
