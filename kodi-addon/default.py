@@ -536,7 +536,7 @@ def list_root(data):
         add_fav_context_menu(li, name)
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
 
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 def list_folder(data, path):
@@ -628,7 +628,7 @@ def list_folder(data, path):
         add_fav_context_menu(li, key)
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
 
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 def list_utiles(data):
@@ -637,13 +637,13 @@ def list_utiles(data):
     add_listitem('[ Caché ]', build_url('cache_ajustes'), ICON, isFolder=True)
     add_listitem('[ Forzar regeneración remota ]', build_url('trigger_workflow'), ICON, isFolder=True)
     add_listitem('[ Ajustes ]', build_url('settings_utiles'), ICON, isFolder=True)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 def list_search(data):
     search_term = xbmcgui.Dialog().input('Buscar...', type=xbmcgui.INPUT_ALPHANUM)
     if not search_term:
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
 
     term = search_term.lower().strip()
@@ -660,7 +660,7 @@ def list_search(data):
 
     if not found:
         xbmcgui.Dialog().ok('Buscar', f'No se encontraron resultados para "{search_term}"')
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
 
     for full_path in sorted(found):
@@ -668,7 +668,7 @@ def list_search(data):
         label = parts[-1]
         add_listitem(label, build_url('folder', full_path), ICON, isFolder=True)
 
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 def play_random(data):
@@ -1094,7 +1094,7 @@ def play_video(param, start=None, is_game=False):
         launched = _launch_game_external(url, param)
         if not launched:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo lanzar DOSBox', xbmcgui.NOTIFICATION_ERROR)
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
     li = xbmcgui.ListItem(path=url)
     li.setProperty('IsPlayable', 'true')
@@ -1168,17 +1168,17 @@ def list_favorites(data):
         xbmcgui.Dialog().ok('Favoritos', 'No tienes favoritos todavía.\n\n'
                              'Pulsa el menú contextual en un elemento\n'
                              '(tecla C) y elige "Añadir a favoritos".')
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
     for key in sorted(fav.keys(), key=lambda k: fav[k].get('ts', 0), reverse=True):
         name = fav[key].get('name', key)
         add_listitem(name, build_url('folder', name), ICON, isFolder=True)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 def toggle_fav_action(label):
     toggle_favorite(label)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 WATCHED_FILE = os.path.join(os.path.dirname(CACHE_FILE), 'watched.json')
@@ -1200,7 +1200,7 @@ def list_continue_watching(data):
         xbmcgui.Dialog().ok('Continuar viendo', 'No hay reproducciones a medias.\n\n'
                              'Cuando detengas un capítulo antes del final\n'
                              'aparecerá aquí para continuar desde donde lo dejaste.')
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
 
     # Construir árbol para resolver los paths a carpetas
@@ -1238,7 +1238,7 @@ def list_continue_watching(data):
         li.setProperty('IsPlayable', 'true')
         li.setInfo('video', {'title': name})
         xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 def trigger_workflow(data):
@@ -1249,7 +1249,7 @@ def trigger_workflow(data):
         yeslabel='Sí, lanzar',
         nolabel='No'
     ):
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
 
     try:
@@ -1277,7 +1277,7 @@ def trigger_workflow(data):
             xbmcgui.Dialog().ok('Error HTTP', f'Código: {e.code}')
     except Exception as e:
         xbmcgui.Dialog().ok('Error', f'No se pudo conectar:\n{e}')
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 def router(paramstring):
@@ -1355,7 +1355,7 @@ def router(paramstring):
         return
     elif action == 'settings_utiles':
         ADDON.openSettings()
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
     elif action == 'updated':
         updated = data.get('_last_updated_display') or data.get('_last_updated', '')
@@ -1393,14 +1393,14 @@ def router(paramstring):
                     xbmcgui.Dialog().textviewer('advancedsettings.xml', contenido)
                 except Exception as e:
                     xbmcgui.Dialog().ok('Error', f'No se pudo leer:\n{e}')
-                xbmcplugin.endOfDirectory(HANDLE)
+                xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
                 return
             elif opcion == 1:
                 os.remove(advanced_xml)
                 xbmcgui.Dialog().ok('Hecho', 'advancedsettings.xml eliminado.\nCaché por defecto restaurada.\n\nReinicia Kodi para aplicar.')
-                xbmcplugin.endOfDirectory(HANDLE)
+                xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
                 return
-            xbmcplugin.endOfDirectory(HANDLE)
+            xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
             return
         else:
             if xbmcgui.Dialog().yesno(
@@ -1425,12 +1425,12 @@ def router(paramstring):
                     xbmcgui.Dialog().ok('Hecho', 'advancedsettings.xml creado con\ncaché de 256 MB optimizado.\n\nReinicia Kodi para aplicar.')
                 except Exception as e:
                     xbmcgui.Dialog().ok('Error', f'No se pudo escribir:\n{e}')
-            xbmcplugin.endOfDirectory(HANDLE)
+            xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
             return
-        xbmcplugin.endOfDirectory(HANDLE)
+        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
         return
 
-    xbmcplugin.endOfDirectory(HANDLE)
+    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
 if __name__ == '__main__':

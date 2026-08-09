@@ -175,6 +175,11 @@ def _confirm_games_enable():
             return
         _ensure_dosbox()
         _show_dosbox_tips()
+        # Refrescar la vista actual para que Vicio aparezca sin salir del addon
+        try:
+            xbmc.executebuiltin('Container.Refresh')
+        except Exception:
+            pass
     except Exception as e:
         log(f'Error confirmando juegos: {e}')
 
