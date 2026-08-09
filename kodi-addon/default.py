@@ -113,7 +113,7 @@ STATION_POSTER_OVERRIDES = {
     'Realms of Chaos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/realms_of_chaos.jpg',
     'Secret Agent': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/secret_agent.png',
     'Trivia Whiz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/trivia_whiz.webp',
-    'Hollywood Trivia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hollywood.png',
+    'Hollywood Trivia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hollywood_trivia.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
