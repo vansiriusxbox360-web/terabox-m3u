@@ -310,7 +310,7 @@ def resolve_icon(node, current_path='', sibling_idx=0):
     folder_img = get_folder_image(leaf)
     if folder_img:
         return folder_img
-    folder_url = FOLDER_ICON_URLS.get(leaf)
+    folder_url = FOLDER_ICON_URLS.get(leaf) or FOLDER_ICON_URLS.get(leaf.lower())
     if folder_url:
         return folder_url
     if node.get('_groups'):
