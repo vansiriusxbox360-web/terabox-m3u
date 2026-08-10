@@ -980,6 +980,13 @@ def _find_game_exe(extract_to, game_hint=''):
         for p in exes:
             if os.path.basename(p).lower() == pref:
                 return p
+        # El exe preferido no existe en local: puede estar dentro del ISO (CD-ROM).
+        # Devolver un marcador D:<exe> para que _launch_game_external lo ejecute
+        # desde la unidad de CD montada (imgmount d).
+        for root, dirs, files in os.walk(extract_to):
+            for f in files:
+                if f.lower().endswith(('.iso', '.cue', '.bin')):
+                    return 'CD:' + pref.upper()
     def exe_rank(p):
         base_n = os.path.basename(p).lower()
         if any(k in base_n for k in ('setup', 'install', 'catalog', 'help', 'hint', 'dealers', 'order', 'ultramid', 'hp-', 'swc', 'license', 'readme', '__hpgrvs', 'browse')):
@@ -1101,13 +1108,39 @@ def _launch_game_external(exe_path, param):
     if not dosbox:
         log('DOSBox.exe no encontrado en el sistema')
         return False
+    # Marcador CD:<exe>: el ejecutable está dentro del ISO (CD-ROM), no en local.
+    # Localizamos el juego por el param/path y montamos el ISO para ejecutar desde D:.
+    cd_exe = None
+    if exe_path and str(exe_path).startswith('CD:'):
+        cd_exe = str(exe_path)[3:]
+        games_dir = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'games')
+        found_base = None
+        if param:
+            base = os.path.splitext(re.sub(r'[^\w.\-]+', '_', param.rsplit('/', 1)[-1] or 'juego.zip'))[0]
+            if os.path.isdir(os.path.join(games_dir, base)):
+                found_base = os.path.join(games_dir, base)
+        if not found_base:
+            for d in os.listdir(games_dir):
+                if os.path.isdir(os.path.join(games_dir, d)) and os.path.exists(os.path.join(games_dir, d, cd_exe)):
+                    found_base = os.path.join(games_dir, d)
+                    break
+        if not found_base:
+            for d in os.listdir(games_dir):
+                full = os.path.join(games_dir, d)
+                if os.path.isdir(full) and any(f.lower().endswith(('.iso', '.cue', '.bin')) for _, _, fs in os.walk(full) for f in fs):
+                    found_base = full
+                    break
+        if not found_base:
+            log(f'Juego CD-ROM no localizado: {param}')
+            return False
+        exe_path = os.path.join(found_base, cd_exe)
     if not exe_path or not os.path.exists(exe_path):
         log(f'Juego no encontrado: {exe_path}')
         return False
     game_dir = os.path.dirname(exe_path)
-    # Ejecutar directamente el .exe del juego (evitar .BAT con protectores/CD
-    # como HOCUSG.BAT que pedían "please run HOCUS to play")
-    to_run = os.path.basename(exe_path)
+    # Si el exe no existe en local pero lo localizamos como CD:, buscar el ISO y usar D:\exe
+    use_cd_exe = bool(cd_exe)
+    to_run = os.path.basename(exe_path) if not use_cd_exe else 'D:\\' + cd_exe
     mount_root = game_dir
     extra_cd = ''
     cd_iso = None
@@ -1151,7 +1184,7 @@ def _launch_game_external(exe_path, param):
         if cd_iso:
             # Juego de CD-ROM: montar la imagen como D: con imgmount
             conf_lines.append(f'imgmount d {cd_iso.replace(chr(92), "/")} -t cdrom')
-        if extra_cd:
+        if extra_cd and not use_cd_exe:
             conf_lines.append(extra_cd)
         conf_lines.append(to_run)
         conf_text = '\n'.join(conf_lines) + '\n'
