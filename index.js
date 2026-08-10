@@ -287,6 +287,10 @@ const TITLE_ALIASES = {
 };
 
 const CUSTOM_POSTERS = {
+  'Navajeros': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/navajeros.jpg',
+  'Una carta para Momo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_carta_para_momo_v2.jpg',
+  'Los niños lobo Ame y Yuki': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo_v2.jpg',
+  'Los niños lobo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo_v2.jpg',
   'Basket Fever': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/basket_fever.jpg',
   'Campeones': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/campeones.jpg',
   'Daniel el travieso': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/daniel_el_travieso.jpg',

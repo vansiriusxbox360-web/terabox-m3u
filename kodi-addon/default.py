@@ -580,25 +580,16 @@ def list_folder(data, path):
     for group in node.get('_groups', []):
         group_icon = group.get('image')
         group_name = group.get('name', '')
-        # Imagen de álbum por sufijo de ruta (p.ej. temporadas de BeyBlade) con prioridad
-        for suffix, url in FOLDER_ICON_BY_PATH_SUFFIX.items():
-            if group_name == suffix or group_name.endswith('/' + suffix):
-                group_icon = url
+        stations = group.get('stations', [])
+        # Póster forzado del grupo (override): buscar en el nombre del grupo y en
+        # el de sus estaciones. GANA sobre cualquier imagen del JSON.
+        group_forced = None
+        for frag, poster_url in STATION_POSTER_OVERRIDES.items():
+            if frag.lower() in group_name.lower():
+                group_forced = poster_url
                 break
-        # Si el grupo no tiene imagen, usar la de la carpeta (heredada en el árbol)
-        if not group_icon:
-            group_icon = node.get('_icon')
-            if group_icon == ICON or group_icon in (FOLDER_IMAGES.get('Dibus que no son \u00aanime'), FOLDER_IMAGES.get('\u00aanime')):
-                # Imagen genérica de contenedor: buscar la de la serie anfitriona
-                series_icon = _find_series_icon(tree, group_name)
-                if series_icon:
-                    group_icon = series_icon
-            if group_icon == ICON:
-                group_icon = None
-        # Si sigue sin imagen, heredar el póster forzado de su primera estación
-        # (las carpetas ALB de pelis muestran el póster de la peli que contienen)
-        if not group_icon and group.get('stations'):
-            for s0 in group['stations']:
+        if not group_forced:
+            for s0 in stations:
                 s0name = s0.get('name', '')
                 s0poster = None
                 for frag, poster_url in STATION_POSTER_OVERRIDES.items():
@@ -606,10 +597,37 @@ def list_folder(data, path):
                         s0poster = poster_url
                         break
                 if s0poster:
-                    group_icon = s0poster
+                    group_forced = s0poster
                     break
-        stations = group.get('stations', [])
-
+        if group_forced:
+            group_icon = group_forced
+        else:
+            # Imagen de álbum por sufijo de ruta (p.ej. temporadas de BeyBlade)
+            for suffix, url in FOLDER_ICON_BY_PATH_SUFFIX.items():
+                if group_name == suffix or group_name.endswith('/' + suffix):
+                    group_icon = url
+                    break
+            # Si el grupo no tiene imagen, usar la de la carpeta (heredada en el árbol)
+            if not group_icon:
+                group_icon = node.get('_icon')
+                if group_icon == ICON or group_icon in (FOLDER_IMAGES.get('Dibus que no son \u00aanime'), FOLDER_IMAGES.get('\u00aanime')):
+                    series_icon = _find_series_icon(tree, group_name)
+                    if series_icon:
+                        group_icon = series_icon
+                if group_icon == ICON:
+                    group_icon = None
+            # Si sigue sin imagen, heredar el póster forzado de su primera estación
+            if not group_icon and stations:
+                for s0 in stations:
+                    s0name = s0.get('name', '')
+                    s0poster = None
+                    for frag, poster_url in STATION_POSTER_OVERRIDES.items():
+                        if frag.lower() in s0name.lower():
+                            s0poster = poster_url
+                            break
+                    if s0poster:
+                        group_icon = s0poster
+                        break
         for station in stations:
             name = station.get('name', 'Sin nombre')
             raw_url = station.get('url', '')
