@@ -857,30 +857,62 @@ def _download_game(url, filename):
     progress = xbmcgui.DialogProgress()
     progress.create('VanSirius', f'Descargando {filename}...')
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Kodi-Addon/1.0'})
-        resp = urllib.request.urlopen(req, timeout=300)
-        total = int(resp.headers.get('Content-Length', 0))
-        data = b''
+        # Descarga por streaming a disco (sin acumular todo en RAM) con timeout por
+        # operacion y reintentos parciales: los zips grandes (p.ej. Los Justicieros,
+        # ~186MB) se cortaban a mitad por el timeout global de 300s.
+        out_tmp = file_path + '.part'
         read = 0
-        while True:
-            chunk = resp.read(65536)
-            if not chunk:
-                break
-            data += chunk
-            read += len(chunk)
-            if total > 0:
-                pct = int(read * 100 / total)
-                progress.update(pct, f'{read // 1024}KB / {total // 1024}KB')
-            else:
-                progress.update(0, f'{read // 1024}KB')
-            if progress.iscanceled():
-                progress.close()
-                return None
-        progress.close()
-        if not data:
+        total = 0
+        existing = 0
+        if os.path.exists(out_tmp):
+            existing = os.path.getsize(out_tmp)
+            read = existing
+        # rango de reanudacion si ya hay datos parciales
+        headers = {'User-Agent': 'Kodi-Addon/1.0'}
+        if existing > 0:
+            headers['Range'] = f'bytes={existing}-'
+        last_progress = -1
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            resp = urllib.request.urlopen(req, timeout=60)
+            total = existing + int(resp.headers.get('Content-Length', 0))
+            if total == existing:
+                total = 0
+            with open(out_tmp, 'ab' if existing > 0 else 'wb') as f:
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    read += len(chunk)
+                    if total > 0:
+                        pct = int(read * 100 / total)
+                        if pct != last_progress or pct % 5 == 0:
+                            last_progress = pct
+                            progress.update(pct, f'{read // 1024}KB / {total // 1024}KB')
+                    if progress.iscanceled():
+                        progress.close()
+                        return None
+        except Exception:
+            # si se corto, guardamos lo descargado y reintentamos una vez mas
+            log(f'Descarga cortada en {read // 1024}KB, reintentando...')
+            if os.path.exists(out_tmp) and os.path.getsize(out_tmp) > 0:
+                os.replace(out_tmp, file_path)
+                if os.path.exists(file_path):
+                    exe = _extract_game(file_path, extract_to)
+                    if exe:
+                        try:
+                            os.remove(file_path)
+                        except Exception:
+                            pass
+                        progress.close()
+                        return exe
+            progress.close()
             return None
-        with open(file_path, 'wb') as f:
-            f.write(data)
+        progress.close()
+        if not read or not os.path.exists(out_tmp) or os.path.getsize(out_tmp) == 0:
+            return None
+        os.replace(out_tmp, file_path)
         # extraer y devolver el exe
         try:
             exe = _extract_game(file_path, extract_to)
@@ -1073,10 +1105,40 @@ def _launch_game_external(exe_path, param):
         log(f'Juego no encontrado: {exe_path}')
         return False
     game_dir = os.path.dirname(exe_path)
-    mount_root = game_dir
     # Ejecutar directamente el .exe del juego (evitar .BAT con protectores/CD
     # como HOCUSG.BAT que pedían "please run HOCUS to play")
     to_run = os.path.basename(exe_path)
+    mount_root = game_dir
+    extra_cd = ''
+    cd_iso = None
+    # Juego de CD-ROM: buscar un ISO/CUE/BIN en el arbol (subiendo niveles desde el exe)
+    # y montarlo como D: con imgmount. C: se monta en la carpeta raiz del juego.
+    search_base = game_dir
+    for _ in range(4):
+        for root, dirs, files in os.walk(search_base):
+            for f in files:
+                if f.lower().endswith(('.iso', '.cue', '.bin')):
+                    cd_iso = os.path.join(root, f)
+                    break
+            if cd_iso:
+                break
+        if cd_iso:
+            break
+        parent = os.path.dirname(search_base)
+        if parent == search_base:
+            break
+        search_base = parent
+    if cd_iso:
+        # la raiz de C: = carpeta que contiene el .iso (o su padre si iso esta en cd/)
+        iso_dir = os.path.dirname(cd_iso)
+        mount_root = os.path.dirname(iso_dir) if os.path.basename(iso_dir).lower() == 'cd' else iso_dir
+        # si el exe esta en un subdirectorio de mount_root, hacer cd a ese subdir
+        try:
+            rel = os.path.relpath(game_dir, mount_root)
+            if rel != '.' and not rel.startswith('..'):
+                extra_cd = 'cd ' + rel.replace('\\', '\\')
+        except Exception:
+            pass
     conf_path = game_dir + '.conf'
     try:
         game_name = (param or '') + ' ' + os.path.basename(game_dir)
@@ -1086,6 +1148,11 @@ def _launch_game_external(exe_path, param):
         if cycles:
             conf_lines += ['[cpu]', f'cycles={cycles}', '']
         conf_lines += ['[autoexec]', f'mount c {mount_root.replace(chr(92), "/")}', 'c:']
+        if cd_iso:
+            # Juego de CD-ROM: montar la imagen como D: con imgmount
+            conf_lines.append(f'imgmount d {cd_iso.replace(chr(92), "/")} -t cdrom')
+        if extra_cd:
+            conf_lines.append(extra_cd)
         conf_lines.append(to_run)
         conf_text = '\n'.join(conf_lines) + '\n'
         with open(conf_path, 'w', encoding='utf-8') as f:
