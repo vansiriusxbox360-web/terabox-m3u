@@ -324,16 +324,17 @@ def resolve_icon(node, current_path='', sibling_idx=0):
     if folder_url:
         return folder_url
     if node.get('_groups'):
-        icon = node.get('_icon')
-        if icon and icon != ICON:
-            return icon
-        # Carpeta ALB de peli/serie: heredar el póster forzado de su primera estación
+        # Carpeta ALB de peli/serie: el póster forzado de sus estaciones tiene
+        # PRIORIDAD sobre la imagen heredada del JSON (que puede ser errónea).
         for g in node['_groups']:
             for s in g.get('stations', []):
                 sname = s.get('name', '')
                 for frag, poster_url in STATION_POSTER_OVERRIDES.items():
                     if frag.lower() in sname.lower():
                         return poster_url
+        icon = node.get('_icon')
+        if icon and icon != ICON:
+            return icon
         rnd = folder_icon(current_path, sibling_idx)
         return rnd if rnd else DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
