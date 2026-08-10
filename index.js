@@ -763,6 +763,7 @@ const FILE_POSTER_URLS = {
   'Bubble Bobble': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bubble_bobble.jpg',
   'Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
   'Commander Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
+  'Commander Keen - Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
   'Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
   'Commander Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
   'Los Justicieros': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_justicieros.jpg',
