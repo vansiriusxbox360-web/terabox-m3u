@@ -327,6 +327,13 @@ def resolve_icon(node, current_path='', sibling_idx=0):
         icon = node.get('_icon')
         if icon and icon != ICON:
             return icon
+        # Carpeta ALB de peli/serie: heredar el póster forzado de su primera estación
+        for g in node['_groups']:
+            for s in g.get('stations', []):
+                sname = s.get('name', '')
+                for frag, poster_url in STATION_POSTER_OVERRIDES.items():
+                    if frag.lower() in sname.lower():
+                        return poster_url
         rnd = folder_icon(current_path, sibling_idx)
         return rnd if rnd else DETECTIVE
     child_keys = [k for k in node.keys() if not k.startswith('_')]
@@ -588,6 +595,19 @@ def list_folder(data, path):
                     group_icon = series_icon
             if group_icon == ICON:
                 group_icon = None
+        # Si sigue sin imagen, heredar el póster forzado de su primera estación
+        # (las carpetas ALB de pelis muestran el póster de la peli que contienen)
+        if not group_icon and group.get('stations'):
+            for s0 in group['stations']:
+                s0name = s0.get('name', '')
+                s0poster = None
+                for frag, poster_url in STATION_POSTER_OVERRIDES.items():
+                    if frag.lower() in s0name.lower():
+                        s0poster = poster_url
+                        break
+                if s0poster:
+                    group_icon = s0poster
+                    break
         stations = group.get('stations', [])
 
         for station in stations:
