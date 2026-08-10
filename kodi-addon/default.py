@@ -954,6 +954,18 @@ GAME_EXE_MAP = {
     'justicieros': 'ZORTON.EXE',
 }
 
+# Juegos que se lanzan con su .BAT (setup propio + selector de episodios)
+GAME_BAT_MAP = {
+    'bio menace': 'BMENACE.BAT',
+}
+
+# Juegos con episodios numerados (BASH1/2/3, SAM1/2/3): al abrir se elige episodio.
+# clave: fragmento del nombre -> (prefijo de archivo, nº de episodios)
+GAME_EPISODES = {
+    'monster bash': ('BASH', 3),
+    'secret agent': ('SAM', 3),
+}
+
 
 def _find_game_exe(extract_to, game_hint=''):
     """Busca el .exe del juego en la carpeta extraída.
@@ -967,14 +979,20 @@ def _find_game_exe(extract_to, game_hint=''):
     hint = (game_hint or '').lower().replace('_', ' ').replace('.7z', '').replace('.zip', '').replace('.rar', '').strip()
     pref = None
     if hint:
-        for frag, exe_name in GAME_EXE_MAP.items():
+        # Juegos con .BAT de lanzamiento propio (setup + selector de episodios)
+        for frag, bat_name in GAME_BAT_MAP.items():
             if frag in hint:
-                pref = exe_name.lower()
+                pref = bat_name.lower()
                 break
+        if not pref or not pref.endswith('.bat'):
+            for frag, exe_name in GAME_EXE_MAP.items():
+                if frag in hint:
+                    pref = exe_name.lower()
+                    break
     exes = []
     for root, dirs, files in os.walk(extract_to):
         for f in files:
-            if f.lower().endswith('.exe'):
+            if f.lower().endswith(('.exe', '.bat', '.com')):
                 exes.append(os.path.join(root, f))
     if pref:
         for p in exes:
@@ -1143,6 +1161,9 @@ def _launch_game_external(exe_path, param):
     game_dir = os.path.dirname(exe_path)
     # Si el exe no existe en local pero lo localizamos como CD:, buscar el ISO y usar D:\exe
     to_run = os.path.basename(exe_path) if not use_cd_exe else 'D:\\' + cd_exe
+    # Si es un .BAT de lanzamiento (p.ej. BMENACE.BAT con setup/selector), usar CALL
+    if to_run.lower().endswith('.bat'):
+        to_run = 'call ' + to_run
     mount_root = game_dir
     extra_cd = ''
     cd_iso = None
@@ -1181,10 +1202,53 @@ def _launch_game_external(exe_path, param):
                 extra_cd = 'cd ' + rel.replace('\\', '\\')
         except Exception:
             pass
+        # CD-ROM con exe en el ISO (use_cd_exe): el cfg del juego puede estar en un
+        # subdir de C: (p.ej. JUSTIC\ZORTON.CFG). Hacer cd a esa carpeta para que el
+        # juego encuentre su config al ejecutarse desde D:.
+        if use_cd_exe and not extra_cd:
+            cfg_dir = None
+            for root, dirs, files in os.walk(mount_root):
+                if cfg_dir:
+                    break
+                for f in files:
+                    if f.lower() == 'zorton.cfg' or f.lower().endswith('.cfg'):
+                        cfg_dir = root
+                        break
+            if cfg_dir:
+                try:
+                    rel_cfg = os.path.relpath(cfg_dir, mount_root)
+                    if rel_cfg != '.' and not rel_cfg.startswith('..'):
+                        extra_cd = 'cd ' + rel_cfg.replace('\\', '\\')
+                except Exception:
+                    pass
     conf_path = game_dir + '.conf'
     try:
         game_name = (param or '') + ' ' + os.path.basename(game_dir)
         game_name = game_name.lower()
+        # Selector de episodios: si el juego tiene BASH1/2/3 o SAM1/2/3, elegir cual abrir
+        for frag, (prefix, n_eps) in GAME_EPISODES.items():
+            if frag in game_name:
+                opts = [f'Episodio {i}' for i in range(1, n_eps + 1)]
+                sel = xbmcgui.Dialog().select(f'{frag.title()}: elegir episodio', opts)
+                if sel == -1:
+                    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
+                    return False
+                ep_num = sel + 1
+                # buscar el exe del episodio elegido (BASH<n>.EXE / SAM<n>.EXE)
+                ep_name = f'{prefix}{ep_num}.EXE'
+                ep_path = None
+                for root, dirs, files in os.walk(mount_root):
+                    if ep_path:
+                        break
+                    for f in files:
+                        if f.lower() == ep_name.lower():
+                            ep_path = os.path.join(root, f)
+                            break
+                if ep_path:
+                    to_run = os.path.basename(ep_path)
+                else:
+                    to_run = f'{prefix}{ep_num}.EXE'
+                break
         cycles = next((c for frag, c in GAME_CYCLES.items() if frag in game_name), None)
         conf_lines = ['[sdl]', 'fullscreen=false', '']
         if cycles:
@@ -1193,7 +1257,7 @@ def _launch_game_external(exe_path, param):
         if cd_iso:
             # Juego de CD-ROM: montar la imagen como D: con imgmount
             conf_lines.append(f'imgmount d {cd_iso.replace(chr(92), "/")} -t cdrom')
-        if extra_cd and not use_cd_exe:
+        if extra_cd:
             conf_lines.append(extra_cd)
         conf_lines.append(to_run)
         conf_text = '\n'.join(conf_lines) + '\n'
