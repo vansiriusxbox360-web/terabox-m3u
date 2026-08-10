@@ -4,7 +4,7 @@ const https = require('https');
 const { TeraBoxApp } = require('terabox-api');
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
-const DELAY_MS = 150;
+const DELAY_MS = 400;
 const OMD_DELAY_MS = 1200;
 const OMD_RETRY_WAIT_MS = 30000;
 const OMD_MAX_RETRIES = 3;
@@ -1710,19 +1710,22 @@ async function fetchMeta(groups, omdbKey, tmdbKey) {
 }
 
 async function listDirectory(tb, dirPath, page = 1) {
-  const MAX_LIST_RETRIES = 3;
+  const MAX_LIST_RETRIES = 5;
+  let emptyStreak = 0;
   for (let attempt = 1; attempt <= MAX_LIST_RETRIES; attempt++) {
     try {
       const result = await tb.getRemoteDir(dirPath, page);
       await sleep(DELAY_MS);
       if (result && result.list && result.list.length > 0) return result;
+      emptyStreak++;
       if (attempt < MAX_LIST_RETRIES) {
-        console.warn(`  Listado vacio de ${dirPath} (intento ${attempt}/${MAX_LIST_RETRIES}). Reintentando...`);
-        await sleep(10000 * attempt);
+        const wait = 15000 * attempt + emptyStreak * 5000;
+        console.warn(`  Listado vacio de ${dirPath} (intento ${attempt}/${MAX_LIST_RETRIES}, streak ${emptyStreak}). Esperando ${wait / 1000}s...`);
+        await sleep(wait);
       }
     } catch (error) {
       console.error(`Error listing ${dirPath} page ${page} (intento ${attempt}/${MAX_LIST_RETRIES}):`, error.message);
-      if (attempt < MAX_LIST_RETRIES) await sleep(10000 * attempt);
+      if (attempt < MAX_LIST_RETRIES) await sleep(15000 * attempt);
     }
   }
   return null;
@@ -2074,6 +2077,7 @@ async function main() {
     
     while (hasMore) {
       const result = await tb.getRemoteDir(dirPath, page);
+      await sleep(DELAY_MS);
       if (!result || !result.list || result.list.length === 0) break;
       
       for (const item of result.list) {
