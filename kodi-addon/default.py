@@ -1146,11 +1146,22 @@ def _launch_game_external(exe_path, param):
     mount_root = game_dir
     extra_cd = ''
     cd_iso = None
-    # Juego de CD-ROM: buscar un ISO/CUE/BIN en el arbol (subiendo niveles desde el exe)
-    # y montarlo como D: con imgmount. C: se monta en la carpeta raiz del juego.
-    search_base = game_dir
-    for _ in range(4):
-        for root, dirs, files in os.walk(search_base):
+    # Juego de CD-ROM: buscar un ISO/CUE/BIN SOLO dentro de la carpeta del juego
+    # (y subniveles). NUNCA subir al padre de games/: ahi hay ISOs de otros juegos
+    # (p.ej. Los Justicieros) que se montarian por error en cualquier juego.
+    games_root = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'games')
+    search_roots = [game_dir]
+    # si el exe esta en un subdir (p.ej. .../LosJusti/JUSTIC), el ISO puede estar
+    # en la carpeta del juego (padre de game_dir) - pero nunca en games/ mismo
+    parent = os.path.dirname(game_dir)
+    if parent and parent != games_root and parent.startswith(games_root):
+        search_roots.append(parent)
+    for sbase in search_roots:
+        for root, dirs, files in os.walk(sbase):
+            rel_root = os.path.relpath(root, sbase)
+            if rel_root.count(os.sep) > 2:
+                dirs[:] = []
+                continue
             for f in files:
                 if f.lower().endswith(('.iso', '.cue', '.bin')):
                     cd_iso = os.path.join(root, f)
@@ -1159,10 +1170,6 @@ def _launch_game_external(exe_path, param):
                 break
         if cd_iso:
             break
-        parent = os.path.dirname(search_base)
-        if parent == search_base:
-            break
-        search_base = parent
     if cd_iso:
         # la raiz de C: = carpeta que contiene el .iso (o su padre si iso esta en cd/)
         iso_dir = os.path.dirname(cd_iso)
