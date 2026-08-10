@@ -595,14 +595,18 @@ def list_folder(data, path):
             raw_url = station.get('url', '')
             fs_id = station.get('fs_id')
             icon = station.get('image', group_icon)
-            # Póster individual forzado por fragmento del nombre
+            # Póster individual forzado por fragmento del nombre (insensible a mayúsculas)
+            forced_poster = None
             for frag, poster_url in STATION_POSTER_OVERRIDES.items():
-                if frag in name:
-                    icon = poster_url
+                if frag.lower() in name.lower():
+                    forced_poster = poster_url
                     break
+            if forced_poster:
+                icon = forced_poster
             # Regla del álbum: si todos los capítulos comparten la misma imagen individual,
             # es un póster genérico (erróneo) y heredan la imagen de su carpeta.
-            if group_icon and _all_stations_same_image(stations):
+            # (NO se aplica si hay un póster forzado individualmente)
+            elif group_icon and _all_stations_same_image(stations):
                 icon = group_icon
             # Pokémon (regiones/series sueltas): los capítulos heredan la imagen de su carpeta
             if station_inherits_group_icon(group_name):
