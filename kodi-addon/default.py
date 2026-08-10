@@ -623,12 +623,9 @@ def list_folder(data, path):
             if icon:
                 li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
             if is_game:
-                # Los juegos se lanzan con DOSBox externo: NO marcarlos como
-                # reproducibles o Kodi muestra "no se puede reproducir el contenido".
-                try:
-                    li.setInfo('game', {'title': name, 'platform': 'DOS'})
-                except Exception:
-                    li.setInfo('video', {'title': name})
+                # Los juegos se lanzan con DOSBox externo: NO marcarlos como reproducibles
+                # ni como 'game' (RetroPlayer intentaría abrir el zip/exe como ROM).
+                li.setInfo('video', {'title': name})
             else:
                 li.setProperty('IsPlayable', 'true')
                 li.setInfo('video', {'title': name})
@@ -1383,9 +1380,11 @@ def router(paramstring):
         return
 
     log(f'Action: {action}, Path: "{path}"')
-    # La sección de juegos (vicio) usa content type 'games' para que Kodi lo abra con RetroPlayer
+    # La sección de juegos (vicio): NO usar content type 'games' (RetroPlayer) porque
+    # los juegos se lanzan con DOSBox externo. 'games' hacía que Kodi intentara abrir
+    # el zip/exe como ROM y diera "no se puede cargar el rom".
     if action == 'folder' and path.strip().lower().split('/')[0] == 'vicio':
-        xbmcplugin.setContent(HANDLE, 'games')
+        xbmcplugin.setContent(HANDLE, 'files')
     else:
         xbmcplugin.setContent(HANDLE, 'tvshows')
 
