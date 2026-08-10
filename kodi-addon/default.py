@@ -1111,8 +1111,10 @@ def _launch_game_external(exe_path, param):
     # Marcador CD:<exe>: el ejecutable está dentro del ISO (CD-ROM), no en local.
     # Localizamos el juego por el param/path y montamos el ISO para ejecutar desde D:.
     cd_exe = None
+    use_cd_exe = False
     if exe_path and str(exe_path).startswith('CD:'):
         cd_exe = str(exe_path)[3:]
+        use_cd_exe = True
         games_dir = os.path.join(xbmcvfs.translatePath(ADDON.getAddonInfo('profile')), 'games')
         found_base = None
         if param:
@@ -1133,13 +1135,13 @@ def _launch_game_external(exe_path, param):
         if not found_base:
             log(f'Juego CD-ROM no localizado: {param}')
             return False
+        # El exe está dentro del ISO (CD-ROM), no en local: apuntar game_dir al found_base
         exe_path = os.path.join(found_base, cd_exe)
-    if not exe_path or not os.path.exists(exe_path):
+    if not exe_path or (not use_cd_exe and not os.path.exists(exe_path)):
         log(f'Juego no encontrado: {exe_path}')
         return False
     game_dir = os.path.dirname(exe_path)
     # Si el exe no existe en local pero lo localizamos como CD:, buscar el ISO y usar D:\exe
-    use_cd_exe = bool(cd_exe)
     to_run = os.path.basename(exe_path) if not use_cd_exe else 'D:\\' + cd_exe
     mount_root = game_dir
     extra_cd = ''
