@@ -122,6 +122,7 @@ STATION_POSTER_OVERRIDES = {
     'Commander Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
     'Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
     'Commander Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
+    'Los Justicieros': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_justicieros.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
@@ -919,6 +920,8 @@ GAME_EXE_MAP = {
     'commander keen dreams': 'KDREAMS.EXE',
     'commander keen 4': 'KEEN4E.EXE',
     'keen 4': 'KEEN4E.EXE',
+    'los justicieros': 'ZORTON.EXE',
+    'justicieros': 'ZORTON.EXE',
 }
 
 
