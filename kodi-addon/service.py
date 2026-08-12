@@ -166,7 +166,7 @@ def _confirm_games_enable():
             'Juegos (DOSBox)',
             'Has activado los juegos.\n\n'
             'Esto mostrará la sección Vicio con juegos MS-DOS que se\n'
-            'abren con DOSBox (emulador incluido en el addon).\n\n'
+            'abren con DOSBox (solo Windows, emulador incluido).\n\n'
             '¿Quieres activar los juegos ahora?',
             yeslabel='Sí, activar',
             nolabel='No'

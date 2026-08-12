@@ -477,14 +477,14 @@ def show_welcome():
                 'Caché de streaming',
                 'La caché de 256 MB está activada (mejor experiencia,\n'
                 'sin cortes ni buffering).\n\n'
-                'También tienes juegos MS-DOS disponibles:\n'
+                'También tienes juegos MS-DOS disponibles (solo Windows):\n'
                 'actívalos en Ajustes > "Juegos (DOSBox)".'
             )
         elif xbmcgui.Dialog().yesno(
             'Caché de streaming',
             'Para una mejor experiencia, se recomienda activar\n'
             'la caché de 256 MB (evita cortes y buffering).\n\n'
-            'También tienes juegos MS-DOS disponibles:\n'
+            'También tienes juegos MS-DOS disponibles (solo Windows):\n'
             'actívalos en Ajustes > "Juegos (DOSBox)".\n\n'
             '¿Activar la caché de 256 MB ahora?',
             yeslabel='Sí, activar',
