@@ -765,6 +765,7 @@ const FILE_POSTER_URLS = {
   'Una carta para Momo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_carta_para_momo_v2.jpg',
   'Los niños lobo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo_v2.jpg',
   'Bubble Bobble': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bubble_bobble.jpg',
+  'Claw': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/claw.jpg',
   'Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
   'Commander Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
   'Commander Keen - Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',

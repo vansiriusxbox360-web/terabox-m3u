@@ -118,6 +118,7 @@ STATION_POSTER_OVERRIDES = {
     'Una carta para Momo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/una_carta_para_momo_v2.jpg',
     'Los ni\u00f1os lobo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo_v2.jpg',
     'Bubble Bobble': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bubble_bobble.jpg',
+    'Claw': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/claw.jpg',
     'Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
     'Commander Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
     'Commander Keen - Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
@@ -995,6 +996,7 @@ GAME_EXE_MAP = {
     'keen 4': 'KEEN4E.EXE',
     'los justicieros': 'ZORTON.EXE',
     'justicieros': 'ZORTON.EXE',
+    'claw': 'CLAW.EXE',
 }
 
 # Juegos que se lanzan con su .BAT (setup propio + selector de episodios)
@@ -1007,6 +1009,12 @@ GAME_BAT_MAP = {
 GAME_EPISODES = {
     'monster bash': ('BASH', 3),
     'secret agent': ('SAM', 3),
+}
+
+# Juegos de Windows (Win95/98) que se lanzan NATIVO con el .exe (no DOSBox).
+# Solo funciona en Windows. clave: fragmento del nombre -> nombre del exe
+GAME_WINDOWS = {
+    'claw': 'CLAW.EXE',
 }
 
 
@@ -1160,6 +1168,37 @@ def _find_dosbox_exe():
     except Exception:
         pass
     return None
+
+
+def _launch_game_windows(exe_path):
+    """Lanza un juego de Windows (Win95/98) con el .exe nativo del sistema (no DOSBox)."""
+    import subprocess as _sp
+    if not exe_path or not os.path.exists(exe_path):
+        log(f'Juego Windows no encontrado: {exe_path}')
+        return False
+    try:
+        cwd = os.path.dirname(exe_path)
+        _sp.Popen([exe_path], cwd=cwd,
+                  stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
+                  creationflags=0x08000000)
+        log(f'Juego Windows lanzado: {os.path.basename(exe_path)}')
+        # dar foco a la ventana del juego
+        try:
+            import ctypes
+            time.sleep(2.0)
+            name = os.path.splitext(os.path.basename(exe_path))[0]
+            hwnd = ctypes.windll.user32.FindWindowW(None, name)
+            if not hwnd:
+                hwnd = ctypes.windll.user32.FindWindowW(None, 'Claw')
+            if hwnd:
+                ctypes.windll.user32.SetForegroundWindow(hwnd)
+                ctypes.windll.user32.ShowWindow(hwnd, 9)
+        except Exception as e:
+            log(f'Error foco juego Windows: {e}')
+        return True
+    except Exception as e:
+        log(f'Error lanzando juego Windows: {e}')
+        return False
 
 
 def _launch_game_external(exe_path, param):
@@ -1357,6 +1396,19 @@ def play_video(param, start=None, is_game=False):
         else:
             xbmcgui.Dialog().notification('VanSirius', 'No se pudo descargar el juego', xbmcgui.NOTIFICATION_ERROR)
     if is_game:
+        # Juego de Windows (Win95/98): se lanza NATIVO con su .exe (solo en Windows)
+        gname = (param or '').lower()
+        is_win_game = False
+        for frag in GAME_WINDOWS:
+            if frag in gname:
+                is_win_game = True
+                break
+        if is_win_game:
+            launched = _launch_game_windows(url)
+            if not launched:
+                xbmcgui.Dialog().notification('VanSirius', 'No se pudo lanzar el juego', xbmcgui.NOTIFICATION_ERROR)
+            xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
+            return
         # Lanzar el juego con DOSBox externo de Windows (ventana nativa).
         # NO usar setResolvedUrl: Kodi intentaría abrir el .exe con RetroPlayer (savestates).
         # endOfDirectory cierra el spinner sin que Kodi reproduzca nada.
