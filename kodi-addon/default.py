@@ -119,6 +119,10 @@ STATION_POSTER_OVERRIDES = {
     'Los ni\u00f1os lobo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ninos_lobo_v2.jpg',
     'Bubble Bobble': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bubble_bobble.jpg',
     'Claw': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/claw.jpg',
+    'Juego de Tronos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/juego_de_tronos.jpg',
+    'Juego de tronos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/juego_de_tronos.jpg',
+    'La casa del drag\u00f3n': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/la_casa_del_dragon.jpg',
+    'La casa del dragon': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/la_casa_del_dragon.jpg',
     'Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
     'Commander Keen Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
     'Commander Keen - Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen_dreams.jpg',
@@ -206,8 +210,8 @@ def get_json(force_download=False):
             cached_at = cached.get('_cached_at', 0)
             edad = ahora - cached_at
             log(f'Cache encontrada, edad: {int(edad)}s')
-            if not force_download and edad < 900:
-                log('Cache reciente (<15 min), usando cache')
+            if not force_download and edad < 21600:
+                log('Cache reciente (<6h), usando cache')
                 return cached
         except Exception as e:
             log(f'Error leyendo cache: {e}', xbmc.LOGERROR)
@@ -241,7 +245,7 @@ def get_json(force_download=False):
         result['_cached_at'] = ahora
 
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+            json.dump(result, f, ensure_ascii=False)
 
         progress.close()
         log(f'JSON descargado: {len(result.get("groups", []))} grupos')
