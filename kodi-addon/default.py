@@ -982,6 +982,63 @@ def _download_game(url, filename):
 # Ejecutable preferido por juego (fragmento de nombre -> nombre del exe). Evita
 # que el ranking genérico coja instaladores/ayudas (DN2HELP, d1.exe, 3DRCAT, etc.)
 GAME_EXE_MAP = {
+    # Juegos nuevos (orden importa: los especificos primero)
+    'duke nukem - episodio 1': 'DN1.EXE',
+    'duke nukem - episodio 2': 'DN2.EXE',
+    'duke nukem - episodio 3': 'DN3.EXE',
+    'aldo': 'ALDO.EXE',
+    'amy': 'FUN23.EXE',
+    'antarctic': 'ANTARTIC.EXE',
+    'arcy': 'ARCY2.EXE',
+    'asterix': 'OBELIX.EXE',
+    'billy the kid': 'KID.EXE',
+    'bipbop': 'BIPBOP2.EXE',
+    'bram stoker': 'DRAC.EXE',
+    'captain comic': 'COMIC.EXE',
+    'catacomb abyss': 'START.EXE',
+    'catacomb apocalypse': 'START.EXE',
+    'catacomb armageddon': 'START.EXE',
+    'charly': 'START.EXE',
+    'dangerous dave 5' : '1.EXE',
+    'dangerous dave 4' : 'DAVE2.EXE',
+    'dangerous dave' : 'DAVE.EXE',
+    'dork': 'DD.EXE',
+    'extreme pinball': 'EXTREME.EXE',
+    'fire and ice': 'FIRE.EXE',
+    'god': 'GODS.EXE',
+    'heliou': 'HELIOUS.EXE',
+    'heros': 'HEROS.EXE',
+    'hexxagon 2': 'HEXX2.EXE',
+    'hexxagon': 'HEXX.EXE',
+    'hugo 1': 'HHH.EXE',
+    'hugo 2': 'HUGO.EXE',
+    'hugo 3': 'HUGO.EXE',
+    'dr riptide': 'RIPTIDE.EXE',
+    'jill': 'JILL.BAT',
+    'krypton egg': 'KE.EXE',
+    'monty python': 'PEGA.EXE',
+    'space bats': 'BATS.EXE',
+    'mystic towers': 'TOWERS.EXE',
+    'night raid': 'NITERAID.EXE',
+    'nitemare': 'N3D.EXE',
+    'pickle wars': 'PW2.EXE',
+    'prince of persia 2': 'PRINCE.EXE',
+    'radix': 'RADIX.EXE',
+    'rodge': 'RODGE.EXE',
+    'schof': 'GAME.EXE',
+    'scubaventure': 'SCUBA.EXE',
+    'shufflepuck': 'SHUFFLE.COM',
+    'silverball': 'SILVER.EXE',
+    'sinaria': 'SINARIA.EXE',
+    'skyroads - xmas': 'SKYXMAS.EXE',
+    'skyroads': 'SKYROADS.EXE',
+    'super cauldron': 'LOADER.COM',
+    'cauldron': 'LOADER.COM',
+    'vinyl goddess': 'GODDESS.EXE',
+    'word rescue plus': 'WRPLUS.EXE',
+    'charly the clown': 'START.EXE',
+    'cold dream': 'COLD.EXE',
+    'continuum': 'ALPHA.BAT',
     'duke nukem': 'NUKEM2.EXE',
     'hocus': 'HOCUS.EXE',
     'jazz': 'FILE0001.EXE',
@@ -1008,11 +1065,12 @@ GAME_BAT_MAP = {
     'bio menace': 'BMENACE.BAT',
 }
 
-# Juegos con episodios numerados (BASH1/2/3, SAM1/2/3): al abrir se elige episodio.
-# clave: fragmento del nombre -> (prefijo de archivo, nº de episodios)
+# Juegos con episodios elegibles: clave -> (prefijo de archivo, lista de indices/etiquetas de episodio).
+# Monster Bash (BASH1/2/3), Secret Agent (SAM1/2/3), Pickle Wars (PW2/PW3).
 GAME_EPISODES = {
-    'monster bash': ('BASH', 3),
-    'secret agent': ('SAM', 3),
+    'monster bash': ('BASH', [1, 2, 3]),
+    'secret agent': ('SAM', [1, 2, 3]),
+    'pickle wars': ('PW', [2, 3]),
 }
 
 # Juegos de Windows (Win95/98) que se lanzan NATIVO con el .exe (no DOSBox).
@@ -1152,6 +1210,12 @@ DOSBOX_EXE_CANDIDATES = [
 GAME_CYCLES = {
     'realms of chaos': 30000,
     'oscar': 30000,
+    'heliou': 20000,
+    'antarctic': 20000,
+    'rodge': 20000,
+    'catacomb': 12000,
+    'cold dream': 12000,
+    'schof': 170000,
 }
 
 
@@ -1311,16 +1375,16 @@ def _launch_game_external(exe_path, param):
     try:
         game_name = (param or '') + ' ' + os.path.basename(game_dir)
         game_name = game_name.lower()
-        # Selector de episodios: si el juego tiene BASH1/2/3 o SAM1/2/3, elegir cual abrir
-        for frag, (prefix, n_eps) in GAME_EPISODES.items():
+        # Selector de episodios: si el juego tiene BASH1/2/3, SAM1/2/3 o PW2/3, elegir cual abrir
+        for frag, (prefix, indices) in GAME_EPISODES.items():
             if frag in game_name:
-                opts = [f'Episodio {i}' for i in range(1, n_eps + 1)]
+                opts = [f'Episodio {i}' for i in indices]
                 sel = xbmcgui.Dialog().select(f'{frag.title()}: elegir episodio', opts)
                 if sel == -1:
                     xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
                     return False
-                ep_num = sel + 1
-                # buscar el exe del episodio elegido (BASH<n>.EXE / SAM<n>.EXE)
+                ep_num = indices[sel]
+                # buscar el exe del episodio elegido (BASH<n>.EXE / SAM<n>.EXE / PW<n>.EXE)
                 ep_name = f'{prefix}{ep_num}.EXE'
                 ep_path = None
                 for root, dirs, files in os.walk(mount_root):
