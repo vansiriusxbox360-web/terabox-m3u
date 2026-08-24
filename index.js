@@ -754,7 +754,7 @@ const FILE_POSTER_URLS = {
   'Hocus': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hocus_pocus.jpg',
   'Bio Menace': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bio_menace.jpg',
   'Duke Nukem II': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/duke_nukem2.jpg',
-  'Jazz': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jazz.jpg',
+  'Jazz Jackrabbit': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jazz.jpg',
   'Monster Bash': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/monster_bash.jpg',
   'Oscar': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/oscar.jpg',
   'Realms of Chaos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/realms_of_chaos.jpg',
