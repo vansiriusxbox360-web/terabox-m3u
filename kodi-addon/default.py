@@ -583,6 +583,9 @@ def list_folder(data, path):
     ):
         ensure_dosbox()
 
+    # Lista de entradas (juegos y subcarpetas) para poder mezclarlas en orden alfabético
+    pending = []
+
     for group in node.get('_groups', []):
         group_icon = group.get('image')
         group_name = group.get('name', '')
@@ -677,8 +680,7 @@ def list_folder(data, path):
             else:
                 li.setProperty('IsPlayable', 'true')
                 li.setInfo('video', {'title': name})
-            add_fav_context_menu(li, name)
-            xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=False)
+            pending.append({'name': name, 'isFolder': False, 'url': url, 'item': li})
 
     child_keys = [k for k in node.keys() if not k.startswith('_')]
     child_keys.sort(key=natural_sort_key)
@@ -690,8 +692,13 @@ def list_folder(data, path):
         li = xbmcgui.ListItem(key)
         if icon:
             li.setArt({'icon': icon, 'thumb': icon, 'fanart': FANART})
-        add_fav_context_menu(li, key)
-        xbmcplugin.addDirectoryItem(handle=HANDLE, url=url, listitem=li, isFolder=True)
+        pending.append({'name': key, 'isFolder': True, 'url': url, 'item': li})
+
+    # Mezclar juegos y subcarpetas en orden alfabético natural
+    for entry in sorted(pending, key=lambda e: natural_sort_key(e['name'])):
+        add_fav_context_menu(entry['item'], entry['name'])
+        xbmcplugin.addDirectoryItem(handle=HANDLE, url=entry['url'],
+                                    listitem=entry['item'], isFolder=entry['isFolder'])
 
     xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
