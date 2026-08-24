@@ -52,6 +52,10 @@ FOLDER_ICON_URLS = {
     'Itou Junji Collection': 'https://image.tmdb.org/t/p/original/umIn2MeNsJAvzb8ztRrv2nhfJ28.jpg',
     'Overlord': 'https://m.media-amazon.com/images/M/MV5BYjNjNDBmZjAtMGZiMS00ODBkLWFjYWItZWQ1ZjEwOGNmZDBjXkEyXkFqcGc@._V1_.jpg',
     'Steins;Gate': 'https://image.tmdb.org/t/p/w500/6lAKKvmyLDAMXPZ0uvCdT9UioVr.jpg',
+    'Dangerous Dave': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dave.png',
+    'Duke Nukem': 'https://images.launchbox-app.com/387f80b1-eecc-4d9a-ad39-67274f74fcc5.jpg',
+    'Hugo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hugo_1.jpg',
+    'SkyRoads': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/skyroads.jpg',
 }
 
 FOLDER_ICON_BY_PATH_SUFFIX = {
@@ -129,6 +133,21 @@ STATION_POSTER_OVERRIDES = {
     'Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
     'Commander Keen 4': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/commander_keen4.jpg',
     'Los Justicieros': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_justicieros.jpg',
+    'Asterix and Obelix': 'https://upload.wikimedia.org/wikipedia/en/c/cc/Asterix_%26_Obelix_PC_cover.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original',
+    'Dangerous Dave - Dave Goes Nutz': 'https://images.igdb.com/igdb/image/upload/t_cover_big/co6gjs.webp',
+    'Dangerous Dave 2 - Risky Rescue': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7FYnnvKJFN3Lf5L3IOt73l_J68TnEOBNetiCPJeoY_XjWkmt17kVaQ6L-&s=10',
+    'Dangerous Dave 3 - Pirates Hideout': 'https://images.squarespace-cdn.com/content/v1/5fef3318f8ce9b562500206e/1639952811081-Z6RXL9LA34CNUC4KCS2K/library-capsule-600x900.jpg?format=750w',
+    'Dangerous Dave 4 - Copyright Infringement': 'https://howlongtobeat.com/games/125805_Dangerous_Dave_in_Copyright_Infringement.jpg',
+    'Dangerous Dave 5 - Haunted Mansion': 'https://cdn.mobygames.com/covers/5040862-dangerous-dave-in-the-haunted-mansion-dos-front-cover.jpg',
+    'Dork\'s Dreams': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dorks.png',
+    'Duke Nukem - Episodio 1 Shrapnel City': 'https://images.launchbox-app.com/387f80b1-eecc-4d9a-ad39-67274f74fcc5.jpg',
+    'Duke Nukem - Episodio 2 Moonbase': 'https://images.launchbox-app.com/387f80b1-eecc-4d9a-ad39-67274f74fcc5.jpg',
+    'Duke Nukem - Episodio 3 Future': 'https://images.launchbox-app.com/387f80b1-eecc-4d9a-ad39-67274f74fcc5.jpg',
+    'In Search of Dr Riptide': 'https://static.wikia.nocookie.net/doctorriptide/images/e/e1/Manaccom_catalog_dr_riptide_front.png/revision/latest/scale-to-width-down/284?cb=20220702092753',
+    'Krypton Egg': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/kegg.png',
+    'Mutant Space Bats of Doom': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYGjjHaamyQn39FHutmlVQwO9dKuUzDpSs8wN1Vjy0PsNjs9eRWK6QFFM7&s=10',
+    'Prince of Persia 2': 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co2ek1.jpg',
+    'Prince of Persia': 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co2ek1.jpg',
 }
 
 # Regiones/series de Pokémon cuyos capítulos heredan la imagen de su carpeta
