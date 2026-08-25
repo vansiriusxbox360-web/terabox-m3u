@@ -355,7 +355,7 @@ const CUSTOM_POSTERS = {
   'Dinosaurios': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dinosaurios.jpg',
   'Pesadillas (Goosebumps) de R L Stine': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pesadillas_goosebumps.jpg',
   'El Inquilino': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/el_inquilino.jpg',
-  'Que Bello Es Sobrevivir': 'https://pics.filmaffinity.com/que_bello_es_sobrevivir-829936986-large.jpg',
+  'Que Bello Es Sobrevivir': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/que_bello_es_sobrevivir.jpg',
   'Quien da la vez': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/quien_da_la_vez.jpg',
   'Enjuto Mojamuto': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/enjuto_mojamuto.jpg',
   'La M palabra y Tontico': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/la_m_palabra_y_tontico.jpg',
@@ -402,8 +402,8 @@ const CUSTOM_POSTERS = {
   'T3 - Digimon Tamers': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_tamers.jpg',
   'T4 - Digimon Frontier': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_frontier.jpg',
   'T5 - Digimon Savers': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/digimon_data_squad.jpg',
-  'Spider-Man': 'https://pics.filmaffinity.com/Spider_Man_La_serie_animada_Serie_de_TV-340768607-large.jpg',
-  'Los ladrones van a la oficina': 'https://pics.filmaffinity.com/los_ladrones_van_a_la_oficina-873888076-mmed.jpg',
+  'Spider-Man': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/spiderman_serie_animada.jpg',
+  'Los ladrones van a la oficina': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_ladrones_van_a_la_oficina.jpg',
 };
 
 const PATH_POSTER_SUFFIXES = {
@@ -699,7 +699,7 @@ const FILE_POSTER_URLS = {
   'La Rebelion De Las Maquinas - Maximum Overdrive - 8 Days Of Terror - 1986 (Stephen King) (Spa-Eng) Emilio Estévez': 'https://image.tmdb.org/t/p/w500/8lROOm3zgANbYZwEKaTqVfHIJsE.jpg',
   'Maleficio (Thinner Stephen King 1996).720p.BluRay.x264.(Spanish.English)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/maleficio.png',
   'Proverbio Chino (2006)': 'https://image.tmdb.org/t/p/w500/sAg6tJtLT5zq6oveDqlQ6zRy0YJ.jpg',
-  'The Magic Pear Tree (1968) Directed by Charles Swenson- Oscar Nominated Short': 'https://pics.filmaffinity.com/the_magic_pear_tree-106144789-mmed.jpg',
+  'The Magic Pear Tree (1968) Directed by Charles Swenson- Oscar Nominated Short': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/the_magic_pear_tree.jpg',
   'Trapito (Manuel García Ferré, 1975)': 'https://image.tmdb.org/t/p/w500/pFKLGKMIPQVPi6entlTnubx9OPD.jpg',
   'Operación Ogro (Gillo Pontecorvo,1979)': 'https://m.media-amazon.com/images/M/MV5BMjRiMWYyMjYtMjA5MS00Y2U0LTk0NmItMDQ0MjRhZTNmOTE2XkEyXkFqcGc@._V1_SX300.jpg',
   'Padre coraje (2002) (Benito Zambrano).dvdrip.x264.ac3.castleaco': 'https://m.media-amazon.com/images/M/MV5BY2RhMjIzN2EtY2IzZC00MzU0LTk5NjYtZDZiODAxYmNmMjY1XkEyXkFqcGc@._V1_SX300.jpg',
