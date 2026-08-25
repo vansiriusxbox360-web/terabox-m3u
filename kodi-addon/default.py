@@ -107,12 +107,17 @@ STATION_POSTER_OVERRIDES = {
     'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
     'Christine': 'https://images.justwatch.com/poster/9621681/s718/christine.jpg',
     'Maleficio': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/maleficio.png',
-    'Tenk\u016b no Shiro Laputa': 'https://i.pinimg.com/736x/62/a4/5e/62a45e0d133af9fded1b20796f881f86.jpg',
+    'Tenk\u016b no Shiro Laputa': 'https://www.jbhifi.com.au/cdn/shop/products/134794-Product-0-I_ac1f5019-39f5-41c4-9fd7-8590c3ac70db.jpg?v=1572269844',
     'Hocus': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hocus_pocus.jpg',
     'Bio Menace': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bio_menace.jpg',
     'Duke Nukem II': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/duke_nukem2.jpg',
     'Jazz Jackrabbit': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jazz.jpg',
     'Monster Bash': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/monster_bash.jpg',
+    'Que Bello Es Sobrevivir': 'https://pics.filmaffinity.com/que_bello_es_sobrevivir-829936986-large.jpg',
+    'The Magic Pear Tree': 'https://pics.filmaffinity.com/the_magic_pear_tree-106144789-mmed.jpg',
+    'Spider-Man': 'https://pics.filmaffinity.com/Spider_Man_La_serie_animada_Serie_de_TV-340768607-large.jpg',
+    'Los ladrones van a la Oficina': 'https://pics.filmaffinity.com/los_ladrones_van_a_la_oficina-873888076-mmed.jpg',
+    'Astérix y Obélix La batalla de los jefes': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/asterix_y_obelix_la_batalla_de_los_jefes.jpg',
     'Oscar': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/oscar.jpg',
     'Realms of Chaos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/realms_of_chaos.jpg',
     'Secret Agent': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/secret_agent.png',
@@ -389,6 +394,19 @@ def resolve_icon(node, current_path='', sibling_idx=0):
             for k in child_keys
         )
         if all_alb:
+            # El póster forzado de las stations de los grupos hijos tiene prioridad
+            # sobre la imagen heredada del JSON (que puede ser un fotograma genérico).
+            forced = set()
+            for k in child_keys:
+                for g in node[k].get('_groups', []):
+                    for s in g.get('stations', []):
+                        sname = s.get('name', '')
+                        for frag, poster_url in STATION_POSTER_OVERRIDES.items():
+                            if frag.lower() in sname.lower():
+                                forced.add(poster_url)
+                                break
+            if len(forced) == 1:
+                return forced.pop()
             posters = set()
             for k in child_keys:
                 icon = node[k].get('_icon')
