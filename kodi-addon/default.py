@@ -744,7 +744,6 @@ def list_utiles(data):
     add_listitem('[ Buscar ]', build_url('search'), ICON, isFolder=True)
     add_listitem('[ Video aleatorio ]', build_url('random'), ICON, isFolder=False)
     add_listitem('[ Caché ]', build_url('cache_ajustes'), ICON, isFolder=True)
-    add_listitem('[ Forzar regeneración remota ]', build_url('trigger_workflow'), ICON, isFolder=True)
     add_listitem('[ Ajustes ]', build_url('settings_utiles'), ICON, isFolder=True)
     xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
@@ -1674,51 +1673,6 @@ def list_continue_watching(data):
     xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
 
 
-def trigger_workflow(data):
-    if not xbmcgui.Dialog().yesno(
-        'Forzar regeneración',
-        '¿Lanzar regeneración remota en\nGitHub ahora?\n\n'
-        'Tarda ~12 min en completarse.\nLos enlaces nuevos llegarán\ncon la próxima actualización\ndel addon (cada 6h).',
-        yeslabel='Sí, lanzar',
-        nolabel='No'
-    ):
-        xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
-        return
-
-    try:
-        # El token de GitHub se lee de Ajustes (gh_token), NO va en el código.
-        gh_token = ADDON.getSetting('gh_token')
-        if not gh_token:
-            xbmcgui.Dialog().ok('Token GitHub', 'Pon tu token de GitHub en\nAjustes → "Token de GitHub"\npara poder forzar la regeneración.')
-            xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
-            return
-        req = urllib.request.Request(
-            'https://api.github.com/repos/vansiriusxbox360-web/terabox-m3u/actions/workflows/generate-m3u.yml/dispatches',
-            data=b'{"ref":"main"}',
-            headers={
-                'Authorization': 'token ' + gh_token,
-                'Content-Type': 'application/json',
-                'User-Agent': 'Kodi-Addon/1.0'
-            },
-            method='POST'
-        )
-        resp = urllib.request.urlopen(req, timeout=30)
-        if resp.status in (204, 200, 201):
-            xbmcgui.Dialog().ok('Hecho', 'Regeneración lanzada en GitHub.\n\nEspera ~12 min y entra al addon\npara recibir los datos nuevos.')
-        else:
-            xbmcgui.Dialog().ok('Error', f'Error del servidor:\n{resp.status}')
-    except urllib.error.HTTPError as e:
-        if e.code == 401:
-            xbmcgui.Dialog().ok('Error 401', 'Token inválido o sin permisos.\n\nRenueva el token en Ajustes.')
-        elif e.code == 403:
-            xbmcgui.Dialog().ok('Error 403', 'Sin permisos. Asegúrate de que el\ntoken tenga scope "repo".')
-        else:
-            xbmcgui.Dialog().ok('Error HTTP', f'Código: {e.code}')
-    except Exception as e:
-        xbmcgui.Dialog().ok('Error', f'No se pudo conectar:\n{e}')
-    xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
-
-
 def router(paramstring):
     log(f'sys.argv = {sys.argv}')
     log(f'HANDLE = {HANDLE}')
@@ -1813,9 +1767,6 @@ def router(paramstring):
             )
         else:
             xbmcgui.Dialog().ok('Actualizado', 'Fecha no disponible')
-        return
-    elif action == 'trigger_workflow':
-        trigger_workflow(data)
         return
     elif action == 'cache_ajustes':
         profile_dir = xbmcvfs.translatePath('special://masterprofile/')
