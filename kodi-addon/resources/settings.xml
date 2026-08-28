@@ -4,6 +4,7 @@
   <setting id="enable_menu_sounds" type="bool" label="Sonidos de menú (Big Red Racing)" default="true" />
   <setting id="enable_games" type="bool" label="Juegos (DOSBox)" default="false" />
   <setting id="ndus_token" type="text" label="Token ndus de Terabox (para refrescar enlaces)" default="" visible="true" />
+  <setting id="gh_token" type="text" label="Token de GitHub (para forzar regeneracion)" default="" visible="true" />
   <setting id="refresh" type="action" label="Forzar recarga de datos" default="true" option="close" />
   <setting id="thumb_cache" type="action" label="Mostrar ruta de cache de miniaturas" default="true" option="close" />
 </settings>

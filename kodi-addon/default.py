@@ -1686,11 +1686,17 @@ def trigger_workflow(data):
         return
 
     try:
+        # El token de GitHub se lee de Ajustes (gh_token), NO va en el código.
+        gh_token = ADDON.getSetting('gh_token')
+        if not gh_token:
+            xbmcgui.Dialog().ok('Token GitHub', 'Pon tu token de GitHub en\nAjustes → "Token de GitHub"\npara poder forzar la regeneración.')
+            xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
+            return
         req = urllib.request.Request(
             'https://api.github.com/repos/vansiriusxbox360-web/terabox-m3u/actions/workflows/generate-m3u.yml/dispatches',
             data=b'{"ref":"main"}',
             headers={
-                'Authorization': 'token ' + 'github_pat_11CJXMVLY08H2ePIRX' + '3zNG_vCkm8y1eDZRWsXS6Q853121f' + 'BhCicDiOMWZSMDOmDWCUTZ24KPUT8bj4WU9',
+                'Authorization': 'token ' + gh_token,
                 'Content-Type': 'application/json',
                 'User-Agent': 'Kodi-Addon/1.0'
             },
