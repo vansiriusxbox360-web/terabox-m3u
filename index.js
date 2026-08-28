@@ -20,6 +20,15 @@ const {
   fetchFilePosters,
   movieTitleCandidates,
 } = require('./posters.js');
+const {
+  TITLE_ALIASES,
+  CUSTOM_POSTERS,
+  PATH_POSTER_SUFFIXES,
+  FILE_TITLE_ALIASES,
+  FILE_POSTER_URLS,
+  CHILD_INHERIT_GROUP_ICON,
+  FILE_CLEANNAME_ALIASES,
+} = require('./data.js');
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
 const DELAY_MS = 400;
@@ -115,16 +124,6 @@ function isGameFile(filename) {
   return GAME_EXTENSIONS.includes(ext);
 }
 
-
-const {
-  TITLE_ALIASES,
-  CUSTOM_POSTERS,
-  PATH_POSTER_SUFFIXES,
-  FILE_TITLE_ALIASES,
-  FILE_POSTER_URLS,
-  CHILD_INHERIT_GROUP_ICON,
-  FILE_CLEANNAME_ALIASES,
-} = require('./data.js');
 
 function groupInheritsChildIcon(group) {
   for (const name of CHILD_INHERIT_GROUP_ICON) {
