@@ -16,6 +16,10 @@ const RATE_LIMIT = '__RATE_LIMIT__';
 const WIKIDATA_FAILED = '__WIKIDATA_FAILED__';
 const WIKIDATA_RETRY_WAIT_MS = 60000;
 const WIKIDATA_MAX_RETRIES = 4;
+const OMD_DELAY_MS = 1200;
+const OMD_RETRY_WAIT_MS = 30000;
+const OMD_MAX_RETRIES = 3;
+const WIKIDATA_DELAY_MS = 1000;
 
 function omdbSearchSingle(title, apiKey) {
   return new Promise((resolve) => {
