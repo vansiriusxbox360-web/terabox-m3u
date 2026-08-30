@@ -1,5 +1,5 @@
 const https = require('https');
-const { TITLE_ALIASES, FILE_TITLE_ALIASES, FILE_POSTER_URLS, FILE_CLEANNAME_ALIASES } = require('./data.js');
+const { TITLE_ALIASES, FILE_TITLE_ALIASES, FILE_POSTER_URLS, FILE_CLEANNAME_ALIASES, CUSTOM_POSTERS } = require('./data.js');
 const {
   sleep,
   normalizeTitle,
