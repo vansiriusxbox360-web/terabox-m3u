@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 */8 * * *'
   workflow_dispatch:
+    inputs:
+      terabox_ndus:
+        description: 'Token ndus de Terabox (opcional, si no se pasa usa el secret)'
+        required: false
+        default: ''
 
 concurrency:
   group: generate-m3u
@@ -32,7 +37,7 @@ jobs:
       - name: Generate M3U
         id: generate
         env:
-          TERABOX_NDUS: ${{ secrets.TERABOX_NDUS }}
+          TERABOX_NDUS: ${{ inputs.terabox_ndus || secrets.TERABOX_NDUS }}
           TERABOX_EMAIL: ${{ secrets.TERABOX_EMAIL }}
           TERABOX_PASSWORD: ${{ secrets.TERABOX_PASSWORD }}
           OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
