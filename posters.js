@@ -561,7 +561,6 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
   let omdbDown = false;
 
   const toFetch = [];
-  const toFetchWikidata = [];
 
   for (const file of files) {
     const key = 'FILE::' + file.cleanName;
@@ -571,7 +570,11 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
     if (Object.prototype.hasOwnProperty.call(cache, key)) {
       const cachedVal = cache[key];
       if (cachedVal === WIKIDATA_FAILED) {
-        cached++;
+        if (hasAlias) {
+          toFetch.push(file);
+        } else {
+          cached++;
+        }
         continue;
       }
       if (cachedVal) {
@@ -582,7 +585,7 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
       if (hasAlias) {
         toFetch.push(file);
       } else {
-        toFetchWikidata.push(file);
+        continue;
       }
       continue;
     }
@@ -608,57 +611,37 @@ async function fetchFilePosters(files, apiKey, maxFetch = 400, tmdbKey) {
       if (alias) queries.push(alias);
       queries.push(cand);
     }
-    for (const query of queries) {
-      if (fetched >= maxFetch) { completed = false; break; }
-      let poster;
-      if (omdbDown) {
-        poster = tmdbKey ? await tmdbSearchSingle(query, tmdbKey) : await wikidataSearchSingle(query);
-      } else {
-        poster = await searchSingleWithFallback(query, apiKey, tmdbKey);
+      for (const query of queries) {
+        if (fetched >= maxFetch) { completed = false; break; }
+        let poster;
+        if (omdbDown) {
+          poster = tmdbKey ? await tmdbSearchSingle(query, tmdbKey) : null;
+        } else {
+          poster = await searchSingleWithFallback(query, apiKey, tmdbKey);
+        }
+        await sleep(OMD_DELAY_MS);
+        fetched++;
+        if (poster === RATE_LIMIT) {
+          console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
+          completed = false;
+          found = null;
+          omdbDown = true;
+          break;
+        }
+        if (poster) { found = poster; break; }
       }
-      await sleep(OMD_DELAY_MS);
-      fetched++;
-      if (poster === RATE_LIMIT) {
-        console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
-        completed = false;
-        found = null;
-        omdbDown = true;
-        break;
+
+      if (completed) {
+        cache[key] = found;
+        if (found) {
+          posters[file.cleanName] = found;
+        } else {
+          missed++;
+        }
       }
-      if (poster) { found = poster; break; }
     }
 
-    if (completed) {
-      cache[key] = found;
-      if (found) {
-        posters[file.cleanName] = found;
-      } else {
-        missed++;
-      }
-    }
-  }
-
-  for (const file of toFetchWikidata) {
-    const key = 'FILE::' + file.cleanName;
-    const candidates = movieTitleCandidates(file.cleanName);
-    const query = candidates[0] || file.cleanName;
-    const poster = await wikidataSearchSingleWithRetry(query);
-    await sleep(WIKIDATA_DELAY_MS);
-    if (poster === RATE_LIMIT) {
-      console.log('  Wikidata sin respuesta tras reintentos en archivos. Sin marcar fallos; se reintentará en próximos runs.');
-      break;
-    }
-    if (poster) {
-      posters[file.cleanName] = poster;
-      cache[key] = poster;
-      fetched++;
-    } else {
-      cache[key] = WIKIDATA_FAILED;
-      missed++;
-    }
-  }
-
-  savePosterCache(cache);
+    savePosterCache(cache);
   console.log(`  Portadas por archivo: ${fetched} fetch, ${cached} cache, ${missed} sin resultado`);
   return posters;
 }
@@ -672,7 +655,6 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
   let omdbDown = false;
 
   const toFetch = [];
-  const toFetchWikidata = [];
 
   for (const group of groups) {
     if (CUSTOM_POSTERS[group]) {
@@ -701,7 +683,7 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
       if (hasAlias) {
         toFetch.push(group);
       } else {
-        toFetchWikidata.push(group);
+        continue;
       }
       continue;
     }
@@ -712,7 +694,7 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
   for (const group of toFetch) {
     let poster;
     if (omdbDown) {
-      poster = tmdbKey ? await tmdbSearch(group, tmdbKey) : await wikidataSearch(group);
+      poster = tmdbKey ? await tmdbSearch(group, tmdbKey) : null;
     } else {
       poster = await searchWithFallback(group, apiKey, tmdbKey);
     }
@@ -722,9 +704,7 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
       if (!omdbDown) console.log('  Cuota diaria OMDb agotada. No se cachea y se detiene.');
       omdbDown = true;
       if (tmdbKey) {
-        poster = await wikidataSearch(group);
-        await sleep(OMD_DELAY_MS);
-        if (poster === RATE_LIMIT) poster = null;
+        poster = null;
       } else {
         break;
       }
@@ -740,27 +720,6 @@ async function fetchPosters(groups, apiKey, tmdbKey) {
     } else {
       posters[group] = null;
       cache[group] = null;
-      missed++;
-    }
-  }
-
-  for (const group of toFetchWikidata) {
-    const poster = await wikidataSearchWithRetry(group);
-    await sleep(WIKIDATA_DELAY_MS);
-    if (poster === RATE_LIMIT) {
-      console.log('  Wikidata sin respuesta tras reintentos. Sin marcar fallos; se reintentará en próximos runs.');
-      break;
-    }
-    if (poster) {
-      posters[group] = poster;
-      cache[group] = poster;
-      fetched++;
-      if ((fetched + cached) % 10 === 0) {
-        console.log(`  Portadas: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached})`);
-      }
-    } else {
-      posters[group] = null;
-      cache[group] = WIKIDATA_FAILED;
       missed++;
     }
   }
