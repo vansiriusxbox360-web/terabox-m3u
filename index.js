@@ -14,8 +14,6 @@ const {
 const {
   RATE_LIMIT,
   WIKIDATA_FAILED,
-  tmdbMetaSearch,
-  omdbMetaSearch,
   fetchPosters,
   fetchFilePosters,
   movieTitleCandidates,
@@ -39,92 +37,6 @@ module.exports.CHILD_INHERIT_GROUP_ICON = CHILD_INHERIT_GROUP_ICON;
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
 const DELAY_MS = 400;
-const OMD_DELAY_MS = 1200;
-const OMD_RETRY_WAIT_MS = 30000;
-const OMD_MAX_RETRIES = 3;
-const META_CACHE_FILE = path.join(__dirname, 'meta-cache.json');
-
-function loadMetaCache() {
-  try {
-    return JSON.parse(fs.readFileSync(META_CACHE_FILE, 'utf-8'));
-  } catch (e) {
-    return {};
-  }
-}
-
-function saveMetaCache(cache) {
-  try {
-    fs.writeFileSync(META_CACHE_FILE, JSON.stringify(cache, null, 1));
-  } catch (e) {
-    console.warn(`No se pudo guardar meta-cache: ${e.message}`);
-  }
-}
-
-const META_FAILED = '__META_FAILED__';
-
-async function fetchMeta(groups, omdbKey, tmdbKey) {
-  const cache = loadMetaCache();
-  const metas = {};
-  let fetched = 0;
-  let cached = 0;
-  let missed = 0;
-  let omdbDown = false;
-
-  const toFetch = [];
-  for (const group of groups) {
-    if (Object.prototype.hasOwnProperty.call(cache, group)) {
-      const v = cache[group];
-      if (v === META_FAILED) {
-        missed++;
-      } else if (v && (v.plot || v.rating)) {
-        metas[group] = v;
-        cached++;
-      } else {
-        toFetch.push(group);
-      }
-      continue;
-    }
-    toFetch.push(group);
-  }
-
-  for (const group of toFetch) {
-    let meta = null;
-    if (omdbDown) {
-      meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
-    } else if (omdbKey) {
-      meta = await omdbMetaSearch(group, omdbKey);
-      if (meta === RATE_LIMIT) {
-        omdbDown = true;
-        console.log('  Cuota OMDb agotada para metadatos, usando TMDB...');
-        meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
-      }
-    } else if (tmdbKey) {
-      meta = await tmdbMetaSearch(group, tmdbKey);
-    }
-    await sleep(OMD_DELAY_MS);
-
-    if (meta === RATE_LIMIT) {
-      if (omdbDown && !tmdbKey) break;
-      meta = null;
-    }
-
-    if (meta && (meta.plot || meta.rating)) {
-      metas[group] = meta;
-      cache[group] = meta;
-      fetched++;
-      if ((fetched + cached) % 10 === 0) {
-        console.log(`  Metadatos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached})`);
-      }
-    } else {
-      cache[group] = META_FAILED;
-      missed++;
-    }
-  }
-
-  saveMetaCache(cache);
-  console.log(`  Metadatos obtenidos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached}, sin resultado: ${missed})`);
-  return metas;
-}
 
 function loadConfig() {
   if (process.env.TERABOX_NDUS) {
@@ -691,15 +603,6 @@ async function main() {
 
   console.log(`Posters personalizados aplicados: ${Object.keys(posters).filter(k => CUSTOM_POSTERS[k]).length}`);
 
-  console.log('\nBuscando metadatos (sinopsis/rating) por grupo...');
-  let metas = {};
-  if (omdbKey || tmdbKey) {
-    metas = await fetchMeta(uniqueGroups, omdbKey, tmdbKey);
-    console.log('');
-  } else {
-    console.log('  Sin API keys, no se buscan metadatos.');
-  }
-
   console.log('Buscando portadas por archivo (grupos sin portada + archivos nuevos)...');
   const filesNeedingFilePoster = filesWithLinks.filter(f => {
     const { searchName, fallbackName } = getGroupFromPath(f.path, rootFolder);
@@ -722,7 +625,7 @@ async function main() {
   }
 
   console.log('Generando lista JSON...');
-  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters, filePosters, metas);
+  const jsonContent = generateJSON(filesWithLinks, rootFolder, posters, filePosters, {});
   
   const outputPath = process.env.GITHUB_ACTIONS 
     ? path.join(process.env.GITHUB_WORKSPACE || '.', 'lista.m3u')
