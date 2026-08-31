@@ -437,10 +437,6 @@ async function searchWithFallback(title, omdbKey, tmdbKey) {
   if (poster === RATE_LIMIT || omdbDown) {
     return RATE_LIMIT;
   }
-  if (!poster) {
-    const w = await wikidataSearch(title);
-    if (w !== RATE_LIMIT) poster = w;
-  }
   return poster;
 }
 
@@ -461,10 +457,6 @@ async function searchSingleWithFallback(title, omdbKey, tmdbKey) {
   }
   if (poster === RATE_LIMIT || omdbDown) {
     return RATE_LIMIT;
-  }
-  if (!poster) {
-    const w = await wikidataSearchSingle(title);
-    if (w !== RATE_LIMIT) poster = w;
   }
   return poster;
 }

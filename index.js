@@ -30,13 +30,101 @@ const {
   FILE_CLEANNAME_ALIASES,
 } = require('./data.js');
 
+// Exponer constantes clave para compatibilidad con workflows externos
+module.exports = module.exports || {};
+module.exports.CUSTOM_POSTERS = CUSTOM_POSTERS;
+module.exports.PATH_POSTER_SUFFIXES = PATH_POSTER_SUFFIXES;
+module.exports.FILE_POSTER_URLS = FILE_POSTER_URLS;
+module.exports.CHILD_INHERIT_GROUP_ICON = CHILD_INHERIT_GROUP_ICON;
+
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.wmv', '.flv', '.mov', '.m4v', '.mpg', '.mpeg', '.3gp', '.webm'];
 const DELAY_MS = 400;
 const OMD_DELAY_MS = 1200;
 const OMD_RETRY_WAIT_MS = 30000;
 const OMD_MAX_RETRIES = 3;
-const WIKIDATA_DELAY_MS = 1000;
+const META_CACHE_FILE = path.join(__dirname, 'meta-cache.json');
 
+function loadMetaCache() {
+  try {
+    return JSON.parse(fs.readFileSync(META_CACHE_FILE, 'utf-8'));
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveMetaCache(cache) {
+  try {
+    fs.writeFileSync(META_CACHE_FILE, JSON.stringify(cache, null, 1));
+  } catch (e) {
+    console.warn(`No se pudo guardar meta-cache: ${e.message}`);
+  }
+}
+
+const META_FAILED = '__META_FAILED__';
+
+async function fetchMeta(groups, omdbKey, tmdbKey) {
+  const cache = loadMetaCache();
+  const metas = {};
+  let fetched = 0;
+  let cached = 0;
+  let missed = 0;
+  let omdbDown = false;
+
+  const toFetch = [];
+  for (const group of groups) {
+    if (Object.prototype.hasOwnProperty.call(cache, group)) {
+      const v = cache[group];
+      if (v === META_FAILED) {
+        missed++;
+      } else if (v && (v.plot || v.rating)) {
+        metas[group] = v;
+        cached++;
+      } else {
+        toFetch.push(group);
+      }
+      continue;
+    }
+    toFetch.push(group);
+  }
+
+  for (const group of toFetch) {
+    let meta = null;
+    if (omdbDown) {
+      meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
+    } else if (omdbKey) {
+      meta = await omdbMetaSearch(group, omdbKey);
+      if (meta === RATE_LIMIT) {
+        omdbDown = true;
+        console.log('  Cuota OMDb agotada para metadatos, usando TMDB...');
+        meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
+      }
+    } else if (tmdbKey) {
+      meta = await tmdbMetaSearch(group, tmdbKey);
+    }
+    await sleep(OMD_DELAY_MS);
+
+    if (meta === RATE_LIMIT) {
+      if (omdbDown && !tmdbKey) break;
+      meta = null;
+    }
+
+    if (meta && (meta.plot || meta.rating)) {
+      metas[group] = meta;
+      cache[group] = meta;
+      fetched++;
+      if ((fetched + cached) % 10 === 0) {
+        console.log(`  Metadatos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached})`);
+      }
+    } else {
+      cache[group] = META_FAILED;
+      missed++;
+    }
+  }
+
+  saveMetaCache(cache);
+  console.log(`  Metadatos obtenidos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached}, sin resultado: ${missed})`);
+  return metas;
+}
 
 function loadConfig() {
   if (process.env.TERABOX_NDUS) {
@@ -135,110 +223,18 @@ function groupInheritsChildIcon(group) {
 
 
 
-const META_CACHE_FILE = path.join(__dirname, 'meta-cache.json');
-
-function loadMetaCache() {
-  try {
-    return JSON.parse(fs.readFileSync(META_CACHE_FILE, 'utf-8'));
-  } catch (e) {
-    return {};
-  }
-}
-
-function saveMetaCache(cache) {
-  try {
-    fs.writeFileSync(META_CACHE_FILE, JSON.stringify(cache, null, 1));
-  } catch (e) {
-    console.warn(`No se pudo guardar meta-cache: ${e.message}`);
-  }
-}
-
-const META_FAILED = '__META_FAILED__';
-
-async function fetchMeta(groups, omdbKey, tmdbKey) {
-  const cache = loadMetaCache();
-  const metas = {};
-  let fetched = 0;
-  let cached = 0;
-  let missed = 0;
-  let omdbDown = false;
-
-  const toFetch = [];
-  for (const group of groups) {
-    if (Object.prototype.hasOwnProperty.call(cache, group)) {
-      const v = cache[group];
-      if (v === META_FAILED) {
-        missed++;
-      } else if (v && (v.plot || v.rating)) {
-        metas[group] = v;
-        cached++;
-      } else {
-        toFetch.push(group);
-      }
-      continue;
-    }
-    toFetch.push(group);
-  }
-
-  for (const group of toFetch) {
-    let meta = null;
-    if (omdbDown) {
-      meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
-    } else if (omdbKey) {
-      meta = await omdbMetaSearch(group, omdbKey);
-      if (meta === RATE_LIMIT) {
-        omdbDown = true;
-        console.log('  Cuota OMDb agotada para metadatos, usando TMDB...');
-        meta = tmdbKey ? await tmdbMetaSearch(group, tmdbKey) : null;
-      }
-    } else if (tmdbKey) {
-      meta = await tmdbMetaSearch(group, tmdbKey);
-    }
-    await sleep(OMD_DELAY_MS);
-
-    if (meta === RATE_LIMIT) {
-      if (omdbDown && !tmdbKey) break;
-      meta = null;
-    }
-
-    if (meta && (meta.plot || meta.rating)) {
-      metas[group] = meta;
-      cache[group] = meta;
-      fetched++;
-      if ((fetched + cached) % 10 === 0) {
-        console.log(`  Metadatos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached})`);
-      }
-    } else {
-      cache[group] = META_FAILED;
-      missed++;
-    }
-  }
-
-  saveMetaCache(cache);
-  console.log(`  Metadatos obtenidos: ${fetched + cached}/${groups.length} (fetch: ${fetched}, cache: ${cached}, sin resultado: ${missed})`);
-  return metas;
-}
-
 async function listDirectory(tb, dirPath, page = 1) {
-  const MAX_LIST_RETRIES = 5;
-  let emptyStreak = 0;
-  for (let attempt = 1; attempt <= MAX_LIST_RETRIES; attempt++) {
-    try {
-      const result = await tb.getRemoteDir(dirPath, page);
-      await sleep(DELAY_MS);
-      if (result && result.list && result.list.length > 0) return result;
-      emptyStreak++;
-      if (attempt < MAX_LIST_RETRIES) {
-        const wait = 15000 * attempt + emptyStreak * 5000;
-        console.warn(`  Listado vacio de ${dirPath} (intento ${attempt}/${MAX_LIST_RETRIES}, streak ${emptyStreak}). Esperando ${wait / 1000}s...`);
-        await sleep(wait);
-      }
-    } catch (error) {
-      console.error(`Error listing ${dirPath} page ${page} (intento ${attempt}/${MAX_LIST_RETRIES}):`, error.message);
-      if (attempt < MAX_LIST_RETRIES) await sleep(15000 * attempt);
-    }
+  try {
+    const result = await tb.getRemoteDir(dirPath, page);
+    await sleep(DELAY_MS);
+    if (result && result.list && result.list.length > 0) return result;
+    console.warn(`  Listado vacio de ${dirPath}. Sin reintentos.`);
+    return null;
+  } catch (error) {
+    console.error(`Error listing ${dirPath} page ${page}:`, error.message);
+    await sleep(15000);
+    return null;
   }
-  return null;
 }
 
 async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
@@ -252,7 +248,7 @@ async function scanRecursive(tb, dirPath, allFiles = [], depth = 0) {
     if (!result || !result.list || result.list.length === 0) {
       hasMore = false;
       if (result === null) {
-        console.error(`⚠️  No se pudo listar ${dirPath} (pagina ${page}) tras reintentos. El arbol bajo esta carpeta se omitira en este run.`);
+        console.error(`⚠️  No se pudo listar ${dirPath} (pagina ${page}). El arbol bajo esta carpeta se omitira en este run.`);
       }
       break;
     }
