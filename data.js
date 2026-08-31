@@ -703,6 +703,8 @@ const FILE_POSTER_URLS = {
   'Duke Nukem - Episodio 3 Future': 'https://images.launchbox-app.com/387f80b1-eecc-4d9a-ad39-67274f74fcc5.jpg',
   'Mutant Space Bats of Doom': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYGjjHaamyQn39FHutmlVQwO9dKuUzDpSs8wN1Vjy0PsNjs9eRWK6QFFM7&s=10',
   'Prince of Persia': 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co2ek1.jpg',
+  'Avatar la leyenda de Aang El ultimo Airbender (2026)': 'https://image.tmdb.org/t/p/original/AbUa37L0mRs4RtMLvSD6cWZcPJP.jpg',
+  'Donkey Kong Country': 'https://m.media-amazon.com/images/M/MV5BOTNlM2MxZDktMzMyZC00Mzg3LThjZTUtNjRmNzcwYzIxM2FmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
