@@ -82,6 +82,20 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Mononoke Karakasa & Shou - Hinezumi (Netflix)': 'https://static.wikia.nocookie.net/wiki-doblaje-espana/images/3/3d/Mononoke_-_El_Fantasma_Bajo_La_Lluvia_-_Poster.jpg/revision/latest?cb=20241116234056&path-prefix=es',
     'Tenshi no Tamago': 'https://static.wikia.nocookie.net/wiki-doblaje-espana/images/3/3d/Mononoke_-_El_Fantasma_Bajo_La_Lluvia_-_Poster.jpg/revision/latest?cb=20241116234056&path-prefix=es',
     'Urotsukidoji - La leyenda del se\u00f1or del mal': 'https://m.media-amazon.com/images/I/61SNyC4jnmL._AC_UF894,1000_QL80_.jpg',
+    # Series de streaming y cortos (nuevas)
+    'Xavier The Renegade Angel': 'https://m.media-amazon.com/images/M/MV5BOTg2OWFkNGItNzQ1MC00MzRjLTk2OWMtYTVjODJlNzEwMjY2XkEyXkFqcGc@._V1_SX300.jpg',
+    'Colgados en Filadelfia': 'https://m.media-amazon.com/images/M/MV5BMTFiMDg5ZTItNWU2Ni00YzJlLWE4NTQtZjUwNWFhOTViYTk2XkEyXkFqcGc@._V1_SX300.jpg',
+    'Los Goldberg': 'https://images.justwatch.com/poster/340587553/s718/temporada-1.jpg',
+    'Los Soprano': 'https://m.media-amazon.com/images/M/MV5BZjYwNWQwOTMtMzYwOS00NTcxLWFhNTYtNGQ4YjdmYTcyNDFkXkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg',
+    'Bandolero': 'https://cdn2.rtva.interactvty.com/category_cards/179a16541afb45b2bae33910c0b30008.jpg',
+    'Las Aventuras de los T-Rex': 'https://media.senscritique.com/media/000019941517/0/les_aventures_de_t_rex.jpg',
+    'Power Rangers': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdXx37AyO857mhyKtfPwJSreGY4Xtl9Me2KhmGp7-69qoUhwbyJtmHfqs&s=10',
+    'Manos a la obra': 'https://play-lh.googleusercontent.com/proxy/1uaZOA15mgek8AaIlXUoI4UMB7Zwt7httws66gaps-xjCb08N_67He-J8kzMrnSoF2dDooR0DBoGCmH1sZTtTpqgEqjnWzJkLBM-g-NweiFEBi6tzdeQf3SZ4eFpzY0EcQdNnMpjJGjG2EhAm5fvvvFozbdF_D8EBc5wUw',
+    'Cortos Disney y Pixar': 'https://i.pinimg.com/736x/ad/2e/42/ad2e42d9b1f065949ef3ec1bbb4bced2.jpg',
+    'Cortos Disney y Pixar/Cortos Pixar': 'https://i.pinimg.com/736x/71/85/8b/71858b7568ff21849749984d0395a6f7.jpg',
+    'Donkey Kong Country': 'https://m.media-amazon.com/images/M/MV5BOTNlM2MxZDktMzMyZC00Mzg3LThjZTUtNjRmNzcwYzIxM2FmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
+    'Yu-Gi-Oh! Capsule Monster': 'https://m.media-amazon.com/images/M/MV5BZGE3YzExNWUtNzZjYy00Y2JjLTlhZWUtYzRkZDRjYTExOTRjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
+    'El Castillo en el aire - La leyenda de Laputa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo5fShqmguoA-IeyBNy7bWF7YRDH_yvWpaaySahEx3kMe3gffwIOZhRG_d&s=10',
 }
 
 INHERIT_CHILD_ICONS = {
