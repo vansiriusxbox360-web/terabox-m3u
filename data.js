@@ -368,6 +368,10 @@ const PATH_POSTER_SUFFIXES = {
   'Juego de Tronos': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/juego_de_tronos.jpg',
   'La casa del dragón': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/la_casa_del_dragon.jpg',
   'El Castillo en el cielo - Tenkū no Shiro Laputa': 'https://www.jbhifi.com.au/cdn/shop/products/134794-Product-0-I_ac1f5019-39f5-41c4-9fd7-8590c3ac70db.jpg?v=1572269844',
+  // Series de streaming subidas recientemente a Terabox
+  'Colgados en Filadelfia': 'https://m.media-amazon.com/images/M/MV5BMTFiMDg5ZTItNWU2Ni00YzJlLWE4NTQtZjUwNWFhOTViYTk2XkEyXkFqcGc@._V1_SX300.jpg',
+  'Los Goldberg': 'https://m.media-amazon.com/images/M/MV5BZWFlZjkwODUtNjNiMC00NjY4LTlkYmMtNDcwZWMyODE1ZWFiXkEyXkFqcGc@._V1_SX300.jpg',
+  'Los Soprano': 'https://m.media-amazon.com/images/M/MV5BZjYwNWQwOTMtMzYwOS00NTcxLWFhNTYtNGQ4YjdmYTcyNDFkXkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg',
 };
 
 const FILE_TITLE_ALIASES = {
