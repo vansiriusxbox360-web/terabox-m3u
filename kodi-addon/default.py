@@ -84,7 +84,7 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Urotsukidoji - La leyenda del se\u00f1or del mal': 'https://m.media-amazon.com/images/I/61SNyC4jnmL._AC_UF894,1000_QL80_.jpg',
     # Series de streaming y cortos (nuevas)
     'Xavier The Renegade Angel': 'https://m.media-amazon.com/images/M/MV5BOTg2OWFkNGItNzQ1MC00MzRjLTk2OWMtYTVjODJlNzEwMjY2XkEyXkFqcGc@._V1_SX300.jpg',
-    'Colgados en Filadelfia': 'https://m.media-amazon.com/images/M/MV5BMTFiMDg5ZTItNWU2Ni00YzJlLWE4NTQtZjUwNWFhOTViYTk2XkEyXkFqcGc@._V1_SX300.jpg',
+    'Colgados en Filadelfia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/colgados_en_filadelfia.jpg',
     'Los Goldberg': 'https://images.justwatch.com/poster/340587553/s718/temporada-1.jpg',
     'Los Soprano': 'https://m.media-amazon.com/images/M/MV5BZjYwNWQwOTMtMzYwOS00NTcxLWFhNTYtNGQ4YjdmYTcyNDFkXkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg',
     'Bandolero': 'https://cdn2.rtva.interactvty.com/category_cards/179a16541afb45b2bae33910c0b30008.jpg',
@@ -121,7 +121,7 @@ STATION_POSTER_OVERRIDES = {
     'Los chicos del maiz': 'https://es.web.img2.acsta.net/medias/nmedia/18/92/53/30/20204975.jpg',
     'Christine': 'https://images.justwatch.com/poster/9621681/s718/christine.jpg',
     'Maleficio': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/maleficio.png',
-    'Tenk\u016b no Shiro Laputa': 'https://www.jbhifi.com.au/cdn/shop/products/134794-Product-0-I_ac1f5019-39f5-41c4-9fd7-8590c3ac70db.jpg?v=1572269844',
+    'Tenk\u016b no Shiro Laputa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo5fShqmguoA-IeyBNy7bWF7YRDH_yvWpaaySahEx3kMe3gffwIOZhRG_d&s=10',
     'Hocus': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/hocus_pocus.jpg',
     'Bio Menace': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bio_menace.jpg',
     'Duke Nukem II': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/duke_nukem2.jpg',
