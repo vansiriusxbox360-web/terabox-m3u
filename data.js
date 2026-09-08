@@ -375,6 +375,10 @@ const PATH_POSTER_SUFFIXES = {
   'Los Soprano': 'https://m.media-amazon.com/images/M/MV5BZjYwNWQwOTMtMzYwOS00NTcxLWFhNTYtNGQ4YjdmYTcyNDFkXkEyXkFqcGc@._V1_QL75_UX380_CR0,4,380,562_.jpg',
   'Bandolero': 'https://cdn2.rtva.interactvty.com/category_cards/179a16541afb45b2bae33910c0b30008.jpg',
   'Las Aventuras de los T-Rex': 'https://media.senscritique.com/media/000019941517/0/les_aventures_de_t_rex.jpg',
+  'Power Rangers/T1': 'https://images.justwatch.com/poster/8619652/s718/temporada-1.jpg',
+  'Power Rangers/T2': 'https://m.media-amazon.com/images/I/91LbqAJxgWL._AC_UF894,1000_QL80_.jpg',
+  'Power Rangers/T3': 'https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T4/images/I/81fDPxtbwpL._SL1500_.jpg',
+  'Power Rangers/T4': 'https://images.justwatch.com/poster/322005435/s718/temporada-4.jpg',
   'Power Rangers': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdXx37AyO857mhyKtfPwJSreGY4Xtl9Me2KhmGp7-69qoUhwbyJtmHfqs&s=10',
   'Manos a la obra': 'https://play-lh.googleusercontent.com/proxy/1uaZOA15mgek8AaIlXUoI4UMB7Zwt7httws66gaps-xjCb08N_67He-J8kzMrnSoF2dDooR0DBoGCmH1sZTtTpqgEqjnWzJkLBM-g-NweiFEBi6tzdeQf3SZ4eFpzY0EcQdNnMpjJGjG2EhAm5fvvvFozbdF_D8EBc5wUw',
   'Cortos Disney y Pixar': 'https://i.pinimg.com/736x/ad/2e/42/ad2e42d9b1f065949ef3ec1bbb4bced2.jpg',
@@ -718,6 +722,7 @@ const FILE_POSTER_URLS = {
   'Mutant Space Bats of Doom': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYGjjHaamyQn39FHutmlVQwO9dKuUzDpSs8wN1Vjy0PsNjs9eRWK6QFFM7&s=10',
   'Prince of Persia': 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co2ek1.jpg',
   'Donkey Kong Country': 'https://m.media-amazon.com/images/M/MV5BOTNlM2MxZDktMzMyZC00Mzg3LThjZTUtNjRmNzcwYzIxM2FmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
+  'Power Rangers La Película': 'https://m.media-amazon.com/images/I/71S5DqkyLML._AC_UF894,1000_QL80_.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
