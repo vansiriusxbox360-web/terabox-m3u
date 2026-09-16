@@ -38,6 +38,7 @@ const TITLE_ALIASES = {
   'Pepe Potamo': 'The Peter Potamus Show',
   'Chopy y la princesa': 'Choppy and the Princess',
   'Las Maravillosas Desventuras de Flapjack': 'The Marvelous Misadventures of Flapjack',
+  'Flapjack': 'The Marvelous Misadventures of Flapjack',
   'El rey de la colina': 'King of the Hill',
   'Ed, Edd y Eddy': 'Ed, Edd n Eddy',
   'Ed Edd y Eddy': 'Ed, Edd n Eddy',
@@ -201,6 +202,7 @@ const CUSTOM_POSTERS = {
   'El Castillo en el cielo - Tenku no Shiro Laputa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo5fShqmguoA-IeyBNy7bWF7YRDH_yvWpaaySahEx3kMe3gffwIOZhRG_d&s=10',
   'Pet Shop of Horror': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pet_shop_of_horror.jpg',
   'Beavis & Butt-Head': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4GaNJRLkGk6O_n-zP09b5k6hfvVoKmgWPcpCQPZ4zL_RCyA4RskSQ87PR&s=10',
+  'Flapjack': 'https://m.media-amazon.com/images/M/MV5BMTkzMDdiNGItYmZmYy00NDU0LWE5ZDMtZTgyNDc3ODgzNzM2XkEyXkFqcGc@._V1_SX300.jpg',
   'Beavis & Butt-Head/eplis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis2.png',
   'Beavis & Butt-Head T0': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis_butt_head_t0.jpg',
   'Beavis & Butt-Head T1': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis_butt_head_t1.jpg',
@@ -386,6 +388,8 @@ const PATH_POSTER_SUFFIXES = {
   'Donkey Kong Country': 'https://m.media-amazon.com/images/M/MV5BOTNlM2MxZDktMzMyZC00Mzg3LThjZTUtNjRmNzcwYzIxM2FmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
   'Yu-Gi-Oh! Capsule Monster': 'https://m.media-amazon.com/images/M/MV5BZGE3YzExNWUtNzZjYy00Y2JjLTlhZWUtYzRkZDRjYTExOTRjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
   'El Castillo en el aire - La leyenda de Laputa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo5fShqmguoA-IeyBNy7bWF7YRDH_yvWpaaySahEx3kMe3gffwIOZhRG_d&s=10',
+  'Flapjack': 'https://m.media-amazon.com/images/M/MV5BMTkzMDdiNGItYmZmYy00NDU0LWE5ZDMtZTgyNDc3ODgzNzM2XkEyXkFqcGc@._V1_SX300.jpg',
+  'Remastered (capis sueltos)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis_butt_head_t0.jpg',
 };
 
 const FILE_TITLE_ALIASES = {
@@ -723,6 +727,7 @@ const FILE_POSTER_URLS = {
   'Prince of Persia': 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co2ek1.jpg',
   'Donkey Kong Country': 'https://m.media-amazon.com/images/M/MV5BOTNlM2MxZDktMzMyZC00Mzg3LThjZTUtNjRmNzcwYzIxM2FmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
   'Power Rangers La Película': 'https://m.media-amazon.com/images/I/71S5DqkyLML._AC_UF894,1000_QL80_.jpg',
+  'El jorobado de Notre Dame 1': 'https://m.media-amazon.com/images/M/MV5BY2QzMGEzNGMtMDQyNC00YTlmLWEwYjMtOGI1NWYxMTM4NjA2XkEyXkFqcGc@._V1_SX300.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
