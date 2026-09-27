@@ -89,6 +89,7 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Jean-Luc y Nuagazezo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jean_luc_nuagazezo.png',
     'Thomas Alva Edison': 'https://lh3.googleusercontent.com/ci/AL18g_R7MWHkL9gjLNor21ogjEcyWFr1u-ydC0x3WfmSsqMuK4wQ4oMtnP_jdawpnhgQIANGOvBX0h4',
     'Christopher Nolan': 'https://e01-elmundo.uecdn.es/assets/multimedia/imagenes/2023/07/15/16894226191158.jpg',
+    'Alejo y Valentina': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/alejo_y_valentina.jpg',
     'Sine Kinki': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sine_kinki.jpg',
     'Stephen King': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/stephen_king.jpg',
     # Series de streaming y cortos (nuevas)

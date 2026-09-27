@@ -321,6 +321,7 @@ const PATH_POSTER_SUFFIXES = {
   'Jean-Luc y Nuagazezo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jean_luc_nuagazezo.png',
   'Thomas Alva Edison': 'https://lh3.googleusercontent.com/ci/AL18g_R7MWHkL9gjLNor21ogjEcyWFr1u-ydC0x3WfmSsqMuK4wQ4oMtnP_jdawpnhgQIANGOvBX0h4',
   'Christopher Nolan': 'https://e01-elmundo.uecdn.es/assets/multimedia/imagenes/2023/07/15/16894226191158.jpg',
+  'Alejo y Valentina': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/alejo_y_valentina.jpg',
 
   'Disney/Cortos': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
   'Disney/Pelis': 'https://cdn.artphotolimited.com/images/61a73c0dbd40b81766e77efb/1000x1000/walt-disney.jpg',
