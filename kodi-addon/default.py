@@ -77,7 +77,7 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Beavis & Butt-Head': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4GaNJRLkGk6O_n-zP09b5k6hfvVoKmgWPcpCQPZ4zL_RCyA4RskSQ87PR&s=10',
     'Beavis & Butt-Head/eplis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis2.png',
     'Beavis & Butt-Head/Remastered (capis sueltos)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis_butt_head_t0.jpg',
-    'Flapjack': 'https://m.media-amazon.com/images/M/MV5BMTkzMDdiNGItYmZmYy00NDU0LWE5ZDMtZTgyNDc3ODgzNzM2XkEyXkFqcGc@._V1_SX300.jpg',
+    'Flapjack': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/flapjack.jpg',
     'Devil May Cry': 'https://m.media-amazon.com/images/M/MV5BMWZiMTVmMjEtYjQ4MS00YzE4LThmMGYtYTE3ZjhhZmQ2NmMwXkEyXkFqcGc@._V1_.jpg',
     'High Score Girl/s1': 'https://takamakiokerar.wordpress.com/wp-content/uploads/2018/12/tumblr_mfeera8z4r1qbfiiuo1_1280.jpg',
     'High Score Girl/s2': 'https://takamakiokerar.wordpress.com/wp-content/uploads/2018/12/tumblr_mfeera8z4r1qbfiiuo1_1280.jpg',

@@ -202,7 +202,7 @@ const CUSTOM_POSTERS = {
   'El Castillo en el cielo - Tenku no Shiro Laputa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo5fShqmguoA-IeyBNy7bWF7YRDH_yvWpaaySahEx3kMe3gffwIOZhRG_d&s=10',
   'Pet Shop of Horror': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/pet_shop_of_horror.jpg',
   'Beavis & Butt-Head': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4GaNJRLkGk6O_n-zP09b5k6hfvVoKmgWPcpCQPZ4zL_RCyA4RskSQ87PR&s=10',
-  'Flapjack': 'https://m.media-amazon.com/images/M/MV5BMTkzMDdiNGItYmZmYy00NDU0LWE5ZDMtZTgyNDc3ODgzNzM2XkEyXkFqcGc@._V1_SX300.jpg',
+  'Flapjack': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/flapjack.jpg',
   'Beavis & Butt-Head/eplis': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis2.png',
   'Beavis & Butt-Head T0': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis_butt_head_t0.jpg',
   'Beavis & Butt-Head T1': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis_butt_head_t1.jpg',
@@ -394,7 +394,7 @@ const PATH_POSTER_SUFFIXES = {
   'Donkey Kong Country': 'https://m.media-amazon.com/images/M/MV5BOTNlM2MxZDktMzMyZC00Mzg3LThjZTUtNjRmNzcwYzIxM2FmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
   'Yu-Gi-Oh! Capsule Monster': 'https://m.media-amazon.com/images/M/MV5BZGE3YzExNWUtNzZjYy00Y2JjLTlhZWUtYzRkZDRjYTExOTRjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
   'El Castillo en el aire - La leyenda de Laputa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo5fShqmguoA-IeyBNy7bWF7YRDH_yvWpaaySahEx3kMe3gffwIOZhRG_d&s=10',
-  'Flapjack': 'https://m.media-amazon.com/images/M/MV5BMTkzMDdiNGItYmZmYy00NDU0LWE5ZDMtZTgyNDc3ODgzNzM2XkEyXkFqcGc@._V1_SX300.jpg',
+  'Flapjack': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/flapjack.jpg',
   'Remastered (capis sueltos)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/beavis_butt_head_t0.jpg',
 };
 
