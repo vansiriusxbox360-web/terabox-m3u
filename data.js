@@ -314,8 +314,8 @@ const PATH_POSTER_SUFFIXES = {
   'Akira Kurosawa': 'https://m.media-amazon.com/images/I/91fPGYM7PyL._AC_UF894,1000_QL80_.jpg',
   "Monty's movies": 'https://m.media-amazon.com/images/I/710PzQnaomL._AC_UF894,1000_QL80_.jpg',
   'Sergei Eisentein': 'https://upload.wikimedia.org/wikipedia/commons/2/26/Sergei_Eisenstein_03.jpg',
-  'Sine Kinki': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTptuxRTvtpLB3_u7Yfy1tFAfpnxHmo3dXYkFVbZtjeoGxNNZ5Y21E9FyI&s=10',
-  'Stephen King': 'https://imagenes.elpais.com/resizer/v2/ELXMCHSGKRAHLKMF5PH6AZZJME.jpg?auth=e542eaf2f15bc8682ad5a618fd391423b3f6481e079dc78a8b861411bb763135&width=414',
+  'Sine Kinki': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sine_kinki.jpg',
+  'Stephen King': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/stephen_king.jpg',
   'Dos fuera de serie, Juana y Sergio': 'https://m.media-amazon.com/images/M/MV5BZWY2MTdlYTItN2RhYS00ZDI2LTlmYzYtNDY5ZjcyYzJlMTYzXkEyXkFqcGc@._V1_.jpg',
   'Historias de la cripta': 'https://static.filmin.es/images/es/media/17049/1/poster_0_3.jpg',
   'Jean-Luc y Nuagazezo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jean_luc_nuagazezo.png',
@@ -759,6 +759,7 @@ const FILE_POSTER_URLS = {
   'Padre coraje (2002)': 'https://m.media-amazon.com/images/M/MV5BY2RhMjIzN2EtY2IzZC00MzU0LTk5NjYtZDZiODAxYmNmMjY1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
   'Resurrección': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/resurreccion.jpg',
   'Resurrection (1999)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/resurreccion.jpg',
+  'Resurrección (1999)': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/resurreccion.jpg',
 
 };
 

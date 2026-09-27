@@ -89,8 +89,8 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Jean-Luc y Nuagazezo': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/jean_luc_nuagazezo.png',
     'Thomas Alva Edison': 'https://lh3.googleusercontent.com/ci/AL18g_R7MWHkL9gjLNor21ogjEcyWFr1u-ydC0x3WfmSsqMuK4wQ4oMtnP_jdawpnhgQIANGOvBX0h4',
     'Christopher Nolan': 'https://e01-elmundo.uecdn.es/assets/multimedia/imagenes/2023/07/15/16894226191158.jpg',
-    'Sine Kinki': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTptuxRTvtpLB3_u7Yfy1tFAfpnxHmo3dXYkFVbZtjeoGxNNZ5Y21E9FyI&s=10',
-    'Stephen King': 'https://imagenes.elpais.com/resizer/v2/ELXMCHSGKRAHLKMF5PH6AZZJME.jpg?auth=e542eaf2f15bc8682ad5a618fd391423b3f6481e079dc78a8b861411bb763135&width=414',
+    'Sine Kinki': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/sine_kinki.jpg',
+    'Stephen King': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/stephen_king.jpg',
     # Series de streaming y cortos (nuevas)
     'Xavier The Renegade Angel': 'https://m.media-amazon.com/images/M/MV5BOTg2OWFkNGItNzQ1MC00MzRjLTk2OWMtYTVjODJlNzEwMjY2XkEyXkFqcGc@._V1_SX300.jpg',
     'Colgados en Filadelfia': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/colgados_en_filadelfia.jpg',
