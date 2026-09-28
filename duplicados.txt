@@ -1,6 +1,0 @@
-Total archivos escaneados: 13844
-Total duplicados: 1 (omitidos barbapapa: 0)
-
-[Realms of Chaos (1995).zip]
-   ORIGINAL: Realms of Chaos (1995).zip | 51.1 MB | ...cito dharmatico de Vishnu/Las cositas/Vicio/Realms of Chaos (1995).zip
-   DUP: Realms of Chaos (1995)_20260808_214429.zip | 51.1 MB | ...de Vishnu/Las cositas/Vicio/Realms of Chaos (1995)_20260808_214429.zip
