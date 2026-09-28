@@ -803,6 +803,7 @@ const FILE_POSTER_URLS = {
   'La bella y la bestia 2 - Una navidad encantada': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/bella_bestia_2.jpg',
   'La Dama y el Vagabundo 1': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dama_vagabundo_1.jpg',
   'La Dama y el Vagabundo 2': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dama_vagabundo_2.jpg',
+  'Cirque du soleil journey of man': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/cirque_du_soleil.jpg',
 };
 
 const CHILD_INHERIT_GROUP_ICON = new Set([
