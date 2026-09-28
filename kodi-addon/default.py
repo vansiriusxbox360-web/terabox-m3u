@@ -110,6 +110,14 @@ FOLDER_ICON_BY_PATH_SUFFIX = {
     'Donkey Kong Country': 'https://m.media-amazon.com/images/M/MV5BOTNlM2MxZDktMzMyZC00Mzg3LThjZTUtNjRmNzcwYzIxM2FmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
     'Yu-Gi-Oh! Capsule Monster': 'https://m.media-amazon.com/images/M/MV5BZGE3YzExNWUtNzZjYy00Y2JjLTlhZWUtYzRkZDRjYTExOTRjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
     'El Castillo en el aire - La leyenda de Laputa': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRo5fShqmguoA-IeyBNy7bWF7YRDH_yvWpaaySahEx3kMe3gffwIOZhRG_d&s=10',
+    'Los Snorkels': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/los_snorkels.jpg',
+    'Tommy y Oscar': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/tommy_y_oscar.jpg',
+    'Malcolm in the middle': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/malcolm.jpg',
+    'Agallas el perro cobarde': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/agallas.jpg',
+    'El Laboratorio de Dexter': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/dexter.jpg',
+    'Las Macabras aventuras de Billy y Mandy': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/billy_y_mandy.jpg',
+    'Las Supernenas': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/supernenas.jpg',
+    'Cirque du soleil': 'https://raw.githubusercontent.com/vansiriusxbox360-web/terabox-m3u/main/custom-posters/cirque_du_soleil.jpg',
 }
 
 INHERIT_CHILD_ICONS = {
