@@ -626,6 +626,69 @@ def _games_enabled():
         return False
 
 
+def _marathon_enabled():
+    """True si el usuario tiene activado el Modo maratón."""
+    try:
+        return ADDON.getSetting('enable_marathon') == 'true'
+    except Exception:
+        return False
+
+
+def _folder_has_episodes(node):
+    """True si la carpeta contiene capítulos directamente (T1/T2 o serie ALB)."""
+    for g in node.get('_groups', []):
+        if g.get('stations'):
+            return True
+    return False
+
+
+def _load_watched():
+    try:
+        with open(WATCHED_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def play_marathon(data, path):
+    """Reproduce en maratón: playlist desde el primer capítulo no visto (auto-avanza)."""
+    tree = build_tree(data)
+    node = tree
+    for part in [p.strip() for p in path.split('/') if p.strip()]:
+        node = node.get(part, {})
+    stations = []
+    for g in node.get('_groups', []):
+        stations.extend(g.get('stations', []))
+    if not stations:
+        return False
+    watched = _load_watched()
+    start = 0
+    for i, s in enumerate(stations):
+        wp = watched.get(s.get('path', ''))
+        if not wp or not wp.get('watched'):
+            start = i
+            break
+    else:
+        start = 0
+    pl = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+    pl.clear()
+    for s in stations[start:]:
+        sname = s.get('name', 'Sin nombre')
+        s_path = s.get('path', '')
+        s_fs = s.get('fs_id', '')
+        s_game = '1' if s.get('isGame') else ''
+        url = build_url('play', s_path, fs_id=str(s_fs), game=s_game)
+        li = xbmcgui.ListItem(sname)
+        li.setProperty('IsPlayable', 'true')
+        li.setInfo('video', {'title': sname})
+        pl.add(url, li)
+    if pl.size() > 0:
+        log(f'Maratón: {len(stations) - start} capítulos desde el {start + 1}')
+        xbmc.Player().play(pl)
+        return True
+    return False
+
+
 def list_root(data):
     show_welcome()
     tree = build_tree(data)
@@ -662,6 +725,20 @@ def list_folder(data, path):
     node = tree
     for part in parts:
         node = node.get(part, {})
+
+    # Modo maratón: si está activado y la carpeta tiene capítulos directos (T1/T2 o ALB)
+    if _marathon_enabled() and _folder_has_episodes(node) and (not parts or parts[0].lower() != 'vicio'):
+        if xbmcgui.Dialog().yesno(
+            'Modo marat\u00f3n',
+            '\u00bfQuieres hacer marat\u00f3n de esta temporada?\n'
+            'Empezar\u00e1 por el primer cap\u00edtulo no visto\n'
+            'y avanzar\u00e1 en orden.',
+            yeslabel='S\u00ed, marat\u00f3n',
+            nolabel='No'
+        ):
+            if play_marathon(data, path):
+                xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=False)
+                return
 
     # En la sección de juegos (vicio), asegurar que DOSBox está instalado
     if parts and parts[0].lower() == 'vicio' and any(
